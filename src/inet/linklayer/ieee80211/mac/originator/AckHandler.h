@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015 Andras Varga
+// Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 namespace inet {
 namespace ieee80211 {
 
+// FIXME: per tid and mgmt frames or change the internal data structure
 class INET_API AckHandler
 {
     public:
@@ -44,10 +45,12 @@ class INET_API AckHandler
 
     protected:
         virtual Status& getAckStatus(SequenceControlField id);
-        std::string printStatus(Status status);
+        std::string getStatusString(Status status);
         void printAckStatuses();
 
     public:
+        virtual ~AckHandler() { }
+
         virtual void processReceivedAck(Ieee80211ACKFrame *ack, Ieee80211DataOrMgmtFrame *ackedFrame);
         virtual std::set<SequenceControlField> processReceivedBlockAck(Ieee80211BlockAck *blockAck);
 

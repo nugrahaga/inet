@@ -17,34 +17,38 @@
 #define __INET_TXOPPROCEDURE_H
 
 #include "inet/common/INETDefs.h"
+#include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API TxOpProcedure // FIXME: rename to TxOp
+using namespace physicallayer;
+
+class INET_API TxopProcedure : public cSimpleModule
 {
-    public:
-        enum class Type {
-            EDCA,
-            HCCA,
-        };
+    protected:
+        IRateSelection *rateSelection = nullptr;
+        simtime_t start = -1;
+        simtime_t limit = -1;
 
     protected:
-        Type type;
-        simtime_t start;
-        simtime_t limit;
+        s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
 
     public:
-        TxOpProcedure(Type type, simtime_t limit) : type(type), start(simTime()), limit(limit)
-        { }
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
 
-        virtual Type getType() const { return type; }
-        virtual simtime_t getStart() const { return start; }
-        virtual simtime_t getLimit() const { return limit; }
-        virtual simtime_t getRemaining() const { auto now = simTime(); return now > start + limit ? 0 : now - start; }
+        virtual void startTxop(AccessCategory ac);
+        virtual void stopTxop();
+
+        virtual simtime_t getStart() const;
+        virtual simtime_t getLimit() const;
+        virtual simtime_t getRemaining() const;
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
 
 #endif // ifndef __INET_TXOPPROCEDURE_H

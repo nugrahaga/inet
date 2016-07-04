@@ -17,11 +17,12 @@
 // Author: Andras Varga
 //
 
-#include "inet/linklayer/ieee80211/mac/contract/IMacRadioInterface.h"
+#include "inet/common/INETUtils.h"
+#include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRx.h"
 #include "inet/linklayer/ieee80211/mac/contract/IStatistics.h"
-#include "inet/linklayer/ieee80211/mac/contract/IUpperMac.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Mac.h"
 #include "inet/linklayer/ieee80211/mac/Tx.h"
 
 namespace inet {
@@ -36,20 +37,24 @@ Tx::~Tx()
         delete frame;
 }
 
-void Tx::initialize()
+void Tx::initialize(int stage)
 {
-    mac = dynamic_cast<IMacRadioInterface *>(getModuleByPath(par("macModule")));
-    rx = dynamic_cast<IRx *>(getModuleByPath(par("rxModule")));
-//    statistics = check_and_cast<IStatistics*>(getModuleByPath(par("statisticsModule")));
-    endIfsTimer = new cMessage("endIFS");
-
-    WATCH(transmitting);
-    updateDisplayString();
+    if (stage == INITSTAGE_LOCAL) {
+        mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
+        endIfsTimer = new cMessage("endIFS");
+        rx = dynamic_cast<IRx *>(getModuleByPath(par("rxModule")));
+        // statistics = check_and_cast<IStatistics*>(getModuleByPath(par("statisticsModule")));
+        WATCH(transmitting);
+    }
+    if (stage == INITSTAGE_LINK_LAYER) {
+        address = mac->getAddress();
+        updateDisplayString();
+    }
 }
 
 void Tx::transmitFrame(Ieee80211Frame *frame, ITx::ICallback *txCallback)
 {
-    transmitFrame(frame, SIMTIME_ZERO, txCallback); //TODO make dedicated version, without the timer
+    transmitFrame(frame, SIMTIME_ZERO, txCallback);
 }
 
 void Tx::transmitFrame(Ieee80211Frame *frame, simtime_t ifs, ITx::ICallback *txCallback)
@@ -58,8 +63,15 @@ void Tx::transmitFrame(Ieee80211Frame *frame, simtime_t ifs, ITx::ICallback *txC
     this->txCallback = txCallback;
     Enter_Method("transmitFrame(\"%s\")", frame->getName());
     take(frame);
-    this->frame = frame;
-
+    if (auto twoAddrFrame = dynamic_cast<Ieee80211TwoAddressFrame*>(frame)) {
+        auto frameToTransmit = inet::utils::dupPacketAndControlInfo(twoAddrFrame);
+        frameToTransmit->setTransmitterAddress(address);
+        this->frame = frameToTransmit;
+    }
+    else {
+        auto frameToTransmit = inet::utils::dupPacketAndControlInfo(frame);
+        this->frame = frameToTransmit;
+    }
     ASSERT(!endIfsTimer->isScheduled() && !transmitting);    // we are idle
     scheduleAt(simTime() + ifs, endIfsTimer);
     if (hasGUI())

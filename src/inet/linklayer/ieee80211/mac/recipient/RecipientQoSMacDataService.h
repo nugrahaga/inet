@@ -16,13 +16,13 @@
 #ifndef __INET_RECIPIENTQOSMACDATASERVICE_H
 #define __INET_RECIPIENTQOSMACDATASERVICE_H
 
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockackreordering/BlockAckReordering.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRecipientMacDataService.h"
-#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
-#include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 #include "inet/linklayer/ieee80211/mac/contract/IDefragmentation.h"
-#include "inet/linklayer/ieee80211/mac/recipient/RecipientBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/contract/IMsduDeaggregation.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -47,6 +47,7 @@ class INET_API RecipientQoSMacDataService : public IRecipientMacDataService, pub
         // RxMsduRateLimiting *rxMsduRateLimiting = nullptr;
 
     protected:
+        virtual ~RecipientQoSMacDataService();
         virtual void initialize() override;
 
         virtual Ieee80211DataFrame* defragment(std::vector<Ieee80211DataFrame *> completeFragments);
@@ -56,6 +57,7 @@ class INET_API RecipientQoSMacDataService : public IRecipientMacDataService, pub
         virtual std::vector<Ieee80211Frame *> dataFrameReceived(Ieee80211DataFrame *dataFrame) override;
         virtual std::vector<Ieee80211Frame *> controlFrameReceived(Ieee80211Frame *controlFrame) override;
         virtual std::vector<Ieee80211Frame *> managementFrameReceived(Ieee80211ManagementFrame *mgmtFrame) override;
+
 };
 
 } /* namespace ieee80211 */

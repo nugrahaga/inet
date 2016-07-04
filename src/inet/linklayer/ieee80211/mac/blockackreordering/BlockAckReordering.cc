@@ -1,21 +1,22 @@
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
+// Copyright (C) 2016 OpenSim Ltd.
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
+// along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
 #include "BlockAckReordering.h"
-#include "inet/linklayer/ieee80211/mac/blockack/BlockAckAgreement.h"
-
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -23,46 +24,38 @@ namespace ieee80211 {
 //
 // The recipient flushes received MSDUs from its receive buffer as described in this subclause. [...]
 //
-BlockAckReordering::ReorderBuffer BlockAckReordering::processReceivedQoSFrame(BlockAckAgreement *agreement, Ieee80211DataFrame* dataFrame)
+BlockAckReordering::ReorderBuffer BlockAckReordering::processReceivedQoSFrame(RecipientBlockAckAgreement *agreement, Ieee80211DataFrame* dataFrame)
 {
-    MACAddress originatorAddr = dataFrame->getTransmitterAddress();
-    Tid tid = dataFrame->getTid();
-    auto id = std::make_pair(tid, originatorAddr);
-    auto it = receiveBuffers.find(id);
-    if (it != receiveBuffers.end()) {
-        ReceiveBuffer *receiveBuffer = it->second;
-        // The reception of QoS data frames using Normal Ack policy shall not be used by the
-        // recipient to reset the timer to detect Block Ack timeout (see 10.5.4).
-        // This allows the recipient to delete the Block Ack if the originator does not switch
-        // back to using Block Ack.
-        if (dataFrame->getAckPolicy() == BLOCK_ACK) // TODO: Implicit Block Ack
-            agreement->scheduleInactivityTimer();
-        if (receiveBuffer->insertFrame(dataFrame)) {
-            if (dataFrame->getAckPolicy() == BLOCK_ACK)
-                agreement->blockAckPolicyFrameReceived(dataFrame);
-            auto earliestCompleteMsduOrAMsdu = getEarliestCompleteMsduOrAMsduIfExists(receiveBuffer);
-            if (earliestCompleteMsduOrAMsdu.size() > 0) {
-                int earliestSequenceNumber = earliestCompleteMsduOrAMsdu.at(0)->getSequenceNumber();
-                // If, after an MPDU is received, the receive buffer is full, the complete MSDU or A-MSDU with the earliest
-                // sequence number shall be passed up to the next MAC process.
-                if (receiveBuffer->isFull()) {
-                    passedUp(receiveBuffer, earliestSequenceNumber);
-                    return ReorderBuffer({std::make_pair(earliestSequenceNumber, Fragments({earliestCompleteMsduOrAMsdu}))});
-                }
-                // If, after an MPDU is received, the receive buffer is not full, but the sequence number of the complete MSDU or
-                // A-MSDU in the buffer with the lowest sequence number is equal to the NextExpectedSequenceNumber for
-                // that Block Ack agreement, then the MPDU shall be passed up to the next MAC process.
-                else if (earliestSequenceNumber == receiveBuffer->getNextExpectedSequenceNumber()) {
-                    int seqNum = dataFrame->getSequenceNumber();
-                    passedUp(receiveBuffer, seqNum);
-                    return ReorderBuffer({std::make_pair(seqNum, Fragments({dataFrame}))});
-                }
+    ReceiveBuffer *receiveBuffer = createReceiveBufferIfNecessary(agreement);
+    // The reception of QoS data frames using Normal Ack policy shall not be used by the
+    // recipient to reset the timer to detect Block Ack timeout (see 10.5.4).
+    // This allows the recipient to delete the Block Ack if the originator does not switch
+    // back to using Block Ack.
+    if (dataFrame->getAckPolicy() == BLOCK_ACK) // TODO: Implicit Block Ack
+        agreement->scheduleInactivityTimer();
+    if (receiveBuffer->insertFrame(dataFrame)) {
+        if (dataFrame->getAckPolicy() == BLOCK_ACK)
+            agreement->blockAckPolicyFrameReceived(dataFrame);
+        auto earliestCompleteMsduOrAMsdu = getEarliestCompleteMsduOrAMsduIfExists(receiveBuffer);
+        if (earliestCompleteMsduOrAMsdu.size() > 0) {
+            int earliestSequenceNumber = earliestCompleteMsduOrAMsdu.at(0)->getSequenceNumber();
+            // If, after an MPDU is received, the receive buffer is full, the complete MSDU or A-MSDU with the earliest
+            // sequence number shall be passed up to the next MAC process.
+            if (receiveBuffer->isFull()) {
+                passedUp(receiveBuffer, earliestSequenceNumber);
+                return ReorderBuffer({std::make_pair(earliestSequenceNumber, Fragments(earliestCompleteMsduOrAMsdu))});
+            }
+            // If, after an MPDU is received, the receive buffer is not full, but the sequence number of the complete MSDU or
+            // A-MSDU in the buffer with the lowest sequence number is equal to the NextExpectedSequenceNumber for
+            // that Block Ack agreement, then the MPDU shall be passed up to the next MAC process.
+            else if (earliestSequenceNumber == receiveBuffer->getNextExpectedSequenceNumber()) {
+                int seqNum = dataFrame->getSequenceNumber();
+                passedUp(receiveBuffer, seqNum);
+                return ReorderBuffer({std::make_pair(seqNum, Fragments(earliestCompleteMsduOrAMsdu))});
             }
         }
     }
-    else {
-        throw cRuntimeError("Receive buffer is not found");
-    }
+    return ReorderBuffer({});
 }
 
 //
@@ -183,28 +176,35 @@ bool BlockAckReordering::isComplete(const std::vector<Ieee80211DataFrame*>& frag
     return largestFragmentNumber != -1 && largestFragmentNumber + 1 == (int)fragNums.size();
 }
 
-void BlockAckReordering::agreementEstablished(BlockAckAgreement* agreement)
+ReceiveBuffer* BlockAckReordering::createReceiveBufferIfNecessary(RecipientBlockAckAgreement *agreement)
 {
+    SequenceNumber startingSequenceNumber = agreement->getStartingSequenceNumber();
     int bufferSize = agreement->getBufferSize();
     Tid tid = agreement->getBlockAckRecord()->getTid();
     MACAddress originatorAddr = agreement->getBlockAckRecord()->getOriginatorAddress();
     auto id = std::make_pair(tid, originatorAddr);
-    receiveBuffers[id] = new ReceiveBuffer(bufferSize);
+    auto it = receiveBuffers.find(id);
+    if (it == receiveBuffers.end()) {
+        ReceiveBuffer *buffer = new ReceiveBuffer(bufferSize, startingSequenceNumber);
+        receiveBuffers[id] = buffer;
+        return buffer;
+    }
+    else
+        return it->second;
 }
 
-void BlockAckReordering::agreementTerminated(BlockAckAgreement* agreement)
+void BlockAckReordering::processReceivedDelba(Ieee80211Delba* delba)
 {
-    Tid tid = agreement->getBlockAckRecord()->getTid();
-    MACAddress originatorAddr = agreement->getBlockAckRecord()->getOriginatorAddress();
+    Tid tid = delba->getTid();
+    MACAddress originatorAddr = delba->getTransmitterAddress();
     auto id = std::make_pair(tid, originatorAddr);
     auto it = receiveBuffers.find(id);
     if (it != receiveBuffers.end()) {
         delete it->second;
         receiveBuffers.erase(it);
     }
-    else {
-        throw cRuntimeError("Receive buffer is not found");
-    }
+    else
+        EV_DETAIL << "Receive buffer is not found" << endl;
 }
 
 void BlockAckReordering::passedUp(ReceiveBuffer *receiveBuffer, int sequenceNumber)
@@ -226,6 +226,13 @@ std::vector<Ieee80211DataFrame*> BlockAckReordering::getEarliestCompleteMsduOrAM
     }
     return Fragments();
 }
+
+BlockAckReordering::~BlockAckReordering()
+{
+    for (auto receiveBuffer : receiveBuffers)
+        delete receiveBuffer.second;
+}
+
 
 } /* namespace ieee80211 */
 } /* namespace inet */

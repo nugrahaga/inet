@@ -30,7 +30,4 @@ module OriginatorMacDataService
             parameters:
                 @display("p=100,200");
         }
-        recoveryProcedure: RecoveryProcedure {
-            @display("p=100,308");
-        }
 }

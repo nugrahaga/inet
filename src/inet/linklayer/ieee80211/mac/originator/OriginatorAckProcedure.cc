@@ -42,6 +42,5 @@ simtime_t OriginatorAckProcedure::getAckFullTimeout() const
     return sifs + slotTime + getAckDuration();
 }
 
-
 } /* namespace ieee80211 */
 } /* namespace inet */

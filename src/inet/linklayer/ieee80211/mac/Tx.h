@@ -25,8 +25,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class IUpperMac;
-class IMacRadioInterface;
+class Ieee80211Mac;
 class IRx;
 class IStatistics;
 
@@ -36,17 +35,19 @@ class IStatistics;
 class INET_API Tx : public cSimpleModule, public ITx
 {
     protected:
+        MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
         ITx::ICallback *txCallback = nullptr;
-        IMacRadioInterface *mac;
-        IRx *rx;
-        IStatistics *statistics;
+        Ieee80211Mac *mac = nullptr;
+        IRx *rx = nullptr;
+        IStatistics *statistics = nullptr;
         Ieee80211Frame *frame = nullptr;
         cMessage *endIfsTimer = nullptr;
-        simtime_t durationField;
+        simtime_t durationField = -1;
         bool transmitting = false;
 
     protected:
-        virtual void initialize() override;
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override;
         virtual void updateDisplayString();
 
@@ -63,4 +64,3 @@ class INET_API Tx : public cSimpleModule, public ITx
 } // namespace inet
 
 #endif
-

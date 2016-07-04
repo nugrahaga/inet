@@ -22,7 +22,7 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxOpProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const Ieee80211ModeSet *modeSet) :
+FrameSequenceContext::FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode) :
     pendingQueue(pendingQueue),
     inProgressFrames(inProgressFrames),
     ackProcedure(ackProcedure),
@@ -30,7 +30,7 @@ FrameSequenceContext::FrameSequenceContext(PendingQueue *pendingQueue, InProgres
     txopProcedure(txopProcedure),
     blockAckProcedure(blockAckProcedure),
     blockAckAgreementHandler(blockAckAgreementHandler),
-    modeSet(modeSet)
+    mode(mode)
 {
 }
 

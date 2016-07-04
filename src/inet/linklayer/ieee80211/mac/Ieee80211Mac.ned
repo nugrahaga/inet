@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2006 Andras Varga and Levente M�sz�ros
+// Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
-// Author: Andras Varga
-//
 
 package inet.linklayer.ieee80211.mac;
 
@@ -25,7 +23,9 @@ import inet.linklayer.ieee80211.mac.contract.IRateSelection;
 import inet.linklayer.ieee80211.mac.contract.IRx;
 import inet.linklayer.ieee80211.mac.contract.IStatistics;
 import inet.linklayer.ieee80211.mac.contract.ITx;
-import inet.linklayer.ieee80211.mac.contract.IUpperMac;
+import inet.linklayer.ieee80211.mac.coordinationfunction.Dcf;
+import inet.linklayer.ieee80211.mac.coordinationfunction.Hcf;
+
 
 // near copy-paste of inet.linklayer.base.MACProtocolBase to work around "compound-module cannot extend a simple-module" error in OMNeT++ 4.x
 module LayeredProtocolBase
@@ -94,9 +94,9 @@ module Ieee80211Mac extends MACProtocolBase like IIeee80211Mac
                                           // a generated MAC address in init stage 0.
         string rateControlModuleType = default("");
         string modeSet @enum("a","b","g","n","p") = default("g");
-
-        *.macModule = "^";
-        *.upperMacModule = "^.upperMac";
+        
+        bool qosStation = default(true);
+        
         *.rxModule = "^.rx";
         *.txModule = "^.tx";
         *.rateSelectionModule = "^.rateSelection";
@@ -110,32 +110,34 @@ module Ieee80211Mac extends MACProtocolBase like IIeee80211Mac
         @statistic[sentDownPk](title="packets sent to lower layer"; source=packetSentToLower; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
         @statistic[rcvdPkFromHL](title="packets received from higher layer"; source=packetReceivedFromUpper; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
         @statistic[rcvdPkFromLL](title="packets received from lower layer"; source=packetReceivedFromLower; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
-        
+
         @signal[NF_MODESET_CHANGED](type=inet::physicallayer::Ieee80211ModeSet);
     submodules:
         rateSelection: <default("BasicRateSelection")> like IRateSelection {
             parameters:
-                @display("p=100,300");
+                @display("p=100,149");
         }
         rateControl: <rateControlModuleType> like IRateControl if rateControlModuleType != "" {
             parameters:
-                @display("p=100,400");
+                @display("p=100,222");
         }
         statistics: <default("BasicStatistics")> like IStatistics {
             parameters:
-                @display("p=100,500");
+                @display("p=100,308");
         }
-        upperMac: <default("UpperMac")> like IUpperMac {
-            parameters:
-                @display("p=300,100");
+        dcf: Dcf {
+            @display("p=285,149");
+        }
+        hcf: Hcf {
+            @display("p=400,149;i=block/queue");
         }
         rx: <default("Rx")> like IRx {
             parameters:
-                @display("p=300,400");
+                @display("p=285,222");
         }
         tx: <default("Tx")> like ITx {
             parameters:
-                @display("p=400,400");
+                @display("p=400,222");
         }
 }
 
@@ -171,7 +173,7 @@ module Ieee80211CompatibleMac extends Ieee80211Mac
 
         //upperMac.typename = EDCA ? "EdcaUpperMac" : "DcfUpperMac";
 
-//        rateSelection.modeSet = opMode; // BasicRateSelection
+        //        rateSelection.modeSet = opMode; // BasicRateSelection
         rateSelection.dataBitrate = bitrate; // BasicRateSelection
         rateSelection.multicastBitrate = basicBitrate;
         rateSelection.controlBitrate = controlBitrate;

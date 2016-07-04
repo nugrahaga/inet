@@ -23,7 +23,7 @@
 #include "inet/linklayer/ieee80211/mac/contract/IMsduAggregationPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IOriginatorMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Queue.h"
+#include "inet/linklayer/ieee80211/mac/queue/Ieee80211Queue.h"
 
 namespace inet {
 namespace ieee80211 {

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015 Andras Varga
+// Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -12,9 +12,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, see <http://www.gnu.org/licenses/>.
-//
-// Author: Andras Varga
+// along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
 package inet.linklayer.ieee80211.mac.contention;
@@ -27,8 +25,6 @@ import inet.linklayer.ieee80211.mac.contract.IContention;
 simple Contention like IContention
 {
     parameters:
-        string macModule;
-        string collisionControllerModule = default("");
         bool initialChannelBusy = default(true); // assume that channel was busy before the simulation started
         bool backoffOptimization = default(true);    // we can pretend the frame has arrived into the queue a little bit earlier, and may be able to start transmitting immediately
         @display("i=block/control");

@@ -1,16 +1,18 @@
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
+// Copyright (C) 2016 OpenSim Ltd.
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
+// along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
 #ifndef __INET_BLOCKACKREORDERING_H
@@ -21,7 +23,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class BlockAckAgreement;
+class RecipientBlockAckAgreement;
 
 //
 // Figure 5-1—MAC data plane architecture -- Block Ack Reordering
@@ -40,17 +42,17 @@ class INET_API BlockAckReordering
         ReorderBuffer collectCompletePrecedingMpdus(ReceiveBuffer *receiveBuffer, int startingSequenceNumber);
         ReorderBuffer collectConsecutiveCompleteFollowingMpdus(ReceiveBuffer *receiveBuffer, int startingSequenceNumber);
 
-
         std::vector<Ieee80211DataFrame*> getEarliestCompleteMsduOrAMsduIfExists(ReceiveBuffer *receiveBuffer);
         bool isComplete(const Fragments& fragments);
         void passedUp(ReceiveBuffer *receiveBuffer, int sequenceNumber);
         void releaseReceiveBuffer(ReceiveBuffer *receiveBuffer, const ReorderBuffer& reorderBuffer);
+        ReceiveBuffer* createReceiveBufferIfNecessary(RecipientBlockAckAgreement *agreement);
 
     public:
-        void agreementEstablished(BlockAckAgreement *agreement);
-        void agreementTerminated(BlockAckAgreement *agreement);
+        virtual ~BlockAckReordering();
 
-        ReorderBuffer processReceivedQoSFrame(BlockAckAgreement *agreement, Ieee80211DataFrame* dataFrame);
+        void processReceivedDelba(Ieee80211Delba *delba);
+        ReorderBuffer processReceivedQoSFrame(RecipientBlockAckAgreement *agreement, Ieee80211DataFrame* dataFrame);
         ReorderBuffer processReceivedBlockAckReq(Ieee80211BlockAckReq* frame);
 };
 

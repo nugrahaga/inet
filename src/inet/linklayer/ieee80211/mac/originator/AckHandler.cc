@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015 Andras Varga
+// Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "AckHandler.h"
 
@@ -43,7 +43,7 @@ AckHandler::Status AckHandler::getAckStatus(Ieee80211DataOrMgmtFrame* frame)
 
 void AckHandler::processReceivedAck(Ieee80211ACKFrame* ack, Ieee80211DataOrMgmtFrame *ackedFrame)
 {
-    auto id = SequenceControlField(ackedFrame->getSequenceNumber(),ackedFrame->getFragmentNumber());
+    auto id = SequenceControlField(ackedFrame->getSequenceNumber(), ackedFrame->getFragmentNumber());
     Status &status = getAckStatus(id);
     if (status == Status::FRAME_NOT_YET_TRANSMITTED)
         throw cRuntimeError("ackedFrame = %s is not yet transmitted", ackedFrame->getName());
@@ -119,7 +119,7 @@ void AckHandler::processTransmittedQoSData(Ieee80211DataFrame* frame)
 
 void AckHandler::processTransmittedBlockAckReq(Ieee80211BlockAckReq* blockAckReq)
 {
-    printAckStatuses();
+    //printAckStatuses();
     for (auto &ackStatus : ackStatuses) {
         auto seqCtrlField = ackStatus.first;
         auto &status = ackStatus.second;
@@ -138,12 +138,14 @@ void AckHandler::processTransmittedBlockAckReq(Ieee80211BlockAckReq* blockAckReq
         else
             throw cRuntimeError("Multi-TID BlockReq is unimplemented");
     }
-    printAckStatuses();
+    //printAckStatuses();
 }
 
 void AckHandler::frameGotInProgress(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame)
 {
     auto id = SequenceControlField(dataOrMgmtFrame->getSequenceNumber(), dataOrMgmtFrame->getFragmentNumber());
+    Status& status = getAckStatus(id);
+    ASSERT(status != Status::WAITING_FOR_NORMAL_ACK && status != Status::BLOCK_ACK_NOT_YET_REQUESTED && status != Status::WAITING_FOR_BLOCK_ACK);
     ackStatuses[id] = Status::FRAME_NOT_YET_TRANSMITTED;
 }
 
@@ -156,8 +158,7 @@ int AckHandler::getNumberOfFramesWithStatus(Status status)
     return count;
 }
 
-
-std::string AckHandler::printStatus(Status status)
+std::string AckHandler::getStatusString(Status status)
 {
     switch (status) {
         case Status::FRAME_NOT_YET_TRANSMITTED : return "FRAME_NOT_YET_TRANSMITTED";
@@ -177,7 +178,7 @@ void AckHandler::printAckStatuses()
 {
     for (auto ackStatus : ackStatuses) {
         std::cout << "Seq Num = " << ackStatus.first.getSequenceNumber() << " " << "Frag Num = " << (int)ackStatus.first.getFragmentNumber() << std::endl;
-        std::cout << "Status = " << printStatus(ackStatus.second) << std::endl;
+        std::cout << "Status = " << getStatusString(ackStatus.second) << std::endl;
     }
     std::cout << "=========================================" << std::endl;
 }

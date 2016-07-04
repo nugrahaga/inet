@@ -1,4 +1,6 @@
 //
+// Copyright (C) 2016 OpenSim Ltd.
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -16,24 +18,107 @@
 #ifndef __INET_DCF_H
 #define __INET_DCF_H
 
+#include "inet/linklayer/ieee80211/mac/channelaccess/Dcaf.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
-#include "inet/linklayer/ieee80211/mac/coordinationfunction/CafBase.h"
+#include "inet/linklayer/ieee80211/mac/contract/IFrameSequenceHandler.h"
+#include "inet/linklayer/ieee80211/mac/contract/ITx.h"
+#include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
+#include "inet/linklayer/ieee80211/mac/lifetime/DcfReceiveLifetimeHandler.h"
+#include "inet/linklayer/ieee80211/mac/lifetime/DcfTransmitLifetimeHandler.h"
+#include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/originator/RecoveryProcedure.h"
+#include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
+#include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
+#include "inet/linklayer/ieee80211/mac/recipient/CtsProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientMacDataService.h"
 
 namespace inet {
 namespace ieee80211 {
 
+class Ieee80211Mac;
+
 /**
  * Implements IEEE 802.11 Distributed Coordination Function.
  */
-class INET_API Dcf : public CafBase, public ICoordinationFunction, public IContention::ICallback
+class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IContentionBasedChannelAccess::ICallback, public ITx::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
 {
     protected:
-        virtual int numInitStages() const override {return NUM_INIT_STAGES;}
+        Ieee80211Mac *mac = nullptr;
+
+        // Transmission and reception
+        IRx *rx = nullptr;
+        ITx *tx = nullptr;
+
+        IRateSelection *rateSelection = nullptr;
+
+        // Channel access method
+        Dcaf *dcfChannelAccess = nullptr;
+
+        // MAC Data Service
+        OriginatorMacDataService *originatorDataService = nullptr;
+        RecipientMacDataService *recipientDataService = nullptr;
+
+        // MAC Procedures
+        AckHandler *ackHandler = nullptr;
+        RecipientAckProcedure *recipientAckProcedure = nullptr;
+        OriginatorAckProcedure *originatorAckProcedure = nullptr;
+        DcfTransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
+        DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
+        RtsProcedure *rtsProcedure = nullptr;
+        CtsProcedure *ctsProcedure = nullptr;
+        RecoveryProcedure *recoveryProcedure = nullptr;
+
+        // Queue
+        PendingQueue *pendingQueue = nullptr;
+        InProgressFrames *inProgressFrames = nullptr;
+
+        // Frame sequence handler
+        IFrameSequenceHandler *frameSequenceHandler = nullptr;
+
+        const IIeee80211Mode *referenceMode = nullptr;
+
+        simtime_t sifs = -1;
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
+        void sendUp(const std::vector<Ieee80211Frame*>& completeFrames);
+        virtual bool hasFrameToTransmit();
+        FrameSequenceContext *buildContext();
+
+        virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
+        virtual void recipientProcessControlFrame(Ieee80211Frame *frame);
+        virtual void originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame *protectedFrame) override;
+        virtual void originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame) override;
+        virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
+        virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
+
+    protected:
+        // IContentionBasedChannelAccess::ICallback
+        virtual void channelGranted(IContentionBasedChannelAccess *channelAccess) override;
+        virtual int getCw(IContentionBasedChannelAccess *channelAccess) override;
+
+        // IFrameSequenceHandler::ICallback
+        virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;
+        virtual bool isReceptionInProgress() override;
+        virtual void frameSequenceFinished() override;
+
+        // IRecoveryProcedure::ICallback
+        virtual int computeCwMin(IRecoveryProcedure *rp);
+        virtual int computeCwMax(IRecoveryProcedure *rp);
+
+        // ITx::ICallback
+        virtual void transmissionComplete() override;
+
     public:
-        virtual void channelAccessGranted() override;
-        virtual void internalCollision() override;
+        virtual ~Dcf();
+
+        // ICoordinationFunction
+        virtual void processUpperFrame(Ieee80211DataOrMgmtFrame *frame) override;
+        virtual void processLowerFrame(Ieee80211Frame *frame) override;
 };
 
 } /* namespace ieee80211 */

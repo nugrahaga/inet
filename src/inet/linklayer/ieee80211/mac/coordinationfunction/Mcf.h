@@ -1,4 +1,6 @@
 //
+// Copyright (C) 2016 OpenSim Ltd.
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -17,6 +19,7 @@
 #define __INET_MCF_H
 
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
+#include "inet/linklayer/ieee80211/mac/contract/IChannelAccess.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/McfFs.h"
 
 namespace inet {
@@ -25,11 +28,14 @@ namespace ieee80211 {
 /**
  * Implements IEEE 802.11 Mesh Coordination Function.
  */
-class INET_API Mcf : public cSimpleModule, public ICoordinationFunction
+class INET_API Mcf : public ICoordinationFunction, public cSimpleModule
 {
     protected:
-        McfFs *frameSequence = nullptr;
-        FrameSequenceContext *context = nullptr;
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+
+    public:
+        virtual void processUpperFrame(Ieee80211DataOrMgmtFrame *frame) { throw cRuntimeError("Unimplemented!"); }
+        virtual void processLowerFrame(Ieee80211Frame *frame) { throw cRuntimeError("Unimplemented!"); };
 };
 
 } /* namespace ieee80211 */

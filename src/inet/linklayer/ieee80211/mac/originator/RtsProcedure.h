@@ -22,7 +22,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RtsProcedure
+class INET_API RtsProcedure : public cSimpleModule
 {
     protected:
         IRateSelection *rateSelection = nullptr;
@@ -34,6 +34,9 @@ class INET_API RtsProcedure
         int rtsThreshold = -1;
 
     protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
         Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
         bool isBroadcastOrMulticast(Ieee80211Frame *frame) const;
@@ -41,15 +44,12 @@ class INET_API RtsProcedure
         Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     public:
-        RtsProcedure(IRateSelection *rateSelection);
-
         virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;
-
-        virtual int getRtsThreshold() { return rtsThreshold; }
 
         simtime_t getCtsDuration() const;
         simtime_t getCtsEarlyTimeout() const;
         simtime_t getCtsFullTimeout() const;
+        virtual int getRtsThreshold() { return rtsThreshold; }
 };
 
 } /* namespace ieee80211 */

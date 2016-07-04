@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2015 Andras Varga
+// Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
-// Author: Andras Varga
-//
 
 package inet.linklayer.ieee80211.mac.coordinationfunction;
 
-import inet.linklayer.ieee80211.mac.contention.Contention;
+import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
+import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
-import inet.linklayer.ieee80211.mac.originator.OriginatorMpduHandler;
+import inet.linklayer.ieee80211.mac.originator.RecoveryProcedure;
+import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
 import inet.linklayer.ieee80211.mac.recipient.RecipientMacDataService;
-import inet.linklayer.ieee80211.mac.recipient.RecipientMpduHandler;
 
 
 //
@@ -32,37 +31,37 @@ import inet.linklayer.ieee80211.mac.recipient.RecipientMpduHandler;
 module Dcf
 {
     parameters:
-        double difsTime @unit("s") = default(-1s);
+        int maxQueueSize = default(100);
 
         string rxModule;
         string txModule;
         string rateSelectionModule;
-        string macModule;
-        *.macModule = "^." + macModule;
-        *.difsTime = difsTime;
+
         *.rateSelectionModule = "^." + rateSelectionModule;
         *.rxModule = "^." + rxModule;
-        *.originatorMacDataServiceModule = "^.originatorMacDataService";
-        *.recipientDataServiceModule = "^.recipientMacDataService";
 
         @class(Dcf);
-        @display("i=block/queue");
+        @display("i=block/queue;bgb=226,514");
 
     submodules:
-        contention: Contention {
-            @display("p=210,82");
-        }
-        // FIXME: We need a module similar to Edca.
-        originatorMacDataService: OriginatorMacDataService {
-            @display("p=210,153");
-        }
-        originatorMpduHandler: OriginatorMpduHandler {
-            @display("p=210,226;i=block/dispatch");
-        }
-        recipientMpduHandler: RecipientMpduHandler {
-            @display("p=210,371;i=block/dispatch");
+        channelAccess: Dcaf {
+            @display("p=113,293");
         }
         recipientMacDataService: RecipientMacDataService {
-            @display("p=210,305");
+            @display("p=113,442");
+        }
+        originatorMacDataService: OriginatorMacDataService {
+            @display("p=113,366");
+        }
+        frameSequenceHandler: FrameSequenceHandler {
+            @display("p=113,211");
+        }
+        rtsProcedure: RtsProcedure {
+            @display("p=113,57");
+        }
+        recoveryProcedure: RecoveryProcedure {
+            rtsProcedureModule = "^.rtsProcedure";
+            cwCalculator = "^";
+            @display("p=113,131");
         }
 }

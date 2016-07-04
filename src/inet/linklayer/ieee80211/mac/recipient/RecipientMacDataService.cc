@@ -45,14 +45,13 @@ std::vector<Ieee80211Frame*> RecipientMacDataService::dataOrMgmtFrameReceived(Ie
         defragmentedFrame = defragment(frame);
     }
     // TODO: MSDU Integrity, Replay Detection, A-MSDU Deagg., RX MSDU Rate Limiting
-    return std::vector<Ieee80211Frame*>({defragmentedFrame});
+    return defragmentedFrame != nullptr ? std::vector<Ieee80211Frame*>({defragmentedFrame}) : std::vector<Ieee80211Frame*>();
 }
 
 std::vector<Ieee80211Frame*> RecipientMacDataService::dataFrameReceived(Ieee80211DataFrame* dataFrame)
 {
     return dataOrMgmtFrameReceived(dataFrame);
 }
-
 
 std::vector<Ieee80211Frame*> RecipientMacDataService::managementFrameReceived(Ieee80211ManagementFrame* mgmtFrame)
 {

@@ -20,7 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
-#include "inet/linklayer/ieee80211/mac/contract/IMacParameters.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
@@ -30,8 +30,13 @@ namespace ieee80211 {
 // References: 9.19.2.6 Retransmit procedures (IEEE 802.11-2012 STD)
 //             802.11 Reference Design: Recovery Procedures and Retransmit Limits
 //             (https://warpproject.org/trac/wiki/802.11/MAC/Lower/Retransmissions)
-//
-class INET_API RecoveryProcedure : public cSimpleModule
+// FIXME: per tid and mgmt frames or change the internal data structure
+// Sequence numbers for management frames, QoS data frames with a group address in the Address 1 field,
+// and all non-QoS data frames transmitted by QoS STAs shall be assigned using an additional single
+// modulo-4096 counter, starting at 0 and incrementing by 1 for each such MSDU, A-MSDU, or MMPDU, except
+// that a QoS STA may use values from additional modulo-4096 counters per <Address 1, TID> for sequence
+// numbers assigned to time priority management frames.
+class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedure
 {
 
     protected:
@@ -49,16 +54,17 @@ class INET_API RecoveryProcedure : public cSimpleModule
         int rtsThreshold = -1;
 
     protected:
-        virtual void initialize() override;
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
 
-        void incrementCounter(Ieee80211Frame* frame, std::map<SequenceNumber, int>& retryCounter);
+        void incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter);
         void incrementStationSrc();
         void incrementStationLrc();
         void resetStationSrc() { stationShortRetryCounter = 0; }
         void resetStationLrc() { stationLongRetryCounter = 0; }
         void resetContentionWindow() { cw = cwMin; }
         int doubleCw(int cw);
-        int getRc(Ieee80211Frame* frame, std::map<SequenceNumber, int>& retryCounter);
+        int getRc(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter);
         bool isMulticastFrame(Ieee80211Frame *frame);
 
     public:
@@ -74,13 +80,11 @@ class INET_API RecoveryProcedure : public cSimpleModule
         virtual bool isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame);
         virtual bool isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* protectedFrame);
 
-        virtual int getCw() { return cw; }
-
-        int getCwMax() { return cwMax; }
-        int getCwMin() { return cwMin; }
-        int getLongRetryLimit() { return longRetryLimit; }
-        int getRtsThreshold() { return rtsThreshold; }
-        int getShortRetryLimit() { return shortRetryLimit; }
+        virtual int getCw() override { return cw; }
+        virtual int getCwMax() { return cwMax; }
+        virtual int getCwMin() { return cwMin; }
+        virtual int getLongRetryLimit() { return longRetryLimit; }
+        virtual int getShortRetryLimit() { return shortRetryLimit; }
 
 };
 

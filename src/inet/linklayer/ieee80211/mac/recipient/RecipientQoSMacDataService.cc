@@ -14,10 +14,10 @@
 // 
 
 #include "inet/linklayer/ieee80211/mac/aggregation/MsduDeaggregation.h"
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/duplicatedetector/QosDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/Defragmentation.h"
-#include "inet/linklayer/ieee80211/mac/recipient/RecipientBlockAckAgreementHandler.h"
 #include "RecipientQoSMacDataService.h"
 
 namespace inet {
@@ -30,6 +30,8 @@ void RecipientQoSMacDataService::initialize()
     duplicateRemoval = new QoSDuplicateDetector();
     basicReassembly = new BasicReassembly();
     aMsduDeaggregation = new MsduDeaggregation();
+    blockAckReordering = new BlockAckReordering();
+    blockAckAgreementHandler = check_and_cast<RecipientBlockAckAgreementHandler *>(getModuleByPath(par("recipientBlockAckAgreementHandlerModule")));
 }
 
 Ieee80211DataFrame* RecipientQoSMacDataService::defragment(std::vector<Ieee80211DataFrame *> completeFragments)
@@ -58,11 +60,9 @@ std::vector<Ieee80211Frame*> RecipientQoSMacDataService::dataFrameReceived(Ieee8
     if (blockAckReordering) {
         Tid tid = dataFrame->getTid();
         MACAddress originatorAddr = dataFrame->getTransmitterAddress();
-        BlockAckAgreement *agreement = blockAckAgreementHandler->getAgreement(tid, originatorAddr);
+        RecipientBlockAckAgreement *agreement = blockAckAgreementHandler->getAgreement(tid, originatorAddr);
         if (agreement)
             frames = blockAckReordering->processReceivedQoSFrame(agreement, dataFrame);
-        else
-            return std::vector<Ieee80211Frame*>();
     }
     std::vector<Ieee80211Frame *> defragmentedFrames;
     if (basicReassembly) { // FIXME: defragmentation
@@ -107,6 +107,8 @@ std::vector<Ieee80211Frame*> RecipientQoSMacDataService::managementFrameReceived
     if (basicReassembly) { // FIXME: defragmentation
         mgmtFrame = defragment(mgmtFrame);
     }
+    if (auto delba = dynamic_cast<Ieee80211Delba *>(mgmtFrame))
+        blockAckReordering->processReceivedDelba(delba);
     // TODO: Defrag, MSDU Integrity, Replay Detection, RX MSDU Rate Limiting
     return std::vector<Ieee80211Frame*>({mgmtFrame});
 }
@@ -118,7 +120,7 @@ std::vector<Ieee80211Frame*> RecipientQoSMacDataService::controlFrameReceived(Ie
         if (blockAckReordering) {
             Tid tid = blockAckReq->getTidInfo();
             MACAddress originatorAddr = blockAckReq->getTransmitterAddress();
-            BlockAckAgreement *agreement = blockAckAgreementHandler->getAgreement(tid, originatorAddr);
+            RecipientBlockAckAgreement *agreement = blockAckAgreementHandler->getAgreement(tid, originatorAddr);
             if (agreement)
                 frames = blockAckReordering->processReceivedBlockAckReq(blockAckReq);
             else
@@ -148,6 +150,13 @@ std::vector<Ieee80211Frame*> RecipientQoSMacDataService::controlFrameReceived(Ie
     return std::vector<Ieee80211Frame*>();
 }
 
+RecipientQoSMacDataService::~RecipientQoSMacDataService()
+{
+    delete duplicateRemoval;
+    delete basicReassembly;
+    delete aMsduDeaggregation;
+    delete blockAckReordering;
+}
 
 } /* namespace ieee80211 */
 } /* namespace inet */

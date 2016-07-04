@@ -20,16 +20,14 @@
 #ifndef __INET_FRAMESEQUENCECONTEXT_H
 #define __INET_FRAMESEQUENCECONTEXT_H
 
-#include "inet/linklayer/ieee80211/mac/common/MacParameters.h"
-#include "inet/linklayer/ieee80211/mac/common/TimingParameters.h"
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
-#include "inet/linklayer/ieee80211/mac/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
-#include "inet/linklayer/ieee80211/mac/recipient/BlockAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 
 namespace inet {
@@ -42,16 +40,16 @@ class INET_API FrameSequenceContext
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
-        TxOpProcedure *txopProcedure = nullptr;
+        TxopProcedure *txopProcedure = nullptr;
         OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
         OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
 
-        const Ieee80211ModeSet *modeSet = nullptr;
+        const IIeee80211Mode *mode = nullptr;
 
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxOpProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const Ieee80211ModeSet *modeSet);
+        FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
         virtual void insertPendingFrame(Ieee80211DataOrMgmtFrame *pendingFrame) { pendingQueue->insert(pendingFrame); }
@@ -68,12 +66,10 @@ class INET_API FrameSequenceContext
         OriginatorAckProcedure* getAckProcedure() { return ackProcedure; }
         InProgressFrames* getInProgressFrames() { return inProgressFrames; }
         RtsProcedure* getRtsProcedure() { return rtsProcedure; }
-        TxOpProcedure* getTxopProcedure() { return txopProcedure; }
+        TxopProcedure* getTxopProcedure() { return txopProcedure; }
         OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
         OriginatorBlockAckAgreementHandler* getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
-        const Ieee80211ModeSet* getModeSet() { return modeSet; }
-
-        // TODO: pifs
+        const IIeee80211Mode* getMode() { return mode; }
 };
 
 } // namespace ieee80211

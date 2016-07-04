@@ -1,10 +1,10 @@
 //
-// Copyright (C) 2015 Andras Varga
+// Copyright (C) 2016 OpenSim Ltd.
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,46 +12,42 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-//
-// Author: Andras Varga
+// along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
 #ifndef __INET_CONTENTION_H
 #define __INET_CONTENTION_H
 
-#include "inet/linklayer/ieee80211/mac/contract/ICollisionController.h"
 #include "inet/linklayer/ieee80211/mac/contract/IContention.h"
+#include "inet/linklayer/ieee80211/mac/contract/IChannelAccess.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Mac.h"
 #include "inet/physicallayer/contract/packetlevel/IRadio.h"
+
 
 namespace inet {
 namespace ieee80211 {
 
 using namespace inet::physicallayer;
 
-class IMacRadioInterface;
-
 /**
  * The default implementation of IContention.
  */
-class INET_API Contention : public cSimpleModule, public IContention, protected ICollisionController::ICallback
+class INET_API Contention : public cSimpleModule, public IContention
 {
     public:
-        enum State { IDLE, DEFER, IFS_AND_BACKOFF, OWNING };
-        enum EventType { START, MEDIUM_STATE_CHANGED, CORRUPTED_FRAME_RECEIVED, TRANSMISSION_GRANTED, INTERNAL_COLLISION, CHANNEL_RELEASED };
+        enum State { IDLE, DEFER, IFS_AND_BACKOFF };
+        enum EventType { START, MEDIUM_STATE_CHANGED, CORRUPTED_FRAME_RECEIVED, CHANNEL_ACCESS_GRANTED };
         static simsignal_t stateChangedSignal;
 
     protected:
-        IMacRadioInterface *mac;
-        ICollisionController *collisionController;  // optional
-        cMessage *startTxEvent = nullptr;  // in the absence of collisionController
-        int txIndex = -1;
+        Ieee80211Mac *mac = nullptr;
+        ICallback *callback = nullptr;
+        cMessage *startTxEvent = nullptr;
 
         // current contention's parameters
         simtime_t ifs = SIMTIME_ZERO;
         simtime_t eifs = SIMTIME_ZERO;
-        simtime_t slotTime;
-        IContention::ICallback *contentionCallback = nullptr;
+        simtime_t slotTime = SIMTIME_ZERO;
 
         cFSM fsm;
         simtime_t endEifsTime = SIMTIME_ZERO;
@@ -67,10 +63,8 @@ class INET_API Contention : public cSimpleModule, public IContention, protected 
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override;
-        virtual void transmissionGranted(int txIndex) override; // called back from collision controller
-        virtual void internalCollision(int txIndex) override; // called back from collision controller
 
-        virtual void handleWithFSM(EventType event, cMessage *msg);
+        virtual void handleWithFSM(EventType event);
         virtual void scheduleTransmissionRequest();
         virtual void scheduleTransmissionRequestFor(simtime_t txStartTime);
         virtual void cancelTransmissionRequest();
@@ -85,13 +79,10 @@ class INET_API Contention : public cSimpleModule, public IContention, protected 
         ~Contention();
 
         //TODO also add a switchToReception() method? because switching takes time, so we dont automatically switch to tx after completing a transmission! (as we may want to transmit immediate frames afterwards)
-        virtual void startContention(simtime_t ifs, simtime_t eifs, simtime_t slotTime, int cw, IContention::ICallback *callback) override;
-        virtual void releaseChannel() override;
+        virtual void startContention(int cw, simtime_t ifs, simtime_t eifs, simtime_t slotTime, ICallback *callback) override;
 
         virtual void mediumStateChanged(bool mediumFree) override;
         virtual void corruptedFrameReceived() override;
-        virtual bool isContentionInProgress() override;
-        virtual void setTxIndex(int txIndex) { this->txIndex = txIndex; }
 };
 
 } // namespace ieee80211

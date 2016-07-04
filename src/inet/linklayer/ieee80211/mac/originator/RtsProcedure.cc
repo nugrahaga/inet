@@ -19,14 +19,18 @@
 namespace inet {
 namespace ieee80211 {
 
-RtsProcedure::RtsProcedure(IRateSelection *rateSelection) :
-    rateSelection(rateSelection)
+Define_Module(RtsProcedure);
+
+void RtsProcedure::initialize(int stage)
 {
-    this->rtsThreshold = -1; // FIXME
-    // TODO: control bitrate
-    this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-    this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-    this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
+    if (stage == INITSTAGE_LINK_LAYER_2) {
+        this->rtsThreshold = par("rtsThreshold");
+        // TODO: control bitrate
+        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
+        this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
+        this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
+        this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
+    }
 }
 
 Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const

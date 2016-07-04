@@ -15,6 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "RecoveryProcedure.h"
 
 namespace inet {
@@ -34,15 +35,23 @@ Define_Module(RecoveryProcedure);
 // dot11LongRetryLimit, or when SSRC reaches dot11ShortRetryLimit.
 //
 
-void RecoveryProcedure::initialize()
+void RecoveryProcedure::initialize(int stage)
 {
-    shortRetryLimit = par("shortRetryLimit");
-    longRetryLimit = par("longRetryLimit");
-    cwMax = par("cwMax");
-    cwMin = par("cwMin");
-    rtsThreshold = par("rtsThreshold");
-    // The contention window (CW) parameter shall take an initial value of aCWmin.
-    cw = cwMin;
+    if (stage == INITSTAGE_LAST) {
+        auto cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculator")));
+        auto rtsProcedure = check_and_cast<RtsProcedure *>(getModuleByPath(par("rtsProcedureModule")));
+        rtsThreshold = rtsProcedure->getRtsThreshold();
+        shortRetryLimit = par("shortRetryLimit");
+        longRetryLimit = par("longRetryLimit");
+        cwMax = par("cwMax");
+        cwMin = par("cwMin");
+        if (cwMax == -1)
+            cwMax = cwCalculator->computeCwMax(this);
+        if (cwMin == -1)
+            cwMin = cwCalculator->computeCwMin(this);
+        // The contention window (CW) parameter shall take an initial value of aCWmin.
+        cw = cwMin;
+    }
 }
 
 void RecoveryProcedure::incrementStationSrc()
@@ -63,9 +72,9 @@ void RecoveryProcedure::incrementStationLrc()
         cw = doubleCw(cw);
 }
 
-void RecoveryProcedure::incrementCounter(Ieee80211Frame* frame, std::map<SequenceNumber, int>& retryCounter)
+void RecoveryProcedure::incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter)
 {
-    int id = frame->getTreeId();
+    int id = frame->getSequenceNumber();
     if (retryCounter.find(id) != retryCounter.end())
         retryCounter[id]++;
     else
@@ -180,9 +189,9 @@ bool RecoveryProcedure::isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* pr
     return getRc(protectedFrame, shortRetryCounter) >= shortRetryLimit;
 }
 
-int RecoveryProcedure::getRc(Ieee80211Frame* frame, std::map<SequenceNumber, int>& retryCounter)
+int RecoveryProcedure::getRc(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter)
 {
-    auto count = retryCounter.find(frame->getTreeId());
+    auto count = retryCounter.find(frame->getSequenceNumber());
     if (count != retryCounter.end())
         return count->second;
     else
@@ -193,7 +202,7 @@ bool RecoveryProcedure::isMulticastFrame(Ieee80211Frame* frame)
 {
     if (dynamic_cast<Ieee80211OneAddressFrame*>(frame)) {
         Ieee80211OneAddressFrame *oneAddressFrame = dynamic_cast<Ieee80211OneAddressFrame*>(frame);
-        return oneAddressFrame->getReceiverAddress().isBroadcast();
+        return oneAddressFrame->getReceiverAddress().isMulticast();
     }
     return false;
 }
