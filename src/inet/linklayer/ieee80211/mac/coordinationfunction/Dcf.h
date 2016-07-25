@@ -69,8 +69,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         CtsProcedure *ctsProcedure = nullptr;
-        NonQoSRecoveryProcedure *dataRecoveryProcedure = nullptr;
-        NonQoSRecoveryProcedure *mgmtRecoveryProcedure = nullptr;
+        NonQoSRecoveryProcedure *recoveryProcedure = nullptr;
 
         // Queue
         PendingQueue *pendingQueue = nullptr;

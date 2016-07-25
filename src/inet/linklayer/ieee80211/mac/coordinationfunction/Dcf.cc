@@ -32,8 +32,7 @@ void Dcf::initialize(int stage)
         originatorDataService = check_and_cast<OriginatorMacDataService *>(getSubmodule(("originatorMacDataService")));
         recipientDataService = check_and_cast<RecipientMacDataService*>(getSubmodule("recipientMacDataService"));
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        dataRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("dataRecoveryProcedure"));
-        mgmtRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("mgmtRecoveryProcedure"));
+        recoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
         rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
         rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
         referenceMode = rateSelection->getSlowestMandatoryMode();
@@ -150,18 +149,8 @@ bool Dcf::hasFrameToTransmit()
 void Dcf::originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame* protectedFrame)
 {
     EV_INFO << "RTS frame transmission failed\n";
-    bool retryLimitReached = false;
-    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(protectedFrame)) {
-        dataRecoveryProcedure->rtsFrameTransmissionFailed(dataFrame, stationRetryCounters);
-        retryLimitReached = dataRecoveryProcedure->isRtsFrameRetryLimitReached(protectedFrame);
-    }
-    else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame *>(protectedFrame)) {
-        mgmtRecoveryProcedure->rtsFrameTransmissionFailed(protectedFrame, stationRetryCounters);
-        retryLimitReached = mgmtRecoveryProcedure->isRtsFrameRetryLimitReached(mgmtFrame);
-    }
-    else
-        throw cRuntimeError("Unknown frame type");
-    if (retryLimitReached) {
+    recoveryProcedure->rtsFrameTransmissionFailed(protectedFrame, stationRetryCounters);
+    if (recoveryProcedure->isRtsFrameRetryLimitReached(protectedFrame)) {
         inProgressFrames->dropFrame(protectedFrame);
         delete protectedFrame;
     }
@@ -170,7 +159,7 @@ void Dcf::originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame* protect
 void Dcf::originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame)
 {
     if (transmittedFrame->getReceiverAddress().isMulticast())
-        dataRecoveryProcedure->multicastFrameTransmitted(stationRetryCounters);
+        recoveryProcedure->multicastFrameTransmitted(stationRetryCounters);
     if (transmittedFrame->getType() == ST_DATA || dynamic_cast<Ieee80211ManagementFrame *>(transmittedFrame))
         ackHandler->processTransmittedNonQoSFrame(check_and_cast<Ieee80211DataOrMgmtFrame *>(transmittedFrame));
     else
@@ -180,25 +169,14 @@ void Dcf::originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame)
 void Dcf::originatorProcessReceivedFrame(Ieee80211Frame* frame, Ieee80211Frame* lastTransmittedFrame)
 {
     if (frame->getType() == ST_ACK) {
-        if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(lastTransmittedFrame))
-            dataRecoveryProcedure->ackFrameReceived(dataFrame, stationRetryCounters);
-        else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame *>(lastTransmittedFrame))
-            mgmtRecoveryProcedure->ackFrameReceived(mgmtFrame, stationRetryCounters);
-        else
-            throw cRuntimeError("Unknown frame type");
+        recoveryProcedure->ackFrameReceived(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame), stationRetryCounters);
         ackHandler->processReceivedAck(check_and_cast<Ieee80211ACKFrame *>(frame), check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
         inProgressFrames->dropFrame(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
     }
     else if (frame->getType() == ST_RTS)
         ; // void
-    else if (frame->getType() == ST_CTS) {
-        if (dynamic_cast<Ieee80211DataFrame*>(lastTransmittedFrame))
-             dataRecoveryProcedure->ctsFrameReceived(stationRetryCounters);
-        else if (dynamic_cast<Ieee80211ManagementFrame *>(lastTransmittedFrame))
-             mgmtRecoveryProcedure->ctsFrameReceived(stationRetryCounters);
-        else
-            throw cRuntimeError("Unknown frame type");
-    }
+    else if (frame->getType() == ST_CTS)
+        recoveryProcedure->ctsFrameReceived(stationRetryCounters);
     else
         throw cRuntimeError("Unknown frame type");
 }
@@ -208,18 +186,8 @@ void Dcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
     ASSERT(failedFrame->getType() != ST_DATA_WITH_QOS);
     ASSERT(ackHandler->getAckStatus(failedFrame) == AckHandler::Status::WAITING_FOR_NORMAL_ACK);
     EV_INFO << "Data/Mgmt frame transmission failed\n";
-    bool retryLimitReached = false;
-    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(failedFrame)) {
-        dataRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(dataFrame, stationRetryCounters);
-        retryLimitReached = dataRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(dataFrame);
-    }
-    else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame *>(failedFrame)) {
-        mgmtRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame, stationRetryCounters);
-        retryLimitReached = mgmtRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(mgmtFrame);
-    }
-    else
-        throw cRuntimeError("Unknown frame type");
-    if (retryLimitReached) {
+    recoveryProcedure->dataOrMgmtFrameTransmissionFailed(failedFrame, stationRetryCounters);
+    if (recoveryProcedure->isDataOrMgtmFrameRetryLimitReached(failedFrame)) {
         inProgressFrames->dropFrame(failedFrame);
         delete failedFrame;
     }

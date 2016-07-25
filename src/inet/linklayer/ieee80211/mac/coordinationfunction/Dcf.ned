@@ -59,12 +59,7 @@ module Dcf
         rtsProcedure: RtsProcedure {
             @display("p=113,57");
         }
-        dataRecoveryProcedure: NonQoSRecoveryProcedure {
-            cwCalculatorModule = "^.channelAccess";
-            rtsProcedureModule = "^.rtsProcedure";
-            @display("p=113,131");
-        }
-        mgmtRecoveryProcedure: NonQoSRecoveryProcedure {
+        recoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.channelAccess";
             rtsProcedureModule = "^.rtsProcedure";
             @display("p=113,131");
