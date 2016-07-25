@@ -19,8 +19,8 @@ package inet.linklayer.ieee80211.mac.coordinationfunction;
 
 import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
 import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
+import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
-import inet.linklayer.ieee80211.mac.originator.RecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
 import inet.linklayer.ieee80211.mac.recipient.RecipientMacDataService;
 
@@ -59,7 +59,13 @@ module Dcf
         rtsProcedure: RtsProcedure {
             @display("p=113,57");
         }
-        recoveryProcedure: RecoveryProcedure {
+        dataRecoveryProcedure: NonQoSRecoveryProcedure {
+            cwCalculatorModule = "^.channelAccess";
+            rtsProcedureModule = "^.rtsProcedure";
+            @display("p=113,131");
+        }
+        mgmtRecoveryProcedure: NonQoSRecoveryProcedure {
+            cwCalculatorModule = "^.channelAccess";
             rtsProcedureModule = "^.rtsProcedure";
             @display("p=113,131");
         }

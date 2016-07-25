@@ -22,12 +22,12 @@ import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementHandler;
 import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
 import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
+import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
-import inet.linklayer.ieee80211.mac.originator.RecoveryProcedure;
+import inet.linklayer.ieee80211.mac.originator.QoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
 import inet.linklayer.ieee80211.mac.originator.TxopProcedure;
 import inet.linklayer.ieee80211.mac.recipient.RecipientQoSMacDataService;
-
 
 //
 // HCF -- Hybrid Coordination Function
@@ -72,14 +72,19 @@ module Hcf
             @display("p=132,605");
         }
         rtsProcedure: RtsProcedure {
-            @display("p=343,169");
+            @display("p=342,117.647995");
         }
-        edcaRecoveryProcedures[9]: RecoveryProcedure {
-            cwCalculatorModule = "^.foo[" + index;
+        edcaMgmtAndNonQoSRecoveryProcedure: NonQoSRecoveryProcedure {
+            cwCalculatorModule = "^.edca.edcaf[1]"; // best effort
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=343,342,row,50");
+            @display("p=342,400.824");
+        }
+        edcaDataRecoveryProcedures[numEdcafs]: QoSRecoveryProcedure {
+            cwCalculatorModule = "^.edca.edcaf[" + index + "]";
+            rtsProcedureModule = "^.rtsProcedure";
+            @display("p=342,303.69598,row,50");
         }
         edcaTxopProcedures[numEdcafs]: TxopProcedure {
-            @display("p=343,262,row,50");
+            @display("p=342,207.93599,row,50");
         }
 }

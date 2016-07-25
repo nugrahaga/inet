@@ -16,12 +16,12 @@
 //
 
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
-#include "RecoveryProcedure.h"
+#include "QoSRecoveryProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RecoveryProcedure);
+Define_Module(QoSRecoveryProcedure);
 
 //
 // Contention window management
@@ -34,42 +34,42 @@ Define_Module(RecoveryProcedure);
 // The CW shall be reset to aCWmin after [...] when SLRC reaches
 // dot11LongRetryLimit, or when SSRC reaches dot11ShortRetryLimit.
 //
-void RecoveryProcedure::initialize(int stage)
+void QoSRecoveryProcedure::initialize(int stage)
 {
     if (stage == INITSTAGE_LAST) {
-        auto cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculatorModule")));
         auto rtsProcedure = check_and_cast<RtsProcedure *>(getModuleByPath(par("rtsProcedureModule")));
+        cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculatorModule")));
         rtsThreshold = rtsProcedure->getRtsThreshold();
         shortRetryLimit = par("shortRetryLimit");
         longRetryLimit = par("longRetryLimit");
     }
 }
 
-void RecoveryProcedure::incrementStationSrc()
+void QoSRecoveryProcedure::incrementStationSrc()
 {
     stationShortRetryCounter++;
     if (stationShortRetryCounter == shortRetryLimit) // 9.3.3 Random backoff time
         resetContentionWindow();
     else
-        callback->incrementCw();
+        cwCalculator->incrementCw();
 }
 
-void RecoveryProcedure::incrementStationLrc()
+void QoSRecoveryProcedure::incrementStationLrc()
 {
     stationLongRetryCounter++;
     if (stationLongRetryCounter == longRetryLimit) // 9.3.3 Random backoff time
         resetContentionWindow();
     else
-        callback->incrementCw();
+        cwCalculator->incrementCw();
 }
 
-void RecoveryProcedure::incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter)
+void QoSRecoveryProcedure::incrementCounter(Ieee80211DataFrame* frame, std::map<std::pair<Tid, SequenceNumber>, int>& retryCounter)
 {
-    int id = frame->getSequenceNumber();
+    auto id = std::make_pair(frame->getTid(), frame->getSequenceNumber());
     if (retryCounter.find(id) != retryCounter.end())
         retryCounter[id]++;
     else
-        retryCounter.insert(std::make_pair(id, 1));
+        retryCounter[id] = 1;
 }
 
 //
@@ -77,7 +77,7 @@ void RecoveryProcedure::incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::m
 // Address1 field is transmitted. The SLRC shall be reset to 0 when [...] a
 // frame with a group address in the Address1 field is transmitted.
 //
-void RecoveryProcedure::multicastFrameTransmitted()
+void QoSRecoveryProcedure::multicastFrameTransmitted()
 {
     resetStationLrc();
     resetStationSrc();
@@ -93,12 +93,12 @@ void RecoveryProcedure::multicastFrameTransmitted()
 //
 // Note: * This is obviously wrong.
 //
-void RecoveryProcedure::ctsFrameReceived()
+void QoSRecoveryProcedure::ctsFrameReceived()
 {
     resetStationSrc();
 }
 
-void RecoveryProcedure::blockAckFrameReceived()
+void QoSRecoveryProcedure::blockAckFrameReceived()
 {
     resetStationSrc();
 }
@@ -110,7 +110,7 @@ void RecoveryProcedure::blockAckFrameReceived()
 // This LRC and the SLRC shall be reset when a MAC frame of length greater than dot11RTSThreshold
 // succeeds for that MPDU of type Data or MMPDU.
 //
-void RecoveryProcedure::ackFrameReceived(Ieee80211DataOrMgmtFrame *ackedFrame)
+void QoSRecoveryProcedure::ackFrameReceived(Ieee80211DataFrame *ackedFrame)
 {
     if (ackedFrame->getByteLength() >= rtsThreshold)
         resetStationLrc();
@@ -132,7 +132,7 @@ void RecoveryProcedure::ackFrameReceived(Ieee80211DataOrMgmtFrame *ackedFrame)
 // transmission of a MAC frame of length greater than dot11RTSThreshold fails for that MPDU
 // of type Data or MMPDU.
 //
-void RecoveryProcedure::dataOrMgmtFrameTransmissionFailed(Ieee80211DataOrMgmtFrame *failedFrame)
+void QoSRecoveryProcedure::dataFrameTransmissionFailed(Ieee80211DataFrame *failedFrame)
 {
     if (failedFrame->getByteLength() >= rtsThreshold) {
         incrementStationLrc();
@@ -147,7 +147,7 @@ void RecoveryProcedure::dataOrMgmtFrameTransmissionFailed(Ieee80211DataOrMgmtFra
 //
 // If the RTS transmission fails, the SRC for the MSDU or MMPDU and the SSRC are incremented.
 //
-void RecoveryProcedure::rtsFrameTransmissionFailed(Ieee80211DataOrMgmtFrame* protectedFrame)
+void QoSRecoveryProcedure::rtsFrameTransmissionFailed(Ieee80211DataFrame* protectedFrame)
 {
     incrementStationSrc();
     incrementCounter(protectedFrame, shortRetryCounter);
@@ -159,7 +159,7 @@ void RecoveryProcedure::rtsFrameTransmissionFailed(Ieee80211DataOrMgmtFrame* pro
 // or MMPDU is equal to dot11LongRetryLimit. When either of these limits is reached, retry attempts
 // shall cease, and the MPDU of type Data (and any MSDU of which it is a part) or MMPDU shall be discarded.
 //
-bool RecoveryProcedure::isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame)
+bool QoSRecoveryProcedure::isDataFrameRetryLimitReached(Ieee80211DataFrame* failedFrame)
 {
     if (failedFrame->getByteLength() >= rtsThreshold)
         return getRc(failedFrame, longRetryCounter) >= longRetryLimit;
@@ -167,26 +167,27 @@ bool RecoveryProcedure::isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFr
         return getRc(failedFrame, shortRetryCounter) >= shortRetryLimit;
 }
 
-void RecoveryProcedure::resetContentionWindow()
+void QoSRecoveryProcedure::resetContentionWindow()
 {
-    callback->resetCw();
+    cwCalculator->resetCw();
 }
 
-bool RecoveryProcedure::isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* protectedFrame)
+bool QoSRecoveryProcedure::isRtsFrameRetryLimitReached(Ieee80211DataFrame* protectedFrame)
 {
     return getRc(protectedFrame, shortRetryCounter) >= shortRetryLimit;
 }
 
-int RecoveryProcedure::getRc(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter)
+int QoSRecoveryProcedure::getRc(Ieee80211DataFrame* frame, std::map<std::pair<Tid, SequenceNumber>, int>& retryCounter)
 {
-    auto count = retryCounter.find(frame->getSequenceNumber());
-    if (count != retryCounter.end())
-        return count->second;
+    auto id = std::make_pair(frame->getTid(), frame->getSequenceNumber());
+    auto it = retryCounter.find(id);
+    if (it != retryCounter.end())
+        return it->second;
     else
         throw cRuntimeError("The retry counter entry doesn't exist for message id: %d", frame->getId());
 }
 
-bool RecoveryProcedure::isMulticastFrame(Ieee80211Frame* frame)
+bool QoSRecoveryProcedure::isMulticastFrame(Ieee80211Frame* frame)
 {
     if (dynamic_cast<Ieee80211OneAddressFrame*>(frame)) {
         Ieee80211OneAddressFrame *oneAddressFrame = dynamic_cast<Ieee80211OneAddressFrame*>(frame);

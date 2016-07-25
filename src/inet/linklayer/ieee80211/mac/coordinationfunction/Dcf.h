@@ -26,9 +26,9 @@
 #include "inet/linklayer/ieee80211/mac/lifetime/DcfReceiveLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/lifetime/DcfTransmitLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
+#include "inet/linklayer/ieee80211/mac/originator/NonQoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorMacDataService.h"
-#include "inet/linklayer/ieee80211/mac/originator/RecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/recipient/CtsProcedure.h"
@@ -69,7 +69,8 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         CtsProcedure *ctsProcedure = nullptr;
-        RecoveryProcedure *recoveryProcedure = nullptr;
+        NonQoSRecoveryProcedure *dataRecoveryProcedure = nullptr;
+        NonQoSRecoveryProcedure *mgmtRecoveryProcedure = nullptr;
 
         // Queue
         PendingQueue *pendingQueue = nullptr;
@@ -77,6 +78,9 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // Frame sequence handler
         IFrameSequenceHandler *frameSequenceHandler = nullptr;
+
+        // Station counters
+        StationRetryCounters *stationRetryCounters = nullptr;
 
         const IIeee80211Mode *referenceMode = nullptr;
 
@@ -104,10 +108,6 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;
         virtual bool isReceptionInProgress() override;
         virtual void frameSequenceFinished() override;
-
-        // IRecoveryProcedure::ICallback
-        virtual int computeCwMin(IRecoveryProcedure *rp);
-        virtual int computeCwMax(IRecoveryProcedure *rp);
 
         // ITx::ICallback
         virtual void transmissionComplete() override;

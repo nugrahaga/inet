@@ -15,33 +15,32 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __INET_ICHANNELACCESS_H
-#define __INET_ICHANNELACCESS_H
+#ifndef __INET_STATIONRETRYCOUNTERS_H
+#define __INET_STATIONRETRYCOUNTERS_H
 
 #include "inet/common/INETDefs.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API IChannelAccess
+class INET_API StationRetryCounters
 {
-    public:
-        class ICallback
-        {
-            public:
-                virtual ~ICallback() {}
-
-                virtual void channelGranted(IChannelAccess *channelAccess) = 0;
-        };
+    protected:
+        int stationShortRetryCount = 0;
+        int stationLongRetryCount = 0;
 
     public:
-        virtual ~IChannelAccess() { }
+        int getStationLongRetryCount() const { return stationLongRetryCount; }
+        int getStationShortRetryCount() const { return stationShortRetryCount; }
 
-        virtual void requestChannel(ICallback *callback) = 0;
-        virtual void releaseChannel(ICallback *callback) = 0;
+        void resetStationShortRetryCount() { stationShortRetryCount = 0; }
+        void resetStationLongRetryCount() { stationLongRetryCount = 0; }
+
+        void incrementStationShortRetryCount() { stationShortRetryCount++; }
+        void incrementStationLongRetryCount() { stationLongRetryCount++; }
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // ifndef __INET_ICHANNELACCESS_H
+#endif // ifndef __INET_STATIONRETRYCOUNTERS_H

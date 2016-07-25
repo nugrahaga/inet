@@ -49,9 +49,10 @@ void Hcf::initialize(int stage)
         originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
         recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
         lifetimeHandler = new EdcaTransmitLifetimeHandler(0, 0, 0, 0); // FIXME: needs only one timeout parameter
+        edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedures"));
         for (int ac = 0; ac < numEdcafs; ac++) {
             edcaPendingQueues.push_back(new PendingQueue(par("maxQueueSize"), nullptr));
-            edcaRecoveryProcedures.push_back(check_and_cast<RecoveryProcedure *>(getSubmodule("edcaRecoveryProcedures", ac)));
+            edcaDataRecoveryProcedures.push_back(check_and_cast<QoSRecoveryProcedure *>(getSubmodule("edcaDataRecoveryProcedures", ac)));
             edcaAckHandlers.push_back(new AckHandler());
             edcaInProgressFrames.push_back(new InProgressFrames(edcaPendingQueues[ac], originatorDataService, edcaAckHandlers[ac]));
             edcaTxops.push_back(check_and_cast<TxopProcedure *>(getSubmodule("edcaTxopProcedures", ac)));
@@ -119,8 +120,19 @@ void Hcf::handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs)
     for (auto edcaf : internallyCollidedEdcafs) {
         AccessCategory ac = edcaf->getAccessCategory();
         Ieee80211DataOrMgmtFrame *internallyCollidedFrame = edcaInProgressFrames[ac]->getFrameToTransmit();
-        edcaRecoveryProcedures[ac]->dataOrMgmtFrameTransmissionFailed(internallyCollidedFrame);
-        if (edcaRecoveryProcedures[ac]->isDataOrMgtmFrameRetryLimitReached(internallyCollidedFrame))
+        bool retryLimitReached = false;
+        if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(internallyCollidedFrame)) { // TODO: QoSDataFrame
+            edcaDataRecoveryProcedures[ac]->dataFrameTransmissionFailed(dataFrame);
+            retryLimitReached = edcaDataRecoveryProcedures[ac]->isDataFrameRetryLimitReached(dataFrame);
+        }
+        else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(internallyCollidedFrame)) {
+            ASSERT(ac == AccessCategory::AC_BE);
+            edcaMgmtAndNonQoSRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame);
+            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(mgmtFrame);
+        }
+        else // TODO: + NonQoSDataFrame
+            throw cRuntimeError("Unknown frame");
+        if (retryLimitReached)
             edcaInProgressFrames[ac]->dropFrame(internallyCollidedFrame);
         else
             edcaf->requestChannel(this);
@@ -226,8 +238,17 @@ void Hcf::originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame* protect
     if (edcaf) {
         EV_INFO << "RTS frame transmission failed\n";
         AccessCategory ac = edcaf->getAccessCategory();
-        edcaRecoveryProcedures[ac]->rtsFrameTransmissionFailed(protectedFrame);
-        bool retryLimitReached = edcaRecoveryProcedures[ac]->isRtsFrameRetryLimitReached(protectedFrame);
+        bool retryLimitReached = false;
+        if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(protectedFrame)) {
+            edcaDataRecoveryProcedures[ac]->rtsFrameTransmissionFailed(dataFrame);
+            retryLimitReached = edcaDataRecoveryProcedures[ac]->isRtsFrameRetryLimitReached(dataFrame);
+        }
+        else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame *>(protectedFrame)) {
+            edcaMgmtAndNonQoSRecoveryProcedure->rtsFrameTransmissionFailed(mgmtFrame);
+            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isRtsFrameRetryLimitReached(dataFrame);
+        }
+        else
+            throw cRuntimeError("Unknown frame"); // TODO: QoSDataFrame, NonQoSDataFrame
         if (retryLimitReached) {
             edcaInProgressFrames[ac]->dropFrame(protectedFrame);
             delete protectedFrame;
@@ -243,7 +264,7 @@ void Hcf::originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame)
     if (edcaf) {
         AccessCategory ac = edcaf->getAccessCategory();
         if (transmittedFrame->getReceiverAddress().isMulticast())
-            edcaRecoveryProcedures[ac]->multicastFrameTransmitted();
+            edcaDataRecoveryProcedures[ac]->multicastFrameTransmitted();
         if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(transmittedFrame))
             originatorProcessTransmittedDataFrame(dataFrame, ac);
         else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(transmittedFrame))
@@ -294,16 +315,12 @@ void Hcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
     auto edcaf = edca->getChannelOwner();
     if (edcaf) {
         AccessCategory ac = edcaf->getAccessCategory();
+        bool retryLimitReached = false;
         if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(failedFrame)) {
-            ASSERT(dataFrame->getType() == ST_DATA_WITH_QOS);
             EV_INFO << "QoS Data frame transmission failed\n";
             if (dataFrame->getAckPolicy() == NORMAL_ACK) {
-                edcaRecoveryProcedures[ac]->dataOrMgmtFrameTransmissionFailed(dataFrame);
-                bool retryLimitReached = edcaRecoveryProcedures[ac]->isDataOrMgtmFrameRetryLimitReached(dataFrame);
-                if (retryLimitReached) {
-                    edcaInProgressFrames[ac]->dropFrame(dataFrame);
-                    delete dataFrame;
-                }
+                edcaDataRecoveryProcedures[ac]->dataFrameTransmissionFailed(dataFrame);
+                retryLimitReached = edcaDataRecoveryProcedures[ac]->isDataFrameRetryLimitReached(dataFrame);
             }
             else if (dataFrame->getAckPolicy() == BLOCK_ACK) {
                 // TODO:
@@ -316,8 +333,16 @@ void Hcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
             else
                 throw cRuntimeError("Unimplemented!");
         }
-        else {
-            throw cRuntimeError("Unimplemented"); // failed block ack req, addba req
+        else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(failedFrame)) {
+            EV_INFO << "Management frame transmission failed\n";
+            edcaMgmtAndNonQoSRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame);
+            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(mgmtFrame);
+        }
+        else
+            throw cRuntimeError("Unknown frame"); // TODO: qos, nonqos
+        if (retryLimitReached) {
+            edcaInProgressFrames[ac]->dropFrame(failedFrame);
+            delete failedFrame;
         }
     }
     else
@@ -348,13 +373,18 @@ void Hcf::originatorProcessReceivedManagementFrame(Ieee80211ManagementFrame* fra
 void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211Frame* lastTransmittedFrame, AccessCategory ac)
 {
     if (auto ackFrame = dynamic_cast<Ieee80211ACKFrame *>(frame)) {
-        edcaRecoveryProcedures[ac]->ackFrameReceived(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
+        if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(lastTransmittedFrame))
+            edcaDataRecoveryProcedures[ac]->ackFrameReceived(dataFrame);
+        else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame *>(lastTransmittedFrame))
+            edcaMgmtAndNonQoSRecoveryProcedure->ackFrameReceived(mgmtFrame);
+        else
+            throw cRuntimeError("Unknown frame"); // TODO: qos, nonqos frame
         edcaAckHandlers[ac]->processReceivedAck(ackFrame, check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
         edcaInProgressFrames[ac]->dropFrame(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
     }
     else if (auto blockAck = dynamic_cast<Ieee80211BlockAck *>(frame)) {
         EV_INFO << "BlockAck has arrived" << std::endl;
-        edcaRecoveryProcedures[ac]->blockAckFrameReceived();
+        edcaDataRecoveryProcedures[ac]->blockAckFrameReceived();
         auto ackedSeqAndFragNums = edcaAckHandlers[ac]->processReceivedBlockAck(blockAck);
         originatorBlockAckAgreementHandler->processReceivedBlockAck(blockAck);
         EV_INFO << "It has acknowledged the following frames:" << std::endl;
@@ -368,7 +398,7 @@ void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211
     else if (dynamic_cast<Ieee80211RTSFrame*>(frame))
         ; // void
     else if (dynamic_cast<Ieee80211CTSFrame*>(frame))
-        edcaRecoveryProcedures[ac]->ctsFrameReceived();
+        edcaDataRecoveryProcedures[ac]->ctsFrameReceived();
     else if (frame->getType() == ST_DATA_WITH_QOS)
         ; // void
     else if (dynamic_cast<Ieee80211BasicBlockAckReq*>(frame))

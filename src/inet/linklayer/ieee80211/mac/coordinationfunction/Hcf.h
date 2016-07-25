@@ -29,10 +29,11 @@
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceHandler.h"
 #include "inet/linklayer/ieee80211/mac/lifetime/EdcaTransmitLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
+#include "inet/linklayer/ieee80211/mac/originator/NonQoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSMacDataService.h"
-#include "inet/linklayer/ieee80211/mac/originator/RecoveryProcedure.h"
+#include "inet/linklayer/ieee80211/mac/originator/QoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
@@ -76,8 +77,8 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         OriginatorBlockAckProcedure *originatorBlockAckProcedure = nullptr;
         RecipientBlockAckProcedure *recipientBlockAckProcedure = nullptr;
         EdcaTransmitLifetimeHandler *lifetimeHandler = nullptr;
-        std::vector<RecoveryProcedure *> edcaRecoveryProcedures;
-        RecoveryProcedure *hccaRecoveryProcedure = nullptr;
+        std::vector<QoSRecoveryProcedure *> edcaDataRecoveryProcedures;
+        NonQoSRecoveryProcedure *edcaMgmtAndNonQoSRecoveryProcedure = nullptr;
 
         // Block Ack Agreement Handlers
         OriginatorBlockAckAgreementHandler *originatorBlockAckAgreementHandler = nullptr;

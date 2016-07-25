@@ -15,8 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_RECOVERYPROCEDURE_H
-#define __INET_RECOVERYPROCEDURE_H
+#ifndef __INET_QOSRECOVERYPROCEDURE_H
+#define __INET_QOSRECOVERYPROCEDURE_H
 
 #include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
@@ -30,23 +30,17 @@ namespace ieee80211 {
 // References: 9.19.2.6 Retransmit procedures (IEEE 802.11-2012 STD)
 //             802.11 Reference Design: Recovery Procedures and Retransmit Limits
 //             (https://warpproject.org/trac/wiki/802.11/MAC/Lower/Retransmissions)
-// FIXME: per tid and mgmt frames or change the internal data structure
-// Sequence numbers for management frames, QoS data frames with a group address in the Address 1 field,
-// and all non-QoS data frames transmitted by QoS STAs shall be assigned using an additional single
-// modulo-4096 counter, starting at 0 and incrementing by 1 for each such MSDU, A-MSDU, or MMPDU, except
-// that a QoS STA may use values from additional modulo-4096 counters per <Address 1, TID> for sequence
-// numbers assigned to time priority management frames.
-class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedure
+class INET_API QoSRecoveryProcedure : public cSimpleModule, public IRecoveryProcedure
 {
 
     protected:
-        ICwCalculator *callback = nullptr;
+        ICwCalculator *cwCalculator = nullptr;
 
-        std::map<SequenceNumber, int> shortRetryCounter; // SRC
-        std::map<SequenceNumber, int> longRetryCounter; // LRC
+        std::map<std::pair<Tid, SequenceNumber>, int> shortRetryCounter; // SRC
+        std::map<std::pair<Tid, SequenceNumber>, int> longRetryCounter; // LRC
 
-        int stationLongRetryCounter = 0; // SLRC
-        int stationShortRetryCounter = 0; // SSRC
+        int stationLongRetryCounter = 0; // QLRC
+        int stationShortRetryCounter = 0; // QSRC
 
         int shortRetryLimit = -1;
         int longRetryLimit = -1;
@@ -56,28 +50,28 @@ class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedu
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
-        void incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter);
+        void incrementCounter(Ieee80211DataFrame* frame, std::map<std::pair<Tid, SequenceNumber>, int>& retryCounter);
         void incrementStationSrc();
         void incrementStationLrc();
         void resetStationSrc() { stationShortRetryCounter = 0; }
         void resetStationLrc() { stationLongRetryCounter = 0; }
         void resetContentionWindow();
         int doubleCw(int cw);
-        int getRc(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter);
+        int getRc(Ieee80211DataFrame* frame, std::map<std::pair<Tid, SequenceNumber>, int>& retryCounter);
         bool isMulticastFrame(Ieee80211Frame *frame);
 
     public:
         virtual void multicastFrameTransmitted();
 
         virtual void ctsFrameReceived();
-        virtual void ackFrameReceived(Ieee80211DataOrMgmtFrame *ackedFrame);
+        virtual void ackFrameReceived(Ieee80211DataFrame *ackedFrame);
         virtual void blockAckFrameReceived();
 
-        virtual void rtsFrameTransmissionFailed(Ieee80211DataOrMgmtFrame *protectedFrame);
-        virtual void dataOrMgmtFrameTransmissionFailed(Ieee80211DataOrMgmtFrame *failedFrame);
+        virtual void rtsFrameTransmissionFailed(Ieee80211DataFrame *protectedFrame);
+        virtual void dataFrameTransmissionFailed(Ieee80211DataFrame *failedFrame);
 
-        virtual bool isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame);
-        virtual bool isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* protectedFrame);
+        virtual bool isDataFrameRetryLimitReached(Ieee80211DataFrame* failedFrame);
+        virtual bool isRtsFrameRetryLimitReached(Ieee80211DataFrame* protectedFrame);
 
         virtual int getLongRetryLimit() { return longRetryLimit; }
         virtual int getShortRetryLimit() { return shortRetryLimit; }

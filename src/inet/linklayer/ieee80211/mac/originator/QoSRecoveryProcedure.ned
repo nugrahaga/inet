@@ -18,12 +18,12 @@
 
 package inet.linklayer.ieee80211.mac.originator;
 
-simple RecoveryProcedure
+simple QoSRecoveryProcedure
 {
     parameters:
         string cwCalculatorModule;
         string rtsProcedureModule;
-        
+
         int shortRetryLimit = default(7);
         int longRetryLimit = default(4);
 }

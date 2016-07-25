@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
+//
 
 package inet.linklayer.ieee80211.mac.originator;
 
-import inet.linklayer.ieee80211.mac.contract.IFragmentationPolicy;
-
-
-module OriginatorMacDataService
+simple NonQoSRecoveryProcedure
 {
     parameters:
-        string fragmentationPolicyModuleType = "BasicFragmentationPolicy";
-
-        @class("OriginatorMacDataService");
-
-    submodules:
-        fragmentationPolicy: <fragmentationPolicyModuleType> like IFragmentationPolicy if fragmentationPolicyModuleType != "" {
-            parameters:
-                @display("p=100,200");
-        }
+        string cwCalculatorModule;
+        string rtsProcedureModule;
+        
+        int shortRetryLimit = default(7);
+        int longRetryLimit = default(4);
 }
