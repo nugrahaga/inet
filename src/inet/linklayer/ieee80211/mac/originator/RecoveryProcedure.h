@@ -40,14 +40,13 @@ class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedu
 {
 
     protected:
+        ICwCalculator *callback = nullptr;
+
         std::map<SequenceNumber, int> shortRetryCounter; // SRC
         std::map<SequenceNumber, int> longRetryCounter; // LRC
 
         int stationLongRetryCounter = 0; // SLRC
         int stationShortRetryCounter = 0; // SSRC
-        int cwMin = -1;
-        int cwMax = -1;
-        int cw = -1; // Contention window
 
         int shortRetryLimit = -1;
         int longRetryLimit = -1;
@@ -62,7 +61,7 @@ class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedu
         void incrementStationLrc();
         void resetStationSrc() { stationShortRetryCounter = 0; }
         void resetStationLrc() { stationLongRetryCounter = 0; }
-        void resetContentionWindow() { cw = cwMin; }
+        void resetContentionWindow();
         int doubleCw(int cw);
         int getRc(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter);
         bool isMulticastFrame(Ieee80211Frame *frame);
@@ -80,9 +79,6 @@ class INET_API RecoveryProcedure : public cSimpleModule, public IRecoveryProcedu
         virtual bool isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame);
         virtual bool isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* protectedFrame);
 
-        virtual int getCw() override { return cw; }
-        virtual int getCwMax() { return cwMax; }
-        virtual int getCwMin() { return cwMin; }
         virtual int getLongRetryLimit() { return longRetryLimit; }
         virtual int getShortRetryLimit() { return shortRetryLimit; }
 

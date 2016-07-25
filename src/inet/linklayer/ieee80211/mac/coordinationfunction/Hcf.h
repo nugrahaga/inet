@@ -48,7 +48,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Hybrid Coordination Function.
  */
-class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IContentionBasedChannelAccess::ICallback, public IContentionFreeChannelAccess::ICallback, public ITx::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
+class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule
 {
     protected:
         Ieee80211Mac *mac = nullptr;
@@ -136,16 +136,8 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;
         virtual bool isReceptionInProgress() override;
 
-        // IRecoveryProcedure::ICallback
-        virtual int computeCwMin(IRecoveryProcedure *rp);
-        virtual int computeCwMax(IRecoveryProcedure *rp);
-
-        // IContentionBasedChannelAccess::ICallback
-        virtual void channelGranted(IContentionBasedChannelAccess *channelAccess) override;
-        virtual int getCw(IContentionBasedChannelAccess *channelAccess) override;
-
-        // IContentionFreeChannelAccess::ICallback
-        virtual void channelGranted(IContentionFreeChannelAccess *channelAccess) override;
+        // IChannelAccess::ICallback
+        virtual void channelGranted(IChannelAccess *channelAccess) override;
 
         // ITx::ICallback
         virtual void transmissionComplete() override;

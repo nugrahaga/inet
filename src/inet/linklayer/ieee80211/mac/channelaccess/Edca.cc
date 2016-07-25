@@ -34,46 +34,9 @@ void Edca::initialize(int stage)
     }
 }
 
-Tid Edca::getTid(Ieee80211DataOrMgmtFrame* frame)
+AccessCategory Edca::classifyFrame(Ieee80211DataFrame *frame)
 {
-    if (auto addbaResponse = dynamic_cast<Ieee80211AddbaResponse*>(frame)) {
-        return addbaResponse->getTid();
-    }
-    else if (auto qosDataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
-        ASSERT(qosDataFrame->getType() == ST_DATA_WITH_QOS);
-        return qosDataFrame->getTid();
-    }
-    else
-        throw cRuntimeError("Unknown frame type = %d", frame->getType());
-}
-
-AccessCategory Edca::classifyFrame(Ieee80211DataOrMgmtFrame *frame)
-{
-    return mapTidToAc(getTid(frame));
-}
-
-int Edca::getCwMax(AccessCategory ac, int aCwMax, int aCwMin)
-{
-    switch (ac)
-    {
-        case AC_BK: return aCwMax;
-        case AC_BE: return aCwMax;
-        case AC_VI: return aCwMin;
-        case AC_VO: return (aCwMin + 1) / 2 - 1;
-        default: throw cRuntimeError("Unknown access category = %d", ac);
-    }
-}
-
-int Edca::getCwMin(AccessCategory ac, int aCwMin)
-{
-    switch (ac)
-    {
-        case AC_BK: return aCwMin;
-        case AC_BE: return aCwMin;
-        case AC_VI: return (aCwMin + 1) / 2 - 1;
-        case AC_VO: return (aCwMin + 1) / 4 - 1;
-        default: throw cRuntimeError("Unknown access category = %d", ac);
-    }
+    return mapTidToAc(frame->getTid());
 }
 
 AccessCategory Edca::mapTidToAc(Tid tid)
@@ -105,12 +68,12 @@ std::vector<Edcaf*> Edca::getInternallyCollidedEdcafs()
     return collidedEdcafs;
 }
 
-void Edca::requestChannelAccess(AccessCategory ac, IContentionBasedChannelAccess::ICallback* callback)
+void Edca::requestChannelAccess(AccessCategory ac, IChannelAccess::ICallback* callback)
 {
     edcafs[ac]->requestChannel(callback);
 }
 
-void Edca::releaseChannelAccess(AccessCategory ac, IContentionBasedChannelAccess::ICallback* callback)
+void Edca::releaseChannelAccess(AccessCategory ac, IChannelAccess::ICallback* callback)
 {
     edcafs[ac]->releaseChannel(callback);
 }

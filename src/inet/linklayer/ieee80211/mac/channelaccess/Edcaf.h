@@ -32,11 +32,11 @@ namespace ieee80211 {
 /**
  * Implements IEEE 802.11 Enhanced Distributed Channel Access Function.
  */
-class INET_API Edcaf : public IContentionBasedChannelAccess, public IContention::ICallback, public cSimpleModule
+class INET_API Edcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
 {
     protected:
         IContention *contention = nullptr;
-        IContentionBasedChannelAccess::ICallback *callback = nullptr;
+        IChannelAccess::ICallback *callback = nullptr;
         IEdcaCollisionController *collisionController = nullptr;
 
         bool owning = false;
@@ -48,6 +48,9 @@ class INET_API Edcaf : public IContentionBasedChannelAccess, public IContention:
         simtime_t eifs = -1;
 
         AccessCategory ac = AccessCategory(-1);
+        int cw = -1;
+        int cwMin = -1;
+        int cwMax = -1;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -56,14 +59,21 @@ class INET_API Edcaf : public IContentionBasedChannelAccess, public IContention:
         AccessCategory getAccessCategory(const char *ac);
         virtual int getAifsNumber(AccessCategory ac);
 
+        int getCwMax(AccessCategory ac, int aCwMax, int aCwMin);
+        int getCwMin(AccessCategory ac, int aCwMin);
+
     public:
-        // IContentionBasedChannelAccess
-        virtual void requestChannel(IContentionBasedChannelAccess::ICallback *callback) override;
-        virtual void releaseChannel(IContentionBasedChannelAccess::ICallback *callback) override;
+        // IChannelAccess
+        virtual void requestChannel(IChannelAccess::ICallback *callback) override;
+        virtual void releaseChannel(IChannelAccess::ICallback *callback) override;
 
         // IContention::ICallback
         virtual void channelAccessGranted() override;
         virtual void expectedChannelAccess(simtime_t time) override;
+
+        // IRecoveryProcedure::ICallback
+        virtual void incrementCw() override;
+        virtual void resetCw() override;
 
         // Edcaf
         virtual bool isOwning() { return owning; }

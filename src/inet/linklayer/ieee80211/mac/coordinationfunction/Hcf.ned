@@ -74,8 +74,8 @@ module Hcf
         rtsProcedure: RtsProcedure {
             @display("p=343,169");
         }
-        edcaRecoveryProcedures[numEdcafs]: RecoveryProcedure {
-            cwCalculator = "^";
+        edcaRecoveryProcedures[9]: RecoveryProcedure {
+            cwCalculatorModule = "^.foo[" + index;
             rtsProcedureModule = "^.rtsProcedure";
             @display("p=343,342,row,50");
         }

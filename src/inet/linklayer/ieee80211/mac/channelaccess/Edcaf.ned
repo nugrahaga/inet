@@ -28,6 +28,8 @@ module Edcaf
     parameters:
         string accessCategory @enum("AC_BK","AC_BE","AC_VI","AC_VO");
         int aifsn = default(-1);
+        int cwMin = default(-1);
+        int cwMax = default(-1);
 
         string rateSelectionModule;
         string rxModule;

@@ -31,13 +31,13 @@ bool Hcca::isOwning()
     return false;
 }
 
-void Hcca::requestChannel(IContentionFreeChannelAccess::ICallback* callback)
+void Hcca::requestChannel(IChannelAccess::ICallback* callback)
 {
     throw cRuntimeError("Unimplemented!");
 }
 
 
-void Hcca::releaseChannel(IContentionFreeChannelAccess::ICallback* callback)
+void Hcca::releaseChannel(IChannelAccess::ICallback* callback)
 {
     throw cRuntimeError("Unimplemented!");
 }

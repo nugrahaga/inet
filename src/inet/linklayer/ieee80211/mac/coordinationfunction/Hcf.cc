@@ -61,7 +61,13 @@ void Hcf::initialize(int stage)
 
 void Hcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
 {
-    AccessCategory ac = edca->classifyFrame(frame);
+    AccessCategory ac = AccessCategory(-1);
+    if (dynamic_cast<Ieee80211ManagementFrame *>(frame)) // TODO: + non-QoS frames
+        ac = AccessCategory::AC_BE;
+    else if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(frame))
+        ac = edca->classifyFrame(dataFrame);
+    else
+        throw cRuntimeError("Unknown message type");
     if (edcaPendingQueues[ac]->insert(frame)) {
         EV_INFO << "Frame " << frame->getName() << " has been inserted into the PendingQueue." << endl;
         auto edcaf = edca->getChannelOwner();
@@ -85,7 +91,7 @@ void Hcf::processLowerFrame(Ieee80211Frame* frame)
         recipientProcessReceivedFrame(frame);
 }
 
-void Hcf::channelGranted(IContentionBasedChannelAccess* channelAccess)
+void Hcf::channelGranted(IChannelAccess* channelAccess)
 {
     auto edcaf = check_and_cast<Edcaf*>(channelAccess);
     if (edcaf) {
@@ -98,37 +104,9 @@ void Hcf::channelGranted(IContentionBasedChannelAccess* channelAccess)
         throw cRuntimeError("Channel access granted but channel owner not found!");
 }
 
-void Hcf::channelGranted(IContentionFreeChannelAccess* channelAccess)
-{
-    throw cRuntimeError("Hcca is unimplemented");
-}
-
-int Hcf::getCw(IContentionBasedChannelAccess* channelAccess)
-{
-    auto edcaf = check_and_cast<Edcaf*>(channelAccess);
-    AccessCategory ac = edcaf->getAccessCategory();
-    return edcaRecoveryProcedures[ac]->getCw();
-}
-
-int Hcf::computeCwMin(IRecoveryProcedure *rp)
-{
-    for (int ac = 0; ac < numEdcafs; ac++)
-        if (edcaRecoveryProcedures[ac] == rp)
-            return edca->getCwMin(AccessCategory(ac), referenceMode->getLegacyCwMin());
-    throw cRuntimeError("RecoveryProcedure not found");
-}
-
-int Hcf::computeCwMax(IRecoveryProcedure *rp)
-{
-    for (int ac = 0; ac < numEdcafs; ac++)
-        if (edcaRecoveryProcedures[ac] == rp)
-            return edca->getCwMax(AccessCategory(ac), referenceMode->getLegacyCwMax(), referenceMode->getLegacyCwMin());
-    throw cRuntimeError("RecoveryProcedure not found");
-}
-
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(edcaPendingQueues[ac], edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(edcaPendingQueues[AccessCategory::AC_BE], edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)

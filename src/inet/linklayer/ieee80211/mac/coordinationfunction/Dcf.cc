@@ -49,7 +49,7 @@ void Dcf::initialize(int stage)
     }
 }
 
-void Dcf::channelGranted(IContentionBasedChannelAccess *channelAccess)
+void Dcf::channelGranted(IChannelAccess *channelAccess)
 {
     ASSERT(dcfChannelAccess == channelAccess);
     if (!frameSequenceHandler->isSequenceRunning())
@@ -136,12 +136,6 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
             ctsProcedure->processTransmittedCts(ctsFrame);
         }
     }
-}
-
-int Dcf::getCw(IContentionBasedChannelAccess* channelAccess)
-{
-    ASSERT(dcfChannelAccess == channelAccess);
-    return recoveryProcedure->getCw();
 }
 
 FrameSequenceContext* Dcf::buildContext()

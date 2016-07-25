@@ -29,16 +29,12 @@ class INET_API IRecoveryProcedure
         class ICwCalculator
         {
             public:
-                virtual ~ICwCalculator() { }
-
-                virtual int computeCwMin(IRecoveryProcedure *rp) = 0;
-                virtual int computeCwMax(IRecoveryProcedure *rp) = 0;
+                virtual void incrementCw() = 0;
+                virtual void resetCw() = 0;
         };
 
     public:
         virtual ~IRecoveryProcedure() { }
-
-        virtual int getCw() = 0;
 };
 
 } /* namespace ieee80211 */

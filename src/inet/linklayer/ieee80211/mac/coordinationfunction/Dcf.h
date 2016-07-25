@@ -43,7 +43,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Distributed Coordination Function.
  */
-class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IContentionBasedChannelAccess::ICallback, public ITx::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
+class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule
 {
     protected:
         Ieee80211Mac *mac = nullptr;
@@ -97,9 +97,8 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
 
     protected:
-        // IContentionBasedChannelAccess::ICallback
-        virtual void channelGranted(IContentionBasedChannelAccess *channelAccess) override;
-        virtual int getCw(IContentionBasedChannelAccess *channelAccess) override;
+        // IChannelAccess::ICallback
+        virtual void channelGranted(IChannelAccess *channelAccess) override;
 
         // IFrameSequenceHandler::ICallback
         virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;

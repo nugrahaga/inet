@@ -64,7 +64,7 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
             // TODO: revise
             auto addbaReq = context->getBlockAckAgreementHandler()->buildAddbaRequest(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid(), dataFrameToTransmit->getSequenceNumber() + 1);
             context->getBlockAckAgreementHandler()->processAddbaRequest(addbaReq);
-            context->insertPendingFrame(addbaReq);
+            context->insertMgmtFrame(addbaReq);
             return 1;
         }
         else if (action == BaPolicyAction::SEND_WITH_NORMAL_ACK)

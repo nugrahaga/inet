@@ -31,7 +31,7 @@ namespace ieee80211 {
 class INET_API Pcf : public ICoordinationFunction, public cSimpleModule
 {
     protected:
-        IContentionFreeChannelAccess *pcfChannelAccess = nullptr;
+        IChannelAccess *pcfChannelAccess = nullptr;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }

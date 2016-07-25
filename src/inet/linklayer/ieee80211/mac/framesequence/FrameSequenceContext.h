@@ -34,7 +34,7 @@ namespace ieee80211 {
 class INET_API FrameSequenceContext
 {
     protected:
-        PendingQueue *pendingQueue = nullptr;
+        PendingQueue *mgmtPendingQueue = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
@@ -50,7 +50,7 @@ class INET_API FrameSequenceContext
         FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
-        virtual void insertPendingFrame(Ieee80211DataOrMgmtFrame *pendingFrame) { pendingQueue->insert(pendingFrame); }
+        virtual void insertMgmtFrame(Ieee80211ManagementFrame *pendingMgmtFrame) { mgmtPendingQueue->insert(pendingMgmtFrame); }
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
         virtual int getNumSteps() const { return steps.size(); }

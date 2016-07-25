@@ -41,14 +41,14 @@ class INET_API Edca : public cSimpleModule
         virtual AccessCategory mapTidToAc(Tid tid);
 
     public:
-        virtual AccessCategory classifyFrame(Ieee80211DataOrMgmtFrame *frame);
+        virtual AccessCategory classifyFrame(Ieee80211DataFrame *frame);
         virtual Edcaf *getChannelOwner();
         virtual std::vector<Edcaf*> getInternallyCollidedEdcafs();
         virtual int getCwMax(AccessCategory ac, int aCwMax, int aCwMin);
         virtual int getCwMin(AccessCategory ac, int aCwMin);
 
-        virtual void requestChannelAccess(AccessCategory ac, IContentionBasedChannelAccess::ICallback *callback);
-        virtual void releaseChannelAccess(AccessCategory ac, IContentionBasedChannelAccess::ICallback *callback);
+        virtual void requestChannelAccess(AccessCategory ac, IChannelAccess::ICallback *callback);
+        virtual void releaseChannelAccess(AccessCategory ac, IChannelAccess::ICallback *callback);
 };
 
 } /* namespace ieee80211 */

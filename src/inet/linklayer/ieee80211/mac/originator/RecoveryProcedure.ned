@@ -21,11 +21,9 @@ package inet.linklayer.ieee80211.mac.originator;
 simple RecoveryProcedure
 {
     parameters:
-        string cwCalculator;
+        string cwCalculatorModule;
         string rtsProcedureModule;
         
         int shortRetryLimit = default(7);
         int longRetryLimit = default(4);
-        int cwMin = default(-1);
-        int cwMax = default(-1);
 }

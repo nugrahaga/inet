@@ -26,7 +26,7 @@ namespace ieee80211 {
 /**
  * Implements IEEE 802.11 Hybrid coordination function (HCF) Controlled Channel Access.
  */
-class INET_API Hcca : public IContentionFreeChannelAccess, public cSimpleModule
+class INET_API Hcca : public IChannelAccess, public cSimpleModule
 {
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -35,8 +35,8 @@ class INET_API Hcca : public IContentionFreeChannelAccess, public cSimpleModule
     public:
         virtual bool isOwning();
 
-        virtual void requestChannel(IContentionFreeChannelAccess::ICallback *callback) override;
-        virtual void releaseChannel(IContentionFreeChannelAccess::ICallback *callback) override;
+        virtual void requestChannel(IChannelAccess::ICallback *callback) override;
+        virtual void releaseChannel(IChannelAccess::ICallback *callback) override;
 };
 
 } /* namespace ieee80211 */

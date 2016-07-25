@@ -23,7 +23,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API IContentionBasedChannelAccess
+class INET_API IChannelAccess
 {
     public:
         class ICallback
@@ -31,35 +31,15 @@ class INET_API IContentionBasedChannelAccess
             public:
                 virtual ~ICallback() {}
 
-                virtual void channelGranted(IContentionBasedChannelAccess *channelAccess) = 0;
-                virtual int getCw(IContentionBasedChannelAccess *channelAccess) = 0;
+                virtual void channelGranted(IChannelAccess *channelAccess) = 0;
         };
 
     public:
-        virtual ~IContentionBasedChannelAccess() { }
+        virtual ~IChannelAccess() { }
 
         virtual void requestChannel(ICallback *callback) = 0;
         virtual void releaseChannel(ICallback *callback) = 0;
 };
-
-class INET_API IContentionFreeChannelAccess
-{
-    public:
-        class ICallback
-        {
-            public:
-                virtual ~ICallback() {}
-
-                virtual void channelGranted(IContentionFreeChannelAccess *channelAccess) = 0;
-        };
-
-    public:
-        virtual ~IContentionFreeChannelAccess() { }
-
-        virtual void requestChannel(ICallback *callback) = 0;
-        virtual void releaseChannel(ICallback *callback) = 0;
-};
-
 
 } /* namespace ieee80211 */
 } /* namespace inet */

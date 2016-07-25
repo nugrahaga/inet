@@ -61,7 +61,6 @@ module Dcf
         }
         recoveryProcedure: RecoveryProcedure {
             rtsProcedureModule = "^.rtsProcedure";
-            cwCalculator = "^";
             @display("p=113,131");
         }
 }

@@ -42,7 +42,28 @@ void Edcaf::initialize(int stage)
         simtime_t aifs = sifs + fallback(getAifsNumber(ac), aifsn) * slotTime;
         ifs = aifs;
         eifs = sifs + aifs + referenceMode->getDuration(LENGTH_ACK);
+        cwMin = par("cwMin");
+        cwMax = par("cwMax");
+        if (cwMin == -1)
+            cwMin = getCwMin(ac, referenceMode->getLegacyCwMin());
+        if (cwMax == -1)
+            cwMax = getCwMax(ac, referenceMode->getLegacyCwMax(), referenceMode->getLegacyCwMin());
+        cw = cwMin;
     }
+}
+
+void Edcaf::incrementCw()
+{
+    int newCw = 2 * cw + 1;
+    if (newCw > cwMax)
+        cw = cwMax;
+    else
+        cw = newCw;
+}
+
+void Edcaf::resetCw()
+{
+    cw = cwMin;
 }
 
 int Edcaf::getAifsNumber(AccessCategory ac)
@@ -80,7 +101,7 @@ void Edcaf::channelAccessGranted()
     contentionInProgress = false;
 }
 
-void Edcaf::releaseChannel(IContentionBasedChannelAccess::ICallback* callback)
+void Edcaf::releaseChannel(IChannelAccess::ICallback* callback)
 {
     ASSERT(owning);
     owning = false;
@@ -88,13 +109,13 @@ void Edcaf::releaseChannel(IContentionBasedChannelAccess::ICallback* callback)
     this->callback = nullptr;
 }
 
-void Edcaf::requestChannel(IContentionBasedChannelAccess::ICallback* callback)
+void Edcaf::requestChannel(IChannelAccess::ICallback* callback)
 {
     this->callback = callback;
     if (owning)
         callback->channelGranted(this);
     else if (!contentionInProgress) {
-        contention->startContention(callback->getCw(this), ifs, eifs, slotTime, this);
+        contention->startContention(cw, ifs, eifs, slotTime, this);
         contentionInProgress = true;
     }
     else ;
@@ -109,6 +130,31 @@ bool Edcaf::isInternalCollision()
 {
     return collisionController->isInternalCollision(this);
 }
+
+int Edcaf::getCwMax(AccessCategory ac, int aCwMax, int aCwMin)
+{
+    switch (ac)
+    {
+        case AC_BK: return aCwMax;
+        case AC_BE: return aCwMax;
+        case AC_VI: return aCwMin;
+        case AC_VO: return (aCwMin + 1) / 2 - 1;
+        default: throw cRuntimeError("Unknown access category = %d", ac);
+    }
+}
+
+int Edcaf::getCwMin(AccessCategory ac, int aCwMin)
+{
+    switch (ac)
+    {
+        case AC_BK: return aCwMin;
+        case AC_BE: return aCwMin;
+        case AC_VI: return (aCwMin + 1) / 2 - 1;
+        case AC_VO: return (aCwMin + 1) / 4 - 1;
+        default: throw cRuntimeError("Unknown access category = %d", ac);
+    }
+}
+
 
 } // namespace ieee80211
 } // namespace inet

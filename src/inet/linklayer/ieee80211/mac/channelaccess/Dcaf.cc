@@ -38,7 +38,28 @@ void Dcaf::initialize(int stage)
         int difs = par("difsTime");
         ifs = difs == -1 ? sifs + 2 * slotTime : difs;
         eifs = sifs + ifs + referenceMode->getDuration(LENGTH_ACK);
+        cwMin = par("cwMin");
+        cwMax = par("cwMax");
+        if (cwMin == -1)
+            cwMin = referenceMode->getLegacyCwMin();
+        if (cwMax == -1)
+            cwMax = referenceMode->getLegacyCwMax();
+        cw = cwMin;
     }
+}
+
+void Dcaf::incrementCw()
+{
+    int newCw = 2 * cw + 1;
+    if (newCw > cwMax)
+        cw = cwMax;
+    else
+        cw = newCw;
+}
+
+void Dcaf::resetCw()
+{
+    cw = cwMin;
 }
 
 void Dcaf::channelAccessGranted()
@@ -49,20 +70,20 @@ void Dcaf::channelAccessGranted()
     contentionInProgress = false;
 }
 
-void Dcaf::releaseChannel(IContentionBasedChannelAccess::ICallback* callback)
+void Dcaf::releaseChannel(IChannelAccess::ICallback* callback)
 {
     owning = false;
     contentionInProgress = false;
     this->callback = nullptr;
 }
 
-void Dcaf::requestChannel(IContentionBasedChannelAccess::ICallback* callback)
+void Dcaf::requestChannel(IChannelAccess::ICallback* callback)
 {
     this->callback = callback;
     if (owning)
         callback->channelGranted(this);
     else if (!contentionInProgress) {
-        contention->startContention(callback->getCw(this), ifs, eifs, slotTime, this);
+        contention->startContention(cw, ifs, eifs, slotTime, this);
         contentionInProgress = true;
     }
     else ;

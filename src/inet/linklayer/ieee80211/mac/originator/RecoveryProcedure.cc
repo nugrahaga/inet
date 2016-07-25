@@ -34,23 +34,14 @@ Define_Module(RecoveryProcedure);
 // The CW shall be reset to aCWmin after [...] when SLRC reaches
 // dot11LongRetryLimit, or when SSRC reaches dot11ShortRetryLimit.
 //
-
 void RecoveryProcedure::initialize(int stage)
 {
     if (stage == INITSTAGE_LAST) {
-        auto cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculator")));
+        auto cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculatorModule")));
         auto rtsProcedure = check_and_cast<RtsProcedure *>(getModuleByPath(par("rtsProcedureModule")));
         rtsThreshold = rtsProcedure->getRtsThreshold();
         shortRetryLimit = par("shortRetryLimit");
         longRetryLimit = par("longRetryLimit");
-        cwMax = par("cwMax");
-        cwMin = par("cwMin");
-        if (cwMax == -1)
-            cwMax = cwCalculator->computeCwMax(this);
-        if (cwMin == -1)
-            cwMin = cwCalculator->computeCwMin(this);
-        // The contention window (CW) parameter shall take an initial value of aCWmin.
-        cw = cwMin;
     }
 }
 
@@ -60,7 +51,7 @@ void RecoveryProcedure::incrementStationSrc()
     if (stationShortRetryCounter == shortRetryLimit) // 9.3.3 Random backoff time
         resetContentionWindow();
     else
-        cw = doubleCw(cw);
+        callback->incrementCw();
 }
 
 void RecoveryProcedure::incrementStationLrc()
@@ -69,7 +60,7 @@ void RecoveryProcedure::incrementStationLrc()
     if (stationLongRetryCounter == longRetryLimit) // 9.3.3 Random backoff time
         resetContentionWindow();
     else
-        cw = doubleCw(cw);
+        callback->incrementCw();
 }
 
 void RecoveryProcedure::incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::map<SequenceNumber, int>& retryCounter)
@@ -79,14 +70,6 @@ void RecoveryProcedure::incrementCounter(Ieee80211DataOrMgmtFrame* frame, std::m
         retryCounter[id]++;
     else
         retryCounter.insert(std::make_pair(id, 1));
-}
-
-int RecoveryProcedure::doubleCw(int cw)
-{
-    int newCw = 2 * cw + 1;
-    if (newCw > cwMax)
-        return cwMax;
-    return newCw;
 }
 
 //
@@ -182,6 +165,11 @@ bool RecoveryProcedure::isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFr
         return getRc(failedFrame, longRetryCounter) >= longRetryLimit;
     else
         return getRc(failedFrame, shortRetryCounter) >= shortRetryLimit;
+}
+
+void RecoveryProcedure::resetContentionWindow()
+{
+    callback->resetCw();
 }
 
 bool RecoveryProcedure::isRtsFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* protectedFrame)
