@@ -101,6 +101,9 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // Frame sequence handler
         IFrameSequenceHandler *frameSequenceHandler = nullptr;
 
+        // Station retry counters
+        std::vector<StationRetryCounters*> stationRetryCounters;
+
         const IIeee80211Mode *referenceMode = nullptr;
 
         simtime_t sifs = -1;
