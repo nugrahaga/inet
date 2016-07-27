@@ -38,6 +38,7 @@ void Dcaf::initialize(int stage)
         int difs = par("difsTime");
         ifs = difs == -1 ? sifs + 2 * slotTime : difs;
         eifs = sifs + ifs + referenceMode->getDuration(LENGTH_ACK);
+        ASSERT(ifs > sifs);
         cwMin = par("cwMin");
         cwMax = par("cwMax");
         if (cwMin == -1)
@@ -65,9 +66,9 @@ void Dcaf::resetCw()
 void Dcaf::channelAccessGranted()
 {
     ASSERT(callback != nullptr);
-    callback->channelGranted(this);
     owning = true;
     contentionInProgress = false;
+    callback->channelGranted(this);
 }
 
 void Dcaf::releaseChannel(IChannelAccess::ICallback* callback)
@@ -83,8 +84,8 @@ void Dcaf::requestChannel(IChannelAccess::ICallback* callback)
     if (owning)
         callback->channelGranted(this);
     else if (!contentionInProgress) {
-        contention->startContention(cw, ifs, eifs, slotTime, this);
         contentionInProgress = true;
+        contention->startContention(cw, ifs, eifs, slotTime, this);
     }
     else ;
 }

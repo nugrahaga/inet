@@ -80,7 +80,7 @@ module Hcf
             @display("p=342,400.824");
         }
         edcaDataRecoveryProcedures[numEdcafs]: QoSRecoveryProcedure {
-            cwCalculatorModule = "^.edca.edcaf[" + index + "]";
+            cwCalculatorModule = "^.edca.edcaf[" + string(index) + "]";
             rtsProcedureModule = "^.rtsProcedure";
             @display("p=342,303.69598,row,50");
         }

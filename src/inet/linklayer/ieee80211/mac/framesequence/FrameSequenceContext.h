@@ -20,6 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
@@ -34,7 +35,7 @@ namespace ieee80211 {
 class INET_API FrameSequenceContext
 {
     protected:
-        PendingQueue *mgmtPendingQueue = nullptr;
+        ICoordinationFunction *coordinationFunction = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
@@ -47,10 +48,10 @@ class INET_API FrameSequenceContext
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(PendingQueue *pendingQueue, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode);
+        FrameSequenceContext(ICoordinationFunction *coordinationFunction, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
-        virtual void insertMgmtFrame(Ieee80211ManagementFrame *pendingMgmtFrame) { mgmtPendingQueue->insert(pendingMgmtFrame); }
+        virtual void insertMgmtFrame(Ieee80211ManagementFrame *pendingMgmtFrame) { coordinationFunction->processUpperFrame(pendingMgmtFrame); }
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
         virtual int getNumSteps() const { return steps.size(); }

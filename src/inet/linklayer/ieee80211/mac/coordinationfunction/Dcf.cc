@@ -131,7 +131,7 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
 
 FrameSequenceContext* Dcf::buildContext()
 {
-    return new FrameSequenceContext(nullptr, inProgressFrames, originatorAckProcedure, rtsProcedure, nullptr, nullptr, nullptr, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(this, inProgressFrames, originatorAckProcedure, rtsProcedure, nullptr, nullptr, nullptr, rateSelection->getSlowestMandatoryMode());
 }
 
 void Dcf::transmissionComplete()

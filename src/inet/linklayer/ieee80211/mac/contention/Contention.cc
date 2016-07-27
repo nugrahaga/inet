@@ -40,7 +40,7 @@ void Contention::initialize(int stage)
         lastIdleStartTime = simTime() - SimTime::getMaxTime() / 2;
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
         startTxEvent = new cMessage("startTx");
-
+        startTxEvent->setSchedulingPriority(1000);
         fsm.setName("fsm");
         fsm.setState(IDLE, "IDLE");
 
@@ -77,7 +77,7 @@ void Contention::startContention(int cw, simtime_t ifs, simtime_t eifs, simtime_
     this->eifs = eifs;
     this->slotTime = slotTime;
     this->callback = callback;
-    backoffSlots = cw;
+    backoffSlots = intrand(cw + 1);
     handleWithFSM(START);
 }
 

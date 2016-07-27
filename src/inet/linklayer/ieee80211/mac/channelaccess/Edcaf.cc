@@ -42,6 +42,7 @@ void Edcaf::initialize(int stage)
         simtime_t aifs = sifs + fallback(getAifsNumber(ac), aifsn) * slotTime;
         ifs = aifs;
         eifs = sifs + aifs + referenceMode->getDuration(LENGTH_ACK);
+        ASSERT(ifs > sifs);
         cwMin = par("cwMin");
         cwMax = par("cwMax");
         if (cwMin == -1)
@@ -95,8 +96,8 @@ void Edcaf::channelAccessGranted()
 {
     ASSERT(callback != nullptr);
     if (!collisionController->isInternalCollision(this)) {
-        callback->channelGranted(this);
         owning = true;
+        callback->channelGranted(this);
     }
     contentionInProgress = false;
 }
@@ -115,8 +116,8 @@ void Edcaf::requestChannel(IChannelAccess::ICallback* callback)
     if (owning)
         callback->channelGranted(this);
     else if (!contentionInProgress) {
-        contention->startContention(cw, ifs, eifs, slotTime, this);
         contentionInProgress = true;
+        contention->startContention(cw, ifs, eifs, slotTime, this);
     }
     else ;
 }

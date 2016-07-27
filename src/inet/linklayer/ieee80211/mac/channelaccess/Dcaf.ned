@@ -24,12 +24,13 @@ module Dcaf
 {
     parameters:
         double difsTime @unit("s") = default(-1s);
-
+        int cwMin = default(-1);
+        int cwMax = default(-1);
+        
         string rateSelectionModule;
         string rxModule;
         
         @class("Dcaf");
-
     submodules:
         contention: Contention {
             @display("p=210,82");

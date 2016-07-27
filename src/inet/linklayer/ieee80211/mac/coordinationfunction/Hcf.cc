@@ -49,7 +49,7 @@ void Hcf::initialize(int stage)
         originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
         recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
         lifetimeHandler = new EdcaTransmitLifetimeHandler(0, 0, 0, 0); // FIXME: needs only one timeout parameter
-        edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedures"));
+        edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
         for (int ac = 0; ac < numEdcafs; ac++) {
             edcaPendingQueues.push_back(new PendingQueue(par("maxQueueSize"), nullptr));
             edcaDataRecoveryProcedures.push_back(check_and_cast<QoSRecoveryProcedure *>(getSubmodule("edcaDataRecoveryProcedures", ac)));
@@ -108,7 +108,7 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(edcaPendingQueues[AccessCategory::AC_BE], edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(this, edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)

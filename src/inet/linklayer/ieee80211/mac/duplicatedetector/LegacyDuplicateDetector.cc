@@ -22,6 +22,11 @@
 namespace inet {
 namespace ieee80211 {
 
+//
+// A non-QoS STA shall assign sequence numbers to management frames and data frames (QoS subfield of the
+// Subtype field is equal to 0) from a single modulo-4096 counter, starting at 0 and incrementing by 1, for each
+// MSDU or MMPDU.
+//
 void LegacyDuplicateDetector::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
 {
     ASSERT(frame->getType() != ST_DATA_WITH_QOS);
