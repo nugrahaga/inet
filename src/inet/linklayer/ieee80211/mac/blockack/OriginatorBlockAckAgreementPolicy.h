@@ -15,9 +15,10 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_ORIGINATORBLOCKACKPOLICY_H
-#define __INET_ORIGINATORBLOCKACKPOLICY_H
+#ifndef __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H
+#define __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H
 
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 
 namespace inet {
@@ -30,17 +31,24 @@ enum class BaPolicyAction {
     SEND_WITH_NORMAL_ACK
 };
 
-class INET_API OriginatorBlockAckPolicy
+class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
 {
     protected:
+        OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
+
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+
         BaPolicyAction getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         bool isEligibleFrame(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
+        BaPolicyAction getAction(FrameSequenceContext *context);
 
     public:
-        BaPolicyAction getAction(FrameSequenceContext *context);
+        virtual void processUpperFrame(Ieee80211DataOrMgmtFrame *frame);
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // __INET_ORIGINATORBLOCKACKPOLICY_H
+#endif // __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H

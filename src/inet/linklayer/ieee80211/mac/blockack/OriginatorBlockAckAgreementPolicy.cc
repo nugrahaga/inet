@@ -15,12 +15,17 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "OriginatorBlockAckPolicy.h"
+#include "OriginatorBlockAckAgreementPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-BaPolicyAction OriginatorBlockAckPolicy::getAction(FrameSequenceContext *context)
+void OriginatorBlockAckAgreementPolicy::initialize(int stage)
+{
+
+}
+
+BaPolicyAction OriginatorBlockAckAgreementPolicy::getAction(FrameSequenceContext *context)
 {
     Ieee80211Frame *frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
     auto outstandingFramesPerReceiver = context->getOutstandingFramesPerReceiver();
@@ -42,7 +47,7 @@ BaPolicyAction OriginatorBlockAckPolicy::getAction(FrameSequenceContext *context
     }
 }
 
-BaPolicyAction OriginatorBlockAckPolicy::getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+BaPolicyAction OriginatorBlockAckAgreementPolicy::getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
 {
     if (agreement->getIsAddbaResponseReceived()) {
         if (agreement->getBufferSize() == agreement->getNumSentBaPolicyFrames()) // buffer is full
@@ -56,11 +61,16 @@ BaPolicyAction OriginatorBlockAckPolicy::getAckPolicy(Ieee80211DataFrame* frame,
         return BaPolicyAction::SEND_WITH_NORMAL_ACK;
 }
 
-bool OriginatorBlockAckPolicy::isEligibleFrame(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+bool OriginatorBlockAckAgreementPolicy::isEligibleFrame(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
 {
     bool aMsduOk = agreement->getIsAMsduSupported() || !frame->getAMsduPresent();
     // TODO: bool baPolicy = agreement->getIsDelayedBlockAckPolicySupported() || !frame->getAckPolicy();
     return aMsduOk && (frame->getSequenceNumber() >= agreement->getStartingSequenceNumber()); // TODO: && baPolicy
+}
+
+void OriginatorBlockAckAgreementPolicy::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
+{
+
 }
 
 } /* namespace ieee80211 */

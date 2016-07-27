@@ -34,6 +34,7 @@ void BasicRateSelection::initialize(int stage)
     }
     else if (stage == INITSTAGE_LINK_LAYER_2) {
         double controlBitrate = par("controlBitrate");
+        // TODO: ACK: fastest mandatory but slower than corresponding data bitrate
         controlFrameMode = (controlBitrate == -1) ? modeSet->getSlowestMandatoryMode() : modeSet->getMode(bps(controlBitrate));
 
         double multicastBitrate = par("multicastBitrate");

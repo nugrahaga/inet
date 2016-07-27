@@ -47,6 +47,7 @@ const DelayedInitializer<std::vector<Ieee80211ModeSet>> Ieee80211ModeSet::modeSe
         { true, &Ieee80211HrDsssCompliantModes::hrDsssMode5_5MbpsCckLongPreamble },
         { true, &Ieee80211HrDsssCompliantModes::hrDsssMode11MbpsCckLongPreamble },
     }),
+    // TODO: slotTime, cwMin, cwMax must be identical in all modes
     Ieee80211ModeSet("g", {
         { true, &Ieee80211DsssCompliantModes::dsssMode1Mbps },
         { true, &Ieee80211DsssCompliantModes::dsssMode2Mbps },

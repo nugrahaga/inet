@@ -27,7 +27,7 @@ namespace ieee80211 {
 class INET_API TxOpFs : public AlternativesFs {
 
     protected:
-        OriginatorBlockAckPolicy *blockAckPolicy = nullptr;
+        OriginatorBlockAckAgreementPolicy *blockAckPolicy = nullptr;
 
     public:
         TxOpFs();

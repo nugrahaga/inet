@@ -42,7 +42,7 @@ TxOpFs::TxOpFs() :
                                                          ALTERNATIVESFS_SELECTOR(selectMgmtOrDataQap))})},
                    ALTERNATIVESFS_SELECTOR(selectTxOpSequence))
 {
-    blockAckPolicy = new OriginatorBlockAckPolicy();
+    blockAckPolicy = new OriginatorBlockAckAgreementPolicy();
 }
 
 int TxOpFs::selectMgmtOrDataQap(AlternativesFs *frameSequence, FrameSequenceContext *context)
