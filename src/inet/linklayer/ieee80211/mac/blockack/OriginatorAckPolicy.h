@@ -19,10 +19,10 @@
 namespace inet {
 namespace ieee80211 {
 
-class OriginatorBlockAckPolicy {
+class OriginatorAckPolicy {
 public:
-    OriginatorBlockAckPolicy();
-    virtual ~OriginatorBlockAckPolicy();
+    OriginatorAckPolicy();
+    virtual ~OriginatorAckPolicy();
 };
 
 } /* namespace ieee80211 */

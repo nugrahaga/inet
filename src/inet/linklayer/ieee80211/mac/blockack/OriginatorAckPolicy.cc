@@ -18,12 +18,12 @@
 namespace inet {
 namespace ieee80211 {
 
-OriginatorBlockAckPolicy::OriginatorBlockAckPolicy() {
+OriginatorAckPolicy::OriginatorAckPolicy() {
     // TODO Auto-generated constructor stub
 
 }
 
-OriginatorBlockAckPolicy::~OriginatorBlockAckPolicy() {
+OriginatorAckPolicy::~OriginatorAckPolicy() {
     // TODO Auto-generated destructor stub
 }
 
