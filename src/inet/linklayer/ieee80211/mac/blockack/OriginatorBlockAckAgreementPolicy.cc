@@ -42,7 +42,6 @@ void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)
     MACAddress receiverAddr = agreement->getReceiverAddr();
     hcf->processUpperFrame(agreementHandler->buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
     agreementHandler->terminateAgreement(receiverAddr, tid);
-    return;
 }
 
 void OriginatorBlockAckAgreementPolicy::scheduleInactivityTimer(OriginatorBlockAckAgreement* agreement)
@@ -76,6 +75,11 @@ bool OriginatorBlockAckAgreementPolicy::isDelbaAccepted(Ieee80211Delba* delba)
 // corresponding to the TID for which the Block Ack policy is set is received.
 //
 void OriginatorBlockAckAgreementPolicy::blockAckReceived(OriginatorBlockAckAgreement* agreement)
+{
+    scheduleInactivityTimer(agreement);
+}
+
+void OriginatorBlockAckAgreementPolicy::agreementEstablished(OriginatorBlockAckAgreement* agreement)
 {
     scheduleInactivityTimer(agreement);
 }

@@ -52,14 +52,15 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule
         virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override;
 
-        RecipientBlockAckAgreement *terminateAgreement(MACAddress originatorAddr, Tid tid);
-        Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
 
     public:
-        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *frame);
+        Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
         virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame);
+
+        virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
+        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *frame);
         virtual void processReceivedDelba(Ieee80211Delba *frame);
-        virtual void processTransmittedAddbaResponse(Ieee80211AddbaResponse *frame);
+        virtual void updateAgreement(Ieee80211AddbaResponse *frame);
 
         RecipientBlockAckAgreement *getAgreement(Tid tid, MACAddress originatorAddr);
 };
@@ -68,4 +69,3 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule
 } // namespace inet
 
 #endif
-

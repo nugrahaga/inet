@@ -215,8 +215,10 @@ void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* fram
     }
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse *>(frame)) {
         auto agreement = originatorBlockAckAgreementHandler->getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
-        if (originatorBlockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement))
+        if (originatorBlockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement)) {
             originatorBlockAckAgreementHandler->updateAgreement(agreement, addbaResp);
+            originatorBlockAckAgreementPolicy->agreementEstablished(agreement);
+        }
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba*>(frame)) {
         if (delba->getInitiator())
@@ -311,7 +313,7 @@ void Hcf::originatorProcessTransmittedManagementFrame(Ieee80211ManagementFrame* 
     }
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse*>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(addbaResp);
-        recipientBlockAckAgreementHandler->processTransmittedAddbaResponse(addbaResp);
+        recipientBlockAckAgreementHandler->updateAgreement(addbaResp);
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba *>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(delba);

@@ -86,7 +86,7 @@ Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ie
     return addbaResponse;
 }
 
-void RecipientBlockAckAgreementHandler::processTransmittedAddbaResponse(Ieee80211AddbaResponse *frame)
+void RecipientBlockAckAgreementHandler::updateAgreement(Ieee80211AddbaResponse *frame)
 {
     auto id = std::make_pair(frame->getReceiverAddress(), frame->getTid());
     auto it = blockAckAgreements.find(id);
@@ -131,16 +131,15 @@ void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba *fra
 }
 
 
-RecipientBlockAckAgreement *RecipientBlockAckAgreementHandler::terminateAgreement(MACAddress originatorAddr, Tid tid)
+void RecipientBlockAckAgreementHandler::terminateAgreement(MACAddress originatorAddr, Tid tid)
 {
     auto agreementId = std::make_pair(originatorAddr, tid);
     auto it = blockAckAgreements.find(agreementId);
     if (it != blockAckAgreements.end()) {
         RecipientBlockAckAgreement *agreement = it->second;
         blockAckAgreements.erase(it);
-        return agreement;
+        delete agreement;
     }
-    return nullptr;
 }
 
 RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid tid, MACAddress originatorAddr)

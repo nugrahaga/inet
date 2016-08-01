@@ -53,6 +53,7 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
         virtual bool isDelbaAccepted(Ieee80211Delba *delba);
 
         virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement);
+        virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement);
 
         virtual bool isMsduSupported() const { return aMsduSupported; }
         virtual simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
