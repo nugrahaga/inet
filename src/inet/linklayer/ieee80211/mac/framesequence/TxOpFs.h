@@ -18,16 +18,13 @@
 #ifndef __INET_TXOPFS_H
 #define __INET_TXOPFS_H
 
-#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/GenericFrameSequences.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
 class INET_API TxOpFs : public AlternativesFs {
-
-    protected:
-        OriginatorBlockAckAgreementPolicy *blockAckPolicy = nullptr;
 
     public:
         TxOpFs();

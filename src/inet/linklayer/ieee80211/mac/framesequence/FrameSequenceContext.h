@@ -22,6 +22,7 @@
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
@@ -35,9 +36,9 @@ namespace ieee80211 {
 class INET_API FrameSequenceContext
 {
     protected:
-        ICoordinationFunction *coordinationFunction = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
+        OriginatorAckPolicy *ackPolicy = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         TxopProcedure *txopProcedure = nullptr;
         OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
@@ -48,10 +49,8 @@ class INET_API FrameSequenceContext
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(ICoordinationFunction *coordinationFunction, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode);
+        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
-
-        virtual void insertMgmtFrame(Ieee80211ManagementFrame *pendingMgmtFrame) { coordinationFunction->processUpperFrame(pendingMgmtFrame); }
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
         virtual int getNumSteps() const { return steps.size(); }
@@ -67,7 +66,8 @@ class INET_API FrameSequenceContext
         RtsProcedure* getRtsProcedure() { return rtsProcedure; }
         TxopProcedure* getTxopProcedure() { return txopProcedure; }
         OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
-        OriginatorBlockAckAgreementHandler* getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
+        OriginatorBlockAckAgreementHandler *getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
+        OriginatorAckPolicy *getAckPolicy() { return ackPolicy; }
         const IIeee80211Mode* getMode() { return mode; }
 };
 

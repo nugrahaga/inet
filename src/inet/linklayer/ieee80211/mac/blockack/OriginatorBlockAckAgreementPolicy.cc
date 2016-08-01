@@ -15,6 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
+#include "inet/linklayer/ieee80211/mac/coordinationfunction/Hcf.h"
 #include "OriginatorBlockAckAgreementPolicy.h"
 
 namespace inet {
@@ -22,55 +23,61 @@ namespace ieee80211 {
 
 void OriginatorBlockAckAgreementPolicy::initialize(int stage)
 {
-
+    ackPolicy = check_and_cast<OriginatorAckPolicy*>(getModuleByPath(par("originatorAckPolicyModule")));
+    delayedAckPolicySupported = par("delayedAckPolicySupported");
+    aMsduSupported = par("aMsduSupported");
+    maximumAllowedBufferSize = par("maximumAllowedBufferSize");
+    blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
 }
 
-BaPolicyAction OriginatorBlockAckAgreementPolicy::getAction(FrameSequenceContext *context)
+void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)
 {
-    Ieee80211Frame *frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
-    auto outstandingFramesPerReceiver = context->getOutstandingFramesPerReceiver();
-    for (auto outstandingFrames : outstandingFramesPerReceiver) {
-        if (outstandingFrames.second.size() >= 5)
-            return BaPolicyAction::SEND_BA_REQUEST;
-    }
-    if (frameToTransmit->getByteLength() > 1000) {
-        return BaPolicyAction::SEND_WITH_NORMAL_ACK;
-    }
-    else {
-        Ieee80211DataFrame *dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
-        MACAddress receiverAddr = dataFrameToTransmit->getReceiverAddress();
-        Tid tid = dataFrameToTransmit->getTid();
-        OriginatorBlockAckAgreement *agreement = context->getBlockAckAgreementHandler()->getAgreement(receiverAddr, tid);
-        if (agreement == nullptr) // agreement does not exist
-            return BaPolicyAction::SEND_ADDBA_REQUEST;
-        return getAckPolicy(dataFrameToTransmit, agreement);
+    // When a timeout of BlockAckTimeout is detected, the STA shall send a DELBA frame to the
+    // peer STA with the Reason Code field set to TIMEOUT and shall issue a MLME-DELBA.indication
+    // primitive with the ReasonCode parameter having a value of TIMEOUT.
+    // The procedure is illustrated in Figure 10-14.
+    auto agreement = agreementHandler->getAgreement(msg);
+    auto hcf = check_and_cast<Hcf*>(getParentModule()); // FIXME: khm
+    Tid tid = agreement->getTid();
+    MACAddress receiverAddr = agreement->getReceiverAddr();
+    hcf->processUpperFrame(agreementHandler->buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
+    agreementHandler->terminateAgreement(receiverAddr, tid);
+    return;
+}
+
+void OriginatorBlockAckAgreementPolicy::scheduleInactivityTimer(OriginatorBlockAckAgreement* agreement)
+{
+    simtime_t timeout = agreement->getBlockAckTimeoutValue();
+    cMessage *inactivityTimer = agreement->getInactivityTimer();
+    if (timeout != 0) {
+        cancelEvent(inactivityTimer);
+        scheduleAt(simTime() + timeout, inactivityTimer);
     }
 }
 
-BaPolicyAction OriginatorBlockAckAgreementPolicy::getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+bool OriginatorBlockAckAgreementPolicy::isAddbaReqNeeded(Ieee80211DataFrame* frame)
 {
-    if (agreement->getIsAddbaResponseReceived()) {
-        if (agreement->getBufferSize() == agreement->getNumSentBaPolicyFrames()) // buffer is full
-            return BaPolicyAction::SEND_WITH_NORMAL_ACK;
-        else if (isEligibleFrame(frame, agreement)) // checks agreement policy
-            return BaPolicyAction::SEND_WITH_BLOCK_ACK;
-        else
-            return BaPolicyAction::SEND_WITH_NORMAL_ACK;
-    }
-    else
-        return BaPolicyAction::SEND_WITH_NORMAL_ACK;
+    return ackPolicy->isBlockAckPolicyEligibleFrame(frame);
 }
 
-bool OriginatorBlockAckAgreementPolicy::isEligibleFrame(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+bool OriginatorBlockAckAgreementPolicy::isAddbaReqAccepted(Ieee80211AddbaResponse* addbaResp, OriginatorBlockAckAgreement* agreement)
 {
-    bool aMsduOk = agreement->getIsAMsduSupported() || !frame->getAMsduPresent();
-    // TODO: bool baPolicy = agreement->getIsDelayedBlockAckPolicySupported() || !frame->getAckPolicy();
-    return aMsduOk && (frame->getSequenceNumber() >= agreement->getStartingSequenceNumber()); // TODO: && baPolicy
+    ASSERT(agreement);
+    return true;
 }
 
-void OriginatorBlockAckAgreementPolicy::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
+bool OriginatorBlockAckAgreementPolicy::isDelbaAccepted(Ieee80211Delba* delba)
 {
+    return true;
+}
 
+//
+// The inactivity timer at the originator is reset when a BlockAck frame
+// corresponding to the TID for which the Block Ack policy is set is received.
+//
+void OriginatorBlockAckAgreementPolicy::blockAckReceived(OriginatorBlockAckAgreement* agreement)
+{
+    scheduleInactivityTimer(agreement);
 }
 
 } /* namespace ieee80211 */

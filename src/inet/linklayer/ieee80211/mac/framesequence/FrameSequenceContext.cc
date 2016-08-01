@@ -20,14 +20,13 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(ICoordinationFunction *coordinationFunction, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, const IIeee80211Mode *mode) :
-    coordinationFunction(coordinationFunction),
+FrameSequenceContext::FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, const IIeee80211Mode *mode) :
     inProgressFrames(inProgressFrames),
     ackProcedure(ackProcedure),
     rtsProcedure(rtsProcedure),
     txopProcedure(txopProcedure),
     blockAckProcedure(blockAckProcedure),
-    blockAckAgreementHandler(blockAckAgreementHandler),
+    blockAckAgreementHandler(agreementHandler),
     mode(mode)
 {
 }

@@ -19,6 +19,7 @@
 #define __INET_HCF_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementPolicy.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/channelaccess/Edca.h"
@@ -82,6 +83,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // Block Ack Agreement Handlers
         OriginatorBlockAckAgreementHandler *originatorBlockAckAgreementHandler = nullptr;
+        OriginatorBlockAckAgreementPolicy *originatorBlockAckAgreementPolicy = nullptr;
         RecipientBlockAckAgreementHandler *recipientBlockAckAgreementHandler = nullptr;
 
         // Ack handler
@@ -119,6 +121,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         void sendUp(const std::vector<Ieee80211Frame*>& completeFrames);
         FrameSequenceContext* buildContext(AccessCategory ac);
         virtual bool hasFrameToTransmit();
+        virtual bool hasFrameToTransmit(AccessCategory ac);
 
         virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
         virtual void recipientProcessReceivedControlFrame(Ieee80211Frame *frame);

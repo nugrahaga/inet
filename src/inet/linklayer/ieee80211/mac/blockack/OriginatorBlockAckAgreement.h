@@ -29,7 +29,8 @@ class OriginatorBlockAckAgreementHandler;
 class OriginatorBlockAckAgreement
 {
     protected:
-        OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
+        MACAddress receiverAddr = MACAddress::UNSPECIFIED_ADDRESS;
+        Tid tid = -1;
 
         int numSentBaPolicyFrames = 0;
         SequenceNumber startingSequenceNumber = -1;
@@ -40,10 +41,10 @@ class OriginatorBlockAckAgreement
         simtime_t blockAckTimeoutValue = -1;
         cMessage *inactivityTimer = nullptr;
 
-
     public:
-        OriginatorBlockAckAgreement(OriginatorBlockAckAgreementHandler *blockAckAgreementHandler, SequenceNumber startingSequenceNumber, int bufferSize, bool isAMsduSupported, bool isDelayedBlockAckPolicySupported) :
-            agreementHandler(blockAckAgreementHandler),
+        OriginatorBlockAckAgreement(MACAddress receiverAddr, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, bool isAMsduSupported, bool isDelayedBlockAckPolicySupported) :
+            receiverAddr(receiverAddr),
+            tid(tid),
             startingSequenceNumber(startingSequenceNumber),
             bufferSize(bufferSize),
             isAMsduSupported(isAMsduSupported),
@@ -59,21 +60,22 @@ class OriginatorBlockAckAgreement
         bool getIsAddbaResponseReceived() const { return isAddbaResponseReceived; }
         bool getIsAMsduSupported() const { return isAMsduSupported; }
         bool getIsDelayedBlockAckPolicySupported() const { return isDelayedBlockAckPolicySupported; }
+        MACAddress getReceiverAddr() const { return receiverAddr; }
+        Tid getTid() const { return tid; }
         const simtime_t getBlockAckTimeoutValue() const  { return blockAckTimeoutValue; }
         int getNumSentBaPolicyFrames() const { return numSentBaPolicyFrames; }
 
         void setBufferSize(int bufferSize) { this->bufferSize = bufferSize; }
-        void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; }
+        void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; scheduleInactivityTimer(); }
         void setIsAMsduSupported(bool isAMsduSupported) { this->isAMsduSupported = isAMsduSupported; }
         void setIsDelayedBlockAckPolicySupported(bool isDelayedBlockAckPolicySupported) { this->isDelayedBlockAckPolicySupported = isDelayedBlockAckPolicySupported; }
         void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }
 
         void baPolicyFrameSent() { numSentBaPolicyFrames++; }
         cMessage *getInactivityTimer() { return inactivityTimer; }
-
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // INET_ORIGINATORBLOCKACKAGREEMENT_H
+#endif // ifndef __INET_ORIGINATORBLOCKACKAGREEMENT_H

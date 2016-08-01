@@ -42,13 +42,22 @@ TxOpFs::TxOpFs() :
                                                          ALTERNATIVESFS_SELECTOR(selectMgmtOrDataQap))})},
                    ALTERNATIVESFS_SELECTOR(selectTxOpSequence))
 {
-    blockAckPolicy = new OriginatorBlockAckAgreementPolicy();
+    //acckPolicy = new OriginatorBlockAckAgreementPolicy();
 }
 
 int TxOpFs::selectMgmtOrDataQap(AlternativesFs *frameSequence, FrameSequenceContext *context)
 {
     return 0;
 }
+
+//        if (action == BaPolicyAction::SEND_ADDBA_REQUEST) {
+//            // The Starting Sequence Number subfield of the Block Ack Starting Sequence Control subfield
+//            // contains the sequence number of the first MSDU for which this Basic BlockAckReq frame is sent
+//            auto addbaReq = context->getBlockAckAgreementHandler()->buildAddbaRequest(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid(), dataFrameToTransmit->getSequenceNumber() + 1);
+//            context->getBlockAckAgreementHandler()->processAddbaRequest(addbaReq);
+//            context->insertMgmtFrame(addbaReq);
+//            return 1;
+//        }
 
 int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceContext *context)
 {
@@ -57,23 +66,15 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
         return 3;
     else {
         Ieee80211DataFrame *dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
-        BaPolicyAction action = blockAckPolicy->getAction(context);
-        if (action == BaPolicyAction::SEND_ADDBA_REQUEST) {
-            // The Starting Sequence Number subfield of the Block Ack Starting Sequence Control subfield
-            // contains the sequence number of the first MSDU for which this Basic BlockAckReq frame is sent
-            auto addbaReq = context->getBlockAckAgreementHandler()->buildAddbaRequest(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid(), dataFrameToTransmit->getSequenceNumber() + 1);
-            context->getBlockAckAgreementHandler()->processAddbaRequest(addbaReq);
-            context->insertMgmtFrame(addbaReq);
-            return 1;
-        }
-        else if (action == BaPolicyAction::SEND_WITH_NORMAL_ACK)
-            return 1;
-        else if (action == BaPolicyAction::SEND_WITH_BLOCK_ACK)
-            return 0;
-        else if (action == BaPolicyAction::SEND_BA_REQUEST)
+        auto agreement = context->getBlockAckAgreementHandler()->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
+        if (context->getAckPolicy()->isBaReqNeeded(context))
             return 2;
+        else if (agreement == nullptr)
+            return 1;
+        else if (context->getAckPolicy()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
+            return 0;
         else
-            throw cRuntimeError("Unknown Ba Policy action = %d", action);
+            throw cRuntimeError("Unknown TxOp sequence");
     }
 }
 

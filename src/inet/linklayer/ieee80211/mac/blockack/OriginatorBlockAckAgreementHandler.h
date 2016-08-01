@@ -26,9 +26,7 @@
 
 namespace inet {
 namespace ieee80211 {
-//
-// TODO: ADDBAFailureTimeout -- 6.3.29.2.2 Semantics of the service primitive
-//
+
 class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
 {
     protected:
@@ -37,35 +35,27 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
         simtime_t slotTime = -1;
         simtime_t phyRxStartDelay = -1;
 
-        int maximumAllowedBufferSize = -1;
-        bool isAMsduSupported = false;
-        bool isDelayedBlockAckPolicySupported = false;
-        simtime_t blockAckTimeoutValue = -1;
-
         std::map<std::pair<MACAddress, Tid>, OriginatorBlockAckAgreement *> blockAckAgreements;
 
     protected:
-        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        OriginatorBlockAckAgreement *terminateAgreement(MACAddress originatorAddr, Tid tid);
-
-    public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *msg) override;
 
+    public:
         OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
+        OriginatorBlockAckAgreement *getAgreement(cMessage *inactivityTimer);
 
-        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck);
-        virtual void processReceivedDelba(Ieee80211Delba* delba);
-        virtual void processAddbaRequest(Ieee80211AddbaRequest *addbaRequest);
-        virtual void processReceivedAddbaResponse(Ieee80211AddbaResponse *addbaResponse);
-        virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber);
-
+        virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
+        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
         simtime_t getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const;
         simtime_t getAddbaRequestEarlyTimeout() const;
 
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
+        virtual void createAgreement(Ieee80211AddbaRequest *addbaRequest);
+        virtual void updateAgreement(OriginatorBlockAckAgreement *agreement, Ieee80211AddbaResponse *addbaResp);
+        virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
 
+        // FIXME: delete
+        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 };
 
 } // namespace ieee80211

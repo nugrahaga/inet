@@ -20,35 +20,47 @@
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-enum class BaPolicyAction {
-    SEND_ADDBA_REQUEST,
-    SEND_BA_REQUEST,
-    SEND_WITH_BLOCK_ACK,
-    SEND_WITH_NORMAL_ACK
-};
-
+//
+// TODO: ADDBAFailureTimeout -- 6.3.29.2.2 Semantics of the service primitive
+//
 class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
 {
     protected:
+        OriginatorAckPolicy *ackPolicy = nullptr;
         OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
+
+        int blockAckReqTreshold = -1;
+        bool delayedAckPolicySupported = false;
+        bool aMsduSupported = false;
+        int maximumAllowedBufferSize = -1;
+        simtime_t blockAckTimeoutValue = -1;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
+        virtual void handleMessage(cMessage* msg) override;
 
-        BaPolicyAction getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
-        bool isEligibleFrame(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
-        BaPolicyAction getAction(FrameSequenceContext *context);
+        virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);
 
     public:
-        virtual void processUpperFrame(Ieee80211DataOrMgmtFrame *frame);
+        virtual bool isAddbaReqNeeded(Ieee80211DataFrame *frame);
+        virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement);
+        virtual bool isDelbaAccepted(Ieee80211Delba *delba);
+
+        virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement);
+
+        virtual bool isMsduSupported() const { return aMsduSupported; }
+        virtual simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
+        virtual bool isDelayedAckPolicySupported() const { return delayedAckPolicySupported; }
+        virtual int getMaximumAllowedBufferSize() const { return maximumAllowedBufferSize; }
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H
+#endif // ifndef __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H

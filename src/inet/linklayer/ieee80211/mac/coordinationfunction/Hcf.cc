@@ -108,7 +108,7 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(this, edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, rateSelection->getSlowestMandatoryMode());
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)
@@ -133,8 +133,11 @@ void Hcf::handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs)
         }
         else // TODO: + NonQoSDataFrame
             throw cRuntimeError("Unknown frame");
-        if (retryLimitReached)
+        if (retryLimitReached) {
             edcaInProgressFrames[ac]->dropFrame(internallyCollidedFrame);
+            if (hasFrameToTransmit(ac))
+                edcaf->requestChannel(this);
+        }
         else
             edcaf->requestChannel(this);
     }
@@ -210,13 +213,16 @@ void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* fram
         if (addbaResponse)
             processUpperFrame(addbaResponse);
     }
-    else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse *>(frame))
-        originatorBlockAckAgreementHandler->processReceivedAddbaResponse(addbaResp);
+    else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse *>(frame)) {
+        auto agreement = originatorBlockAckAgreementHandler->getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
+        if (originatorBlockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement))
+            originatorBlockAckAgreementHandler->updateAgreement(agreement, addbaResp);
+    }
     else if (auto delba = dynamic_cast<Ieee80211Delba*>(frame)) {
         if (delba->getInitiator())
             recipientBlockAckAgreementHandler->processReceivedDelba(delba);
-        else
-            originatorBlockAckAgreementHandler->processReceivedDelba(delba);
+        else if (originatorBlockAckAgreementPolicy->isDelbaAccepted(delba))
+            originatorBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
     }
     else
         throw cRuntimeError("Unknown management frame");
@@ -282,6 +288,17 @@ void Hcf::originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame)
 void Hcf::originatorProcessTransmittedDataFrame(Ieee80211DataFrame* dataFrame, AccessCategory ac)
 {
     edcaAckHandlers[ac]->processTransmittedQoSData(dataFrame);
+    OriginatorBlockAckAgreement *agreement = originatorBlockAckAgreementHandler->getAgreement(dataFrame->getReceiverAddress(), dataFrame->getTid());
+    if (agreement == nullptr) {
+        if (originatorBlockAckAgreementPolicy->isAddbaReqNeeded(dataFrame)) {
+            bool aMsduSupported = originatorBlockAckAgreementPolicy->isMsduSupported();
+            simtime_t blockAckTimeoutValue = originatorBlockAckAgreementPolicy->getBlockAckTimeoutValue();
+            int maximumAllowedBufferSize = originatorBlockAckAgreementPolicy->getMaximumAllowedBufferSize();
+            bool isDelayedAckPolicySupported = originatorBlockAckAgreementPolicy->isDelayedAckPolicySupported();
+            auto addbaReq = originatorBlockAckAgreementHandler->buildAddbaRequest(dataFrame->getReceiverAddress(), dataFrame->getTid(), dataFrame->getSequenceNumber() + 1, aMsduSupported, blockAckTimeoutValue, maximumAllowedBufferSize, isDelayedAckPolicySupported);
+            processUpperFrame(addbaReq);
+        }
+    }
     if (dataFrame->getAckPolicy() == NO_ACK)
         edcaInProgressFrames[ac]->dropFrame(dataFrame);
 }
@@ -290,7 +307,7 @@ void Hcf::originatorProcessTransmittedManagementFrame(Ieee80211ManagementFrame* 
 {
     if (auto addbaReq = dynamic_cast<Ieee80211AddbaRequest*>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(addbaReq);
-        // TODO: frame sequence => originatorBlockAckAgreementHandler->processAddbaRequest(addbaReq);
+        originatorBlockAckAgreementHandler->createAgreement(addbaReq);
     }
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse*>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(addbaResp);
@@ -383,18 +400,17 @@ void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211
         edcaAckHandlers[ac]->processReceivedAck(ackFrame, check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
         edcaInProgressFrames[ac]->dropFrame(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
     }
-    else if (auto blockAck = dynamic_cast<Ieee80211BlockAck *>(frame)) {
-        EV_INFO << "BlockAck has arrived" << std::endl;
+    else if (auto blockAck = dynamic_cast<Ieee80211BasicBlockAck *>(frame)) {
+        EV_INFO << "BasicBlockAck has arrived" << std::endl;
         edcaDataRecoveryProcedures[ac]->blockAckFrameReceived();
         auto ackedSeqAndFragNums = edcaAckHandlers[ac]->processReceivedBlockAck(blockAck);
-        originatorBlockAckAgreementHandler->processReceivedBlockAck(blockAck);
+        auto agreement = originatorBlockAckAgreementHandler->getAgreement(blockAck->getTransmitterAddress(), blockAck->getTidInfo());
+        if (agreement)
+            originatorBlockAckAgreementPolicy->blockAckReceived(agreement);
         EV_INFO << "It has acknowledged the following frames:" << std::endl;
         for (auto seqCtrlField : ackedSeqAndFragNums)
             EV_INFO << "Fragment number = " << seqCtrlField.getSequenceNumber() << " Sequence number = " << (int)seqCtrlField.getFragmentNumber() << std::endl;
         edcaInProgressFrames[ac]->dropFrames(ackedSeqAndFragNums);
-    }
-    else if (auto addbaResponse = dynamic_cast<Ieee80211AddbaResponse*>(frame)) {
-        recipientBlockAckAgreementHandler->processTransmittedAddbaResponse(addbaResponse);
     }
     else if (dynamic_cast<Ieee80211RTSFrame*>(frame))
         ; // void
@@ -411,6 +427,17 @@ void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211
 void Hcf::originatorProcessReceivedDataFrame(Ieee80211DataFrame* frame, Ieee80211Frame* lastTransmittedFrame, AccessCategory ac)
 {
     throw cRuntimeError("Unknown data frame");
+}
+
+bool Hcf::hasFrameToTransmit(AccessCategory ac)
+{
+    auto edcaf = edca->getChannelOwner();
+    if (edcaf) {
+        AccessCategory ac = edcaf->getAccessCategory();
+        return !edcaPendingQueues[ac]->isEmpty() || edcaInProgressFrames[ac]->hasInProgressFrames();
+    }
+    else
+        throw cRuntimeError("Hcca is unimplemented");
 }
 
 bool Hcf::hasFrameToTransmit()

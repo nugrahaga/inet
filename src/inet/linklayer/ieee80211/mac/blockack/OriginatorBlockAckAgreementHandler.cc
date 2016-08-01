@@ -31,55 +31,14 @@ void OriginatorBlockAckAgreementHandler::initialize(int stage)
         sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
         slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
         phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
-        isDelayedBlockAckPolicySupported = par("delayedAckPolicySupported");
-        isAMsduSupported = par("aMsduSupported");
-        maximumAllowedBufferSize = par("maximumAllowedBufferSize");
-        blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
     }
 }
 
-void OriginatorBlockAckAgreementHandler::handleMessage(cMessage* msg)
+void OriginatorBlockAckAgreementHandler::createAgreement(Ieee80211AddbaRequest *addbaRequest)
 {
-    // When a timeout of BlockAckTimeout is detected, the STA shall send a DELBA frame to the
-    // peer STA with the Reason Code field set to TIMEOUT and shall issue a MLME-DELBA.indication
-    // primitive with the ReasonCode parameter having a value of TIMEOUT.
-    // The procedure is illustrated in Figure 10-14.
-    for (auto it : blockAckAgreements) {
-        auto *agreement = it.second;
-        if (agreement->getInactivityTimer() == msg) {
-            auto hcf = check_and_cast<Hcf*>(getParentModule()); // FIXME: khm
-            Tid tid = it.first.second;
-            MACAddress receiverAddr = it.first.first;
-            hcf->processUpperFrame(buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
-            delete terminateAgreement(receiverAddr, tid);
-            return;
-        }
-    }
-    throw cRuntimeError("Unknown message");
-}
-
-void OriginatorBlockAckAgreementHandler::processAddbaRequest(Ieee80211AddbaRequest *addbaRequest)
-{
-    OriginatorBlockAckAgreement *blockAckAgreement = new OriginatorBlockAckAgreement(this, addbaRequest->getStartingSequenceNumber(), addbaRequest->getBufferSize(), addbaRequest->getAMsduSupported(), addbaRequest->getBlockAckPolicy() == 0);
+    OriginatorBlockAckAgreement *blockAckAgreement = new OriginatorBlockAckAgreement(addbaRequest->getReceiverAddress(), addbaRequest->getTid(), addbaRequest->getStartingSequenceNumber(), addbaRequest->getBufferSize(), addbaRequest->getAMsduSupported(), addbaRequest->getBlockAckPolicy() == 0);
     auto agreementId = std::make_pair(addbaRequest->getReceiverAddress(), addbaRequest->getTid());
     blockAckAgreements[agreementId] = blockAckAgreement;
-}
-
-void OriginatorBlockAckAgreementHandler::processReceivedAddbaResponse(Ieee80211AddbaResponse *addbaResponse)
-{
-    Tid tid = addbaResponse->getTid();
-    MACAddress transmitterAddr = addbaResponse->getTransmitterAddress();
-    auto agreementId = std::make_pair(transmitterAddr, tid);
-    auto it = blockAckAgreements.find(agreementId);
-    if (it != blockAckAgreements.end()) {
-        OriginatorBlockAckAgreement *agreement = it->second;
-        int bufferSize = addbaResponse->getBufferSize();
-        simtime_t blockAckTimeoutValue = addbaResponse->getBlockAckTimeoutValue();
-        // TODO: policy: when do we accept the new values?
-        agreement->setIsAddbaResponseReceived(true);
-        agreement->setBufferSize(bufferSize);
-        agreement->setBlockAckTimeoutValue(blockAckTimeoutValue);
-    }
 }
 
 simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const
@@ -93,16 +52,16 @@ simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestEarlyTimeout() cons
     return sifs + slotTime + phyRxStartDelay;
 }
 
-Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber)
+Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported)
 {
     Ieee80211AddbaRequest *addbaRequest = new Ieee80211AddbaRequest("AddbaReq");
     addbaRequest->setReceiverAddress(receiverAddr);
     addbaRequest->setTid(tid);
-    addbaRequest->setAMsduSupported(isAMsduSupported);
+    addbaRequest->setAMsduSupported(aMsduSupported);
     addbaRequest->setBlockAckTimeoutValue(blockAckTimeoutValue);
     addbaRequest->setBufferSize(maximumAllowedBufferSize);
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
-    addbaRequest->setBlockAckPolicy(isDelayedBlockAckPolicySupported ? 0 : 1);
+    addbaRequest->setBlockAckPolicy(delayedBlockAckPolicySupported ? 0 : 1);
     addbaRequest->setStartingSequenceNumber(startingSequenceNumber);
     setFrameMode(addbaRequest, rateSelection->getModeForUnicastDataOrMgmtFrame(addbaRequest));
     // Within all management frames sent by the QoS STA, the Duration field contains a duration
@@ -111,26 +70,21 @@ Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MAC
     return addbaRequest;
 }
 
-void OriginatorBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* delba)
-{
-    Tid tid = delba->getTid();
-    MACAddress transmitterAddr = delba->getTransmitterAddress();
-    auto agreementId = std::make_pair(transmitterAddr, tid);
-    auto it = blockAckAgreements.find(agreementId);
-    if (it != blockAckAgreements.end()) {
-        delete it->second;
-        blockAckAgreements.erase(it);
-    }
-    else {
-        EV_DETAIL << "Received Delba frame but agreement does not exist" << endl;
-    }
-}
-
 OriginatorBlockAckAgreement* OriginatorBlockAckAgreementHandler::getAgreement(MACAddress receiverAddr, Tid tid)
 {
     auto agreementId = std::make_pair(receiverAddr, tid);
     auto it = blockAckAgreements.find(agreementId);
     return it != blockAckAgreements.end() ? it->second : nullptr;
+}
+
+OriginatorBlockAckAgreement* OriginatorBlockAckAgreementHandler::getAgreement(cMessage* inactivityTimer)
+{
+    for (auto it : blockAckAgreements) {
+        auto *agreement = it.second;
+        if (agreement->getInactivityTimer() == inactivityTimer)
+            return agreement;
+    }
+    throw cRuntimeError("Agreement not found");
 }
 
 Ieee80211Delba* OriginatorBlockAckAgreementHandler::buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode)
@@ -145,30 +99,22 @@ Ieee80211Delba* OriginatorBlockAckAgreementHandler::buildDelba(MACAddress receiv
     return delba;
 }
 
-void OriginatorBlockAckAgreementHandler::processReceivedBlockAck(Ieee80211BlockAck* blockAck)
-{
-    if (auto basicBlockAck = dynamic_cast<Ieee80211BasicBlockAck*>(blockAck)) {
-        Tid tid = basicBlockAck->getTidInfo();
-        MACAddress transmitterAddr = basicBlockAck->getTransmitterAddress();
-        auto agreementId = std::make_pair(transmitterAddr, tid);
-        auto it = blockAckAgreements.find(agreementId);
-        if (it != blockAckAgreements.end())
-            it->second->blockAckFrameReceived();
-    }
-    else
-        throw cRuntimeError("Unsupported BlockAck");
-}
-
-OriginatorBlockAckAgreement *OriginatorBlockAckAgreementHandler::terminateAgreement(MACAddress originatorAddr, Tid tid)
+void OriginatorBlockAckAgreementHandler::terminateAgreement(MACAddress originatorAddr, Tid tid)
 {
     auto agreementId = std::make_pair(originatorAddr, tid);
     auto it = blockAckAgreements.find(agreementId);
     if (it != blockAckAgreements.end()) {
         OriginatorBlockAckAgreement *agreement = it->second;
         blockAckAgreements.erase(it);
-        return agreement;
+        delete agreement;
     }
-    return nullptr;
+}
+
+void OriginatorBlockAckAgreementHandler::updateAgreement(OriginatorBlockAckAgreement* agreement, Ieee80211AddbaResponse* addbaResp)
+{
+    agreement->setIsAddbaResponseReceived(true);
+    agreement->setBufferSize(addbaResp->getBufferSize());
+    agreement->setBlockAckTimeoutValue(addbaResp->getBlockAckTimeoutValue());
 }
 
 // TODO: move this part to somewhere else
