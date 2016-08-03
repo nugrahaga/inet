@@ -25,7 +25,7 @@ import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
 import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
-import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
+import inet.linklayer.ieee80211.mac.originator.OriginatorQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
 import inet.linklayer.ieee80211.mac.originator.QoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
@@ -74,7 +74,7 @@ module Hcf
         }
         originatorBlockAckAgreementPolicy: OriginatorBlockAckAgreementPolicy {
             originatorBlockAckAgreementHandlerModule = "^.originatorBlockAckAgreementHandler";
-            originatorAckPolicyModule = "^.originatorAckPolicy";
+            originatorQoSAckPolicyModule = "^.originatorQoSAckPolicy";
             @display("p=552.672,716.832");
         }
         recipientBlockAckAgreementHandler: RecipientBlockAckAgreementHandler {
@@ -100,7 +100,7 @@ module Hcf
         edcaTxopProcedures[numEdcafs]: TxopProcedure {
             @display("p=366.624,207.93599,row,50");
         }
-        originatorAckPolicy: OriginatorAckPolicy {
+        originatorQoSAckPolicy: OriginatorQoSAckPolicy {
             @display("p=581.39996,64.296");
         }
 }

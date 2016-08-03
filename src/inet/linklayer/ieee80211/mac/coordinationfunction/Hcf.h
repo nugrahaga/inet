@@ -90,7 +90,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // Ack handler
         std::vector<AckHandler *> edcaAckHandlers;
-        OriginatorAckPolicy *originatorAckPolicy = nullptr;
+        OriginatorQoSAckPolicy *originatorQoSAckPolicy = nullptr;
         AckHandler *hccaAckHandler = nullptr;
 
         // Tx Opportunity

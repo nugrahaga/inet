@@ -25,7 +25,7 @@ Define_Module(OriginatorBlockAckAgreementPolicy);
 
 void OriginatorBlockAckAgreementPolicy::initialize()
 {
-    ackPolicy = check_and_cast<OriginatorAckPolicy*>(getModuleByPath(par("originatorAckPolicyModule")));
+    ackPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getModuleByPath(par("originatorQoSAckPolicyModule")));
     agreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler*>(getModuleByPath(par("originatorBlockAckAgreementHandlerModule")));
     delayedAckPolicySupported = par("delayedAckPolicySupported");
     aMsduSupported = par("aMsduSupported");

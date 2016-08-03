@@ -22,9 +22,9 @@
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
@@ -38,18 +38,18 @@ class INET_API FrameSequenceContext
     protected:
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
-        OriginatorAckPolicy *originatorAckPolicy = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         TxopProcedure *txopProcedure = nullptr;
         OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
         OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
+        OriginatorQoSAckPolicy *originatorAckPolicy = nullptr;
 
         const IIeee80211Mode *mode = nullptr;
 
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorAckPolicy *ackPolicy, const IIeee80211Mode *mode);
+        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *ackPolicy, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
@@ -67,7 +67,7 @@ class INET_API FrameSequenceContext
         TxopProcedure* getTxopProcedure() { return txopProcedure; }
         OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
         OriginatorBlockAckAgreementHandler *getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
-        OriginatorAckPolicy *getAckPolicy() { return originatorAckPolicy; }
+        OriginatorQoSAckPolicy *getAckPolicy() { return originatorAckPolicy; }
         const IIeee80211Mode* getMode() { return mode; }
 };
 

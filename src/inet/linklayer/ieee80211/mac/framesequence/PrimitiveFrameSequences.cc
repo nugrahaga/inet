@@ -293,17 +293,6 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
 {
     switch (step) {
         case 0: {
-            // TODO: TID_INFO
-            auto outstandingFramesPerReceiver = context->getOutstandingFramesPerReceiver();
-            auto largestOutstandingFrames = outstandingFramesPerReceiver.begin();
-            for (auto it = outstandingFramesPerReceiver.begin(); it != outstandingFramesPerReceiver.end(); it++) {
-                if (it->second.size() > largestOutstandingFrames->second.size())
-                    largestOutstandingFrames = it;
-            }
-            MACAddress receiverAddress = largestOutstandingFrames->first;
-            int startingSequenceNumber = computeStartingSequenceNumber(largestOutstandingFrames->second);
-            Tid tid = largestOutstandingFrames->second.at(0)->getTid();
-            Ieee80211BlockAckReq *blockAckReq = isCompressedBlockAckReq(largestOutstandingFrames->second, startingSequenceNumber) ? nullptr : context->getBlockAckProcedure()->buildBasicBlockAckReqFrame(receiverAddress, tid, startingSequenceNumber);
             if (context->getNumSteps() == 0)
                 return new TransmitStep(blockAckReq, 0);
             else

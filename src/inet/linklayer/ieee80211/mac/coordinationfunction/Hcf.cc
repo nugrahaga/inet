@@ -46,7 +46,7 @@ void Hcf::initialize(int stage)
         originatorDataService = check_and_cast<OriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
         recipientDataService = check_and_cast<RecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
         originatorAckProcedure = new OriginatorAckProcedure(rateSelection);
-        originatorAckPolicy = check_and_cast<OriginatorAckPolicy*>(getSubmodule("originatorAckPolicy"));
+        originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
         recipientAckProcedure = new RecipientAckProcedure(rateSelection);
         ctsProcedure = new CtsProcedure(rx, rateSelection);
         originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
@@ -111,7 +111,7 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, originatorAckPolicy, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, originatorQoSAckPolicy, rateSelection->getSlowestMandatoryMode());
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)

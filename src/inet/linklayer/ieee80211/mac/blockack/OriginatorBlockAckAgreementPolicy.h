@@ -20,7 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -31,7 +31,7 @@ namespace ieee80211 {
 class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
 {
     protected:
-        OriginatorAckPolicy *ackPolicy = nullptr;
+        OriginatorQoSAckPolicy *ackPolicy = nullptr;
         OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
 
         int blockAckReqTreshold = -1;

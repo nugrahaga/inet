@@ -20,7 +20,7 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorAckPolicy *originatorAckPolicy, const IIeee80211Mode *mode) :
+FrameSequenceContext::FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *originatorAckPolicy, const IIeee80211Mode *mode) :
     inProgressFrames(inProgressFrames),
     ackProcedure(ackProcedure),
     rtsProcedure(rtsProcedure),
