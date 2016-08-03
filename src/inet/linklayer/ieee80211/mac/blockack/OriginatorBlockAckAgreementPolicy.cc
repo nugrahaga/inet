@@ -39,21 +39,28 @@ void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)
     // peer STA with the Reason Code field set to TIMEOUT and shall issue a MLME-DELBA.indication
     // primitive with the ReasonCode parameter having a value of TIMEOUT.
     // The procedure is illustrated in Figure 10-14.
-    auto agreement = agreementHandler->getAgreement(msg);
+    auto id = findAgreement(msg);
     auto hcf = check_and_cast<Hcf*>(getParentModule()); // FIXME: khm
-    Tid tid = agreement->getTid();
-    MACAddress receiverAddr = agreement->getReceiverAddr();
+    Tid tid = id.second;
+    MACAddress receiverAddr = id.first;
     hcf->processUpperFrame(agreementHandler->buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
-    agreementHandler->terminateAgreement(receiverAddr, tid);
 }
 
 void OriginatorBlockAckAgreementPolicy::scheduleInactivityTimer(OriginatorBlockAckAgreement* agreement)
 {
+    Enter_Method_Silent();
     simtime_t timeout = agreement->getBlockAckTimeoutValue();
-    cMessage *inactivityTimer = agreement->getInactivityTimer();
     if (timeout != 0) {
-        cancelEvent(inactivityTimer);
-        scheduleAt(simTime() + timeout, inactivityTimer);
+        auto it = inacitivityTimers.find(std::make_pair(agreement->getReceiverAddr(), agreement->getTid()));
+        cMessage *timer = nullptr;
+        if (it != inacitivityTimers.end())
+            timer = it->second;
+        else {
+            timer = new cMessage("InactivityTimer");
+            inacitivityTimers[std::make_pair(agreement->getReceiverAddr(), agreement->getTid())] = timer;
+        }
+        cancelEvent(timer);
+        scheduleAt(simTime() + timeout, timer);
     }
 }
 
@@ -80,6 +87,22 @@ bool OriginatorBlockAckAgreementPolicy::isDelbaAccepted(Ieee80211Delba* delba)
 void OriginatorBlockAckAgreementPolicy::blockAckReceived(OriginatorBlockAckAgreement* agreement)
 {
     scheduleInactivityTimer(agreement);
+}
+
+std::pair<MACAddress, Tid> OriginatorBlockAckAgreementPolicy::findAgreement(cMessage* inactivityTimer)
+{
+    for (auto timer : inacitivityTimers) {
+        if (timer.second == inactivityTimer)
+            return timer.first;
+    }
+    throw cRuntimeError("Agreement not found");
+}
+
+OriginatorBlockAckAgreementPolicy::~OriginatorBlockAckAgreementPolicy()
+{
+    for (auto timer : inacitivityTimers) {
+        cancelAndDelete(timer.second);
+    }
 }
 
 void OriginatorBlockAckAgreementPolicy::agreementEstablished(OriginatorBlockAckAgreement* agreement)

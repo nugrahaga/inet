@@ -114,16 +114,6 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
-RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(cMessage* inactivityTimer)
-{
-    for (auto it : blockAckAgreements) {
-        auto *agreement = it.second;
-        if (agreement->getInactivityTimer() == inactivityTimer)
-            return agreement;
-    }
-    throw cRuntimeError("Agreement not found");
-}
-
 
 } // namespace ieee80211
 } // namespace inet

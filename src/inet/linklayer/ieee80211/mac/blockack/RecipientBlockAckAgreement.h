@@ -32,7 +32,6 @@ class INET_API RecipientBlockAckAgreement
         SequenceNumber startingSequenceNumber = -1;
         int bufferSize = -1;
         simtime_t blockAckTimeoutValue = 0;
-        cMessage *inactivityTimer = nullptr;
 
         bool isAddbaResponseSent = false;
 
@@ -42,7 +41,6 @@ class INET_API RecipientBlockAckAgreement
         void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);
 
         BlockAckRecord *getBlockAckRecord() { return blockAckRecord; }
-        cMessage *getInactivityTimer() { return inactivityTimer; }
         simtime_t getBlockAckTimeoutValue() { return blockAckTimeoutValue; }
         int getBufferSize() { return bufferSize; }
         int getStartingSequenceNumber() { return startingSequenceNumber; }

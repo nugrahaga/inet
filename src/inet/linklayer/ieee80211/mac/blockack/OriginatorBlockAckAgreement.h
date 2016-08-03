@@ -39,7 +39,6 @@ class OriginatorBlockAckAgreement
         bool isDelayedBlockAckPolicySupported = false;
         bool isAddbaResponseReceived = false;
         simtime_t blockAckTimeoutValue = -1;
-        cMessage *inactivityTimer = nullptr;
 
     public:
         OriginatorBlockAckAgreement(MACAddress receiverAddr, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, bool isAMsduSupported, bool isDelayedBlockAckPolicySupported) :
@@ -48,8 +47,7 @@ class OriginatorBlockAckAgreement
             startingSequenceNumber(startingSequenceNumber),
             bufferSize(bufferSize),
             isAMsduSupported(isAMsduSupported),
-            isDelayedBlockAckPolicySupported(isDelayedBlockAckPolicySupported),
-            inactivityTimer(new cMessage("InactivityTimer"))
+            isDelayedBlockAckPolicySupported(isDelayedBlockAckPolicySupported)
         { }
 
         int getBufferSize() const { return bufferSize; }
@@ -69,7 +67,6 @@ class OriginatorBlockAckAgreement
         void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }
 
         void baPolicyFrameSent() { numSentBaPolicyFrames++; }
-        cMessage *getInactivityTimer() { return inactivityTimer; }
 };
 
 } /* namespace ieee80211 */

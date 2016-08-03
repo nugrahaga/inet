@@ -27,6 +27,7 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
 {
     protected:
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
+        std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
 
         int maximumAllowedBufferSize = -1;
         bool isAMsduSupported = false;
@@ -39,8 +40,11 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
         virtual void handleMessage(cMessage *msg) override;
 
         virtual void scheduleInactivityTimer(RecipientBlockAckAgreement *agreement);
+        virtual std::pair<MACAddress, Tid> findAgreement(cMessage* inactivityTimer);
 
     public:
+        ~RecipientBlockAckAgreementPolicy();
+
         virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq);
         virtual bool isDelbaAccepted(Ieee80211Delba* delba);
         virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame);

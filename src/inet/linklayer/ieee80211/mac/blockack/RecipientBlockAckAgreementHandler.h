@@ -54,7 +54,6 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule
         virtual void updateAgreement(Ieee80211AddbaResponse *frame);
 
         virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
-        virtual RecipientBlockAckAgreement* getAgreement(cMessage* inactivityTimer);
 };
 
 } // namespace ieee80211

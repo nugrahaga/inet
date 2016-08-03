@@ -27,7 +27,6 @@ RecipientBlockAckAgreement::RecipientBlockAckAgreement(MACAddress originatorAddr
     blockAckTimeoutValue(lastUsedTime)
 {
     blockAckRecord = new BlockAckRecord(originatorAddress, tid);
-    inactivityTimer = new cMessage("Inactivity Timer");
 }
 
 void RecipientBlockAckAgreement::blockAckPolicyFrameReceived(Ieee80211DataFrame* frame)

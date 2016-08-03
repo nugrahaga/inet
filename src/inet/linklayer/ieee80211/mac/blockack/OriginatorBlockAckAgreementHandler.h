@@ -43,7 +43,6 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
         virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
 
         virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
-        virtual OriginatorBlockAckAgreement *getAgreement(cMessage *inactivityTimer);
 
         virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
         virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);

@@ -75,16 +75,6 @@ OriginatorBlockAckAgreement* OriginatorBlockAckAgreementHandler::getAgreement(MA
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
-OriginatorBlockAckAgreement* OriginatorBlockAckAgreementHandler::getAgreement(cMessage* inactivityTimer)
-{
-    for (auto it : blockAckAgreements) {
-        auto *agreement = it.second;
-        if (agreement->getInactivityTimer() == inactivityTimer)
-            return agreement;
-    }
-    throw cRuntimeError("Agreement not found");
-}
-
 Ieee80211Delba* OriginatorBlockAckAgreementHandler::buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode)
 {
     Ieee80211Delba *delba = new Ieee80211Delba();

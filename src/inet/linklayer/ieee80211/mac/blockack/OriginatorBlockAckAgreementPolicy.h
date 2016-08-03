@@ -33,6 +33,7 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
     protected:
         OriginatorQoSAckPolicy *ackPolicy = nullptr;
         OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
+        std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
 
         int blockAckReqTreshold = -1;
         bool delayedAckPolicySupported = false;
@@ -46,8 +47,11 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
         virtual void handleMessage(cMessage* msg) override;
 
         virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);
+        virtual std::pair<MACAddress, Tid> findAgreement(cMessage *inactivityTimer);
 
     public:
+        ~OriginatorBlockAckAgreementPolicy();
+
         virtual bool isAddbaReqNeeded(Ieee80211DataFrame *frame);
         virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement);
         virtual bool isDelbaAccepted(Ieee80211Delba *delba);

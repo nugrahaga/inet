@@ -235,7 +235,7 @@ void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* fram
         // response frame from the recipient. The recipient of the DELBA frame shall release all resources allocated for
         // the Block Ack transfer.
         if (delba->getInitiator() && recipientBlockAckAgreementPolicy->isDelbaAccepted(delba))
-            recipientBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
+            recipientBlockAckAgreementHandler->terminateAgreement(delba->getReceiverAddress(), delba->getTid());
         else if (originatorBlockAckAgreementPolicy->isDelbaAccepted(delba))
             originatorBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
     }
@@ -338,6 +338,10 @@ void Hcf::originatorProcessTransmittedManagementFrame(Ieee80211ManagementFrame* 
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba *>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(delba);
+        if (delba->getInitiator())
+            originatorBlockAckAgreementHandler->terminateAgreement(delba->getReceiverAddress(), delba->getTid());
+        else
+            recipientBlockAckAgreementHandler->terminateAgreement(delba->getReceiverAddress(), delba->getTid());
     }
     else
         throw cRuntimeError("Unknown management frame");
@@ -478,7 +482,7 @@ void Hcf::sendUp(const std::vector<Ieee80211Frame*>& completeFrames)
 {
     for (auto frame : completeFrames) {
         // FIXME: mgmt module does not handle addba req ..
-        if (!dynamic_cast<Ieee80211AddbaRequest*>(frame) && !dynamic_cast<Ieee80211AddbaResponse*>(frame))
+        if (!dynamic_cast<Ieee80211AddbaRequest*>(frame) && !dynamic_cast<Ieee80211AddbaResponse*>(frame) && !dynamic_cast<Ieee80211Delba*>(frame))
             mac->sendUp(frame);
     }
 }

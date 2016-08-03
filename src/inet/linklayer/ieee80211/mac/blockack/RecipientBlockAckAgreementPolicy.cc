@@ -41,10 +41,19 @@ void RecipientBlockAckAgreementPolicy::initialize()
 //
 void RecipientBlockAckAgreementPolicy::scheduleInactivityTimer(RecipientBlockAckAgreement *agreement)
 {
-    auto inactivityTimer = agreement->getInactivityTimer();
-    if (blockAckTimeoutValue != 0) {
-        cancelEvent(inactivityTimer);
-        scheduleAt(simTime() + blockAckTimeoutValue, inactivityTimer);
+    Enter_Method_Silent();
+    simtime_t timeout = agreement->getBlockAckTimeoutValue();
+    if (timeout != 0) {
+        auto it = inacitivityTimers.find(std::make_pair(agreement->getBlockAckRecord()->getOriginatorAddress(), agreement->getBlockAckRecord()->getTid()));
+        cMessage *timer = nullptr;
+        if (it != inacitivityTimers.end())
+            timer = it->second;
+        else {
+            timer = new cMessage("InactivityTimer");
+            inacitivityTimers[std::make_pair(agreement->getBlockAckRecord()->getOriginatorAddress(), agreement->getBlockAckRecord()->getTid())] = timer;
+        }
+        cancelEvent(timer);
+        scheduleAt(simTime() + timeout, timer);
     }
 }
 
@@ -58,12 +67,11 @@ void RecipientBlockAckAgreementPolicy::handleMessage(cMessage* msg)
     // The Block Ack Timeout Value field contains the duration, in TUs, after which the Block Ack setup is
     // terminated, if there are no frame exchanges (see 10.5.4) within this duration using this Block Ack
     // agreement. A value of 0 disables the timeout.
-    auto agreement = agreementHandler->getAgreement(msg);
+    auto id = findAgreement(msg);
     auto hcf = check_and_cast<Hcf*>(getParentModule()); // FIXME: khm
-    Tid tid = agreement->getBlockAckRecord()->getTid();;
-    MACAddress originatorAddr = agreement->getBlockAckRecord()->getOriginatorAddress();;
+    Tid tid = id.second;
+    MACAddress originatorAddr = id.first;
     hcf->processUpperFrame(agreementHandler->buildDelba(originatorAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
-    agreementHandler->terminateAgreement(originatorAddr, tid);
 }
 
 void RecipientBlockAckAgreementPolicy::agreementEstablished(RecipientBlockAckAgreement* agreement)
@@ -90,6 +98,22 @@ void RecipientBlockAckAgreementPolicy::qosFrameReceived(Ieee80211DataFrame* qosF
 bool RecipientBlockAckAgreementPolicy::isDelbaAccepted(Ieee80211Delba* delba)
 {
     return true;
+}
+
+std::pair<MACAddress, Tid> RecipientBlockAckAgreementPolicy::findAgreement(cMessage* inactivityTimer)
+{
+    for (auto timer : inacitivityTimers) {
+        if (timer.second == inactivityTimer)
+            return timer.first;
+    }
+    throw cRuntimeError("Agreement not found");
+}
+
+RecipientBlockAckAgreementPolicy::~RecipientBlockAckAgreementPolicy()
+{
+    for (auto timer : inacitivityTimers) {
+        cancelAndDelete(timer.second);
+    }
 }
 
 } /* namespace ieee80211 */
