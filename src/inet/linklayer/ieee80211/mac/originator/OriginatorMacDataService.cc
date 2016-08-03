@@ -15,8 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/NonQosDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/Fragmentation.h"
+#include "inet/linklayer/ieee80211/mac/sequencenumberassignment/NonQoSSequenceNumberAssignment.h"
 #include "OriginatorMacDataService.h"
 
 namespace inet {
@@ -26,7 +26,7 @@ Define_Module(OriginatorMacDataService);
 
 void OriginatorMacDataService::initialize()
 {
-    sequenceNumberAssigment = new NonQoSDuplicateDetector();
+    sequenceNumberAssigment = new NonQoSSequenceNumberAssignment();
     fragmentationPolicy = check_and_cast<IFragmentationPolicy*>(getSubmodule("fragmentationPolicy"));
     fragmentation = new Fragmentation();
 }

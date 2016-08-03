@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
+
 #ifndef __INET_ORIGINATORMACDATASERVICE_H
 #define __INET_ORIGINATORMACDATASERVICE_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFragmentation.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFragmentationPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IOriginatorMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/contract/ISequenceNumberAssignment.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/queue/Ieee80211Queue.h"
 
@@ -35,8 +36,7 @@ class INET_API OriginatorMacDataService : public IOriginatorMacDataService, publ
     protected:
         // Figure 5-1—MAC data plane architecture
         // MsduRateLimiting *msduRateLimiting = nullptr;
-        // FIXME: separate sequence number assignment and duplicate detection
-        IDuplicateDetector *sequenceNumberAssigment = nullptr;
+        ISequenceNumberAssignment *sequenceNumberAssigment = nullptr;
         // MsduIntegrityAndProtection *msduIntegrityAndProtection = nullptr;
         IFragmentationPolicy *fragmentationPolicy = nullptr;
         IFragmentation *fragmentation = nullptr;

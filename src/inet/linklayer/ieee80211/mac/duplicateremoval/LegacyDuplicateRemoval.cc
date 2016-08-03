@@ -15,32 +15,26 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_IDUPLICATEDETECTOR_H
-#define __INET_IDUPLICATEDETECTOR_H
-
-#include "inet/common/INETDefs.h"
+#include "LegacyDuplicateRemoval.h"
+#include "inet/common/stlutils.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class Ieee80211DataOrMgmtFrame;
-
-/**
- * Abstract interface to encapsulate the behavior of assigning sequence numbers
- * to transmitted frames and detecting duplicates in the stream of received
- * frames. // FIXME: separate sequence number assignment and duplicate detection
- */
-class INET_API IDuplicateDetector
+bool LegacyDuplicateRemoval::isDuplicate(Ieee80211DataOrMgmtFrame *frame)
 {
-    public:
-        virtual ~IDuplicateDetector() {}
-
-        virtual void assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame) = 0;
-        virtual bool isDuplicate(Ieee80211DataOrMgmtFrame *frame) = 0;
-        //TODO some purge mechanism
-};
+    ASSERT(frame->getType() != ST_DATA_WITH_QOS);
+    const MACAddress& address = frame->getTransmitterAddress();
+    SequenceControlField seqVal(frame);
+    auto it = lastSeenSeqNumCache.find(address);
+    if (it == lastSeenSeqNumCache.end())
+        lastSeenSeqNumCache.insert(std::pair<MACAddress, SequenceControlField>(address, seqVal));
+    else if (it->second.getSequenceNumber() == seqVal.getSequenceNumber() && it->second.getFragmentNumber() == seqVal.getFragmentNumber() && frame->getRetry())
+        return true;
+    else
+        it->second = seqVal;
+    return false;
+}
 
 } // namespace ieee80211
 } // namespace inet
-
-#endif

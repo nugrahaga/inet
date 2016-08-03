@@ -17,7 +17,7 @@
 
 #include "inet/linklayer/ieee80211/mac/aggregation/MsduDeaggregation.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/QosDuplicateDetector.h"
+#include "inet/linklayer/ieee80211/mac/duplicateremoval/QosDuplicateRemoval.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/Defragmentation.h"
 #include "RecipientQoSMacDataService.h"
@@ -29,7 +29,7 @@ Define_Module(RecipientQoSMacDataService);
 
 void RecipientQoSMacDataService::initialize()
 {
-    duplicateRemoval = new QoSDuplicateDetector();
+    duplicateRemoval = new QoSDuplicateRemoval();
     basicReassembly = new BasicReassembly();
     aMsduDeaggregation = new MsduDeaggregation();
     blockAckReordering = new BlockAckReordering();

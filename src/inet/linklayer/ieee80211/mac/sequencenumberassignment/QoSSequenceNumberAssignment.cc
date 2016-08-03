@@ -13,16 +13,14 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "inet/common/stlutils.h"
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/QosDuplicateDetector.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "QoSSequenceNumberAssignment.h"
 
 namespace inet {
 namespace ieee80211 {
 
-QoSDuplicateDetector::CacheType QoSDuplicateDetector::getCacheType(Ieee80211DataOrMgmtFrame *frame, bool incoming)
+QoSSequenceNumberAssignment::CacheType QoSSequenceNumberAssignment::getCacheType(Ieee80211DataOrMgmtFrame *frame, bool incoming)
 {
     bool isTimePriorityFrame = false; // TODO
     const MACAddress& address = incoming ? frame->getTransmitterAddress() : frame->getReceiverAddress();
@@ -34,7 +32,7 @@ QoSDuplicateDetector::CacheType QoSDuplicateDetector::getCacheType(Ieee80211Data
         return DATA;
 }
 
-void QoSDuplicateDetector::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
+void QoSSequenceNumberAssignment::assignSequenceNumber(Ieee80211DataOrMgmtFrame* frame)
 {
     CacheType type = getCacheType(frame, false);
     int seqNum;
@@ -77,39 +75,5 @@ void QoSDuplicateDetector::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
     frame->setSequenceNumber(seqNum);
 }
 
-bool QoSDuplicateDetector::isDuplicate(Ieee80211DataOrMgmtFrame *frame)
-{
-    SequenceControlField seqVal(frame);
-    bool isManagementFrame = dynamic_cast<Ieee80211ManagementFrame *>(frame);
-    bool isTimePriorityManagementFrame = isManagementFrame && false; // TODO: hack
-    if (isTimePriorityManagementFrame || isManagementFrame)
-    {
-        MACAddress transmitterAddr = frame->getTransmitterAddress();
-        Mac2SeqValMap& cache = isTimePriorityManagementFrame ? lastSeenTimePriorityManagementSeqNumCache : lastSeenSharedSeqNumCache;
-        auto it = cache.find(transmitterAddr);
-        if (it == cache.end())
-            cache.insert(std::pair<MACAddress, SequenceControlField>(transmitterAddr, seqVal));
-        if (it->second.getSequenceNumber() == seqVal.getSequenceNumber() && it->second.getFragmentNumber() == seqVal.getFragmentNumber() && frame->getRetry())
-            return true;
-        else
-            it->second = seqVal;
-        return false;
-    }
-    else
-    {
-        Ieee80211DataFrame *qosDataFrame = check_and_cast<Ieee80211DataFrame *>(frame);
-        Key key(frame->getTransmitterAddress(), qosDataFrame->getTid());
-        auto it = lastSeenSeqNumCache.find(key);
-        if (it == lastSeenSeqNumCache.end())
-            lastSeenSeqNumCache.insert(std::pair<Key, SequenceControlField>(key, seqVal));
-        if (it->second.getSequenceNumber() == seqVal.getSequenceNumber() && it->second.getFragmentNumber() == seqVal.getFragmentNumber() && frame->getRetry())
-            return true;
-        else
-            it->second = seqVal;
-        return false;
-    }
-}
-
-} // namespace ieee80211
-} // namespace inet
-
+} /* namespace ieee80211 */
+} /* namespace inet */

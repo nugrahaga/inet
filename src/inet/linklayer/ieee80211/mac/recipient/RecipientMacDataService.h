@@ -19,7 +19,7 @@
 #define __INET_RECIPIENTMACDATASERVICE_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IDefragmentation.h"
-#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
+#include "inet/linklayer/ieee80211/mac/contract/IDuplicateRemoval.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 
@@ -39,7 +39,7 @@ class INET_API RecipientMacDataService : public cSimpleModule, public IRecipient
 
         // MpduHeaderAndCrcValidation *mpduHeaderAndCrcValidation = nullptr;
         // Address1Filtering *address1Filtering = nullptr;
-        IDuplicateDetector *duplicateRemoval = nullptr; // TODO:
+        IDuplicateRemoval *duplicateRemoval = nullptr;
         // MpduDecryptionAndIntegrity *mpduDecryptionAndIntegrity = nullptr;
         IDefragmentation *defragmentation = nullptr;
         // RxMsduRateLimiting *rxMsduRateLimiting = nullptr;

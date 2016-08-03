@@ -15,22 +15,24 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_NONQOSDUPLICATEDETECTOR_H
-#define __INET_NONQOSDUPLICATEDETECTOR_H
+#ifndef __INET_LEGACYDUPLICATEDETECTOR_H
+#define __INET_LEGACYDUPLICATEDETECTOR_H
 
+#include "inet/linklayer/common/MACAddress.h"
+#include "inet/linklayer/ieee80211/mac/common/SequenceControlField.h"
+#include "inet/linklayer/ieee80211/mac/contract/IDuplicateRemoval.h"
 #include <map>
-
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/LegacyDuplicateDetector.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API NonQoSDuplicateDetector : public LegacyDuplicateDetector
+class INET_API LegacyDuplicateRemoval : public IDuplicateRemoval
 {
     protected:
-        std::map<MACAddress, SequenceNumber> lastSentSeqNums; // last sent sequence numbers per RA
+        std::map<MACAddress, SequenceControlField> lastSeenSeqNumCache; // cache of last seen sequence numbers per TA
+
     public:
-        virtual void assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame) override;
+        virtual bool isDuplicate(Ieee80211DataOrMgmtFrame *frame) override;
 };
 
 } // namespace ieee80211

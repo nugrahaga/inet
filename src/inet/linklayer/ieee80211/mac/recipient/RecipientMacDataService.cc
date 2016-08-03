@@ -15,8 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/linklayer/ieee80211/mac/duplicateremoval/LegacyDuplicateRemoval.h"
 #include "RecipientMacDataService.h"
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/LegacyDuplicateDetector.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -25,7 +25,7 @@ Define_Module(RecipientMacDataService);
 
 void RecipientMacDataService::initialize()
 {
-    duplicateRemoval = new LegacyDuplicateDetector();
+    duplicateRemoval = new LegacyDuplicateRemoval();
     basicReassembly = new BasicReassembly();
 }
 

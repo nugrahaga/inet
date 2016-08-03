@@ -13,11 +13,9 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "inet/common/stlutils.h"
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/LegacyDuplicateDetector.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "LegacySequenceNumberAssigment.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -27,27 +25,13 @@ namespace ieee80211 {
 // Subtype field is equal to 0) from a single modulo-4096 counter, starting at 0 and incrementing by 1, for each
 // MSDU or MMPDU.
 //
-void LegacyDuplicateDetector::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
+void LegacySequenceNumberAssigment::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
 {
     ASSERT(frame->getType() != ST_DATA_WITH_QOS);
     lastSeqNum = (lastSeqNum + 1) % 4096;
     frame->setSequenceNumber(lastSeqNum);
 }
 
-bool LegacyDuplicateDetector::isDuplicate(Ieee80211DataOrMgmtFrame *frame)
-{
-    ASSERT(frame->getType() != ST_DATA_WITH_QOS);
-    const MACAddress& address = frame->getTransmitterAddress();
-    SequenceControlField seqVal(frame);
-    auto it = lastSeenSeqNumCache.find(address);
-    if (it == lastSeenSeqNumCache.end())
-        lastSeenSeqNumCache.insert(std::pair<MACAddress, SequenceControlField>(address, seqVal));
-    else if (it->second.getSequenceNumber() == seqVal.getSequenceNumber() && it->second.getFragmentNumber() == seqVal.getFragmentNumber() && frame->getRetry())
-        return true;
-    else
-        it->second = seqVal;
-    return false;
-}
+} /* namespace ieee80211 */
+} /* namespace inet */
 
-} // namespace ieee80211
-} // namespace inet

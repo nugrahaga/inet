@@ -16,8 +16,8 @@
 // 
 
 #include "inet/linklayer/ieee80211/mac/aggregation/MsduAggregation.h"
-#include "inet/linklayer/ieee80211/mac/duplicatedetector/QosDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/Fragmentation.h"
+#include "inet/linklayer/ieee80211/mac/sequencenumberassignment/QoSSequenceNumberAssignment.h"
 #include "OriginatorQoSMacDataService.h"
 
 namespace inet {
@@ -29,7 +29,7 @@ void OriginatorQoSMacDataService::initialize()
 {
     aMsduAggregationPolicy = check_and_cast<IMsduAggregationPolicy*>(getSubmodule("msduAggregationPolicy"));
     aMsduAggregation = new MsduAggregation();
-    sequenceNumberAssigment = new QoSDuplicateDetector();
+    sequenceNumberAssigment = new QoSSequenceNumberAssignment();
     fragmentationPolicy = check_and_cast<IFragmentationPolicy*>(getSubmodule("fragmentationPolicy"));
     fragmentation = new Fragmentation();
 }

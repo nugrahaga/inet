@@ -18,12 +18,12 @@
 #ifndef __INET_ORIGINATORQOSMACDATASERVICE_H
 #define __INET_ORIGINATORQOSMACDATASERVICE_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFragmentation.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFragmentationPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IMsduAggregation.h"
 #include "inet/linklayer/ieee80211/mac/contract/IMsduAggregationPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IOriginatorMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/contract/ISequenceNumberAssignment.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/queue/Ieee80211Queue.h"
 
@@ -35,8 +35,7 @@ class INET_API OriginatorQoSMacDataService : public IOriginatorMacDataService, p
     protected:
         // Figure 5-1—MAC data plane architecture
         // MsduRateLimiting *msduRateLimiting = nullptr;
-        // FIXME: separate sequence number assignment and duplicate detection
-        IDuplicateDetector *sequenceNumberAssigment = nullptr;
+        ISequenceNumberAssignment *sequenceNumberAssigment = nullptr;
         // MsduIntegrityAndProtection *msduIntegrityAndProtection = nullptr;
         // MpduEncryptionAndIntegrity *mpduEncryptionAndIntegrity = nullptr;
         // MpduHeaderPlusCrc *mpduHeaderPlusCrc = nullptr;

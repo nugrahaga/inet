@@ -13,56 +13,43 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#ifndef __INET_QOSDUPLICATEDETECTOR_H
-#define __INET_QOSDUPLICATEDETECTOR_H
+#ifndef __INET_QOSSEQUENCENUMBERASSIGNMENT_H
+#define __INET_QOSSEQUENCENUMBERASSIGNMENT_H
 
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/linklayer/ieee80211/mac/common/SequenceControlField.h"
-#include "inet/linklayer/ieee80211/mac/contract/IDuplicateDetector.h"
+#include "inet/linklayer/ieee80211/mac/contract/ISequenceNumberAssignment.h"
 #include <map>
 
 namespace inet {
 namespace ieee80211 {
-//
-// TODO: Separate sequence number assignment and duplicate detection by
-// creating DuplicateRemoval and SequenceNumberAssigment modules.
-//
-class INET_API QoSDuplicateDetector : public IDuplicateDetector
+
+class INET_API QoSSequenceNumberAssignment : public ISequenceNumberAssignment
 {
-    private:
+    protected:
         enum CacheType
         {
             SHARED,
             TIME_PRIORITY,
             DATA
         };
-
-    protected:
         typedef std::pair<MACAddress, Tid> Key;
-        typedef std::map<Key, SequenceControlField> Key2SeqValMap;
-        typedef std::map<MACAddress, SequenceControlField> Mac2SeqValMap;
-        Key2SeqValMap lastSeenSeqNumCache;// cache of last seen sequence numbers per TA
-        Mac2SeqValMap lastSeenSharedSeqNumCache;
-        Mac2SeqValMap lastSeenTimePriorityManagementSeqNumCache;
 
         std::map<Key, SequenceNumber> lastSentSeqNums; // last sent sequence numbers per RA
         std::map<MACAddress, SequenceNumber> lastSentTimePrioritySeqNums; // last sent sequence numbers per RA
-
         std::map<MACAddress, SequenceNumber> lastSentSharedSeqNums; // last sent sequence numbers per RA
         SequenceNumber lastSentSharedCounterSeqNum = 0;
 
     protected:
-        CacheType getCacheType(Ieee80211DataOrMgmtFrame *frame, bool incoming);
+        virtual CacheType getCacheType(Ieee80211DataOrMgmtFrame *frame, bool incoming);
 
     public:
         virtual void assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame) override;
-        virtual bool isDuplicate(Ieee80211DataOrMgmtFrame *frame) override;
 };
 
-} // namespace ieee80211
-} // namespace inet
+} /* namespace ieee80211 */
+} /* namespace inet */
 
-#endif
-
+#endif // ifndef __INET_QOSSEQUENCENUMBERASSIGNMENT_H
