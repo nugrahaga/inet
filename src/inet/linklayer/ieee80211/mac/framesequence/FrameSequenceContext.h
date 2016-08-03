@@ -19,11 +19,11 @@
 #define __INET_FRAMESEQUENCECONTEXT_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"

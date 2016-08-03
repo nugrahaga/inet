@@ -20,6 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementPolicy.h"
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementPolicy.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
@@ -33,7 +34,6 @@
 #include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/NonQoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/originator/QoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
