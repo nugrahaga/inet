@@ -24,12 +24,9 @@
 namespace inet {
 namespace ieee80211 {
 
-class RecipientBlockAckAgreementHandler;
-
 class INET_API RecipientBlockAckAgreement
 {
     protected:
-        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
         BlockAckRecord *blockAckRecord = nullptr;
 
         SequenceNumber startingSequenceNumber = -1;
@@ -40,7 +37,7 @@ class INET_API RecipientBlockAckAgreement
         bool isAddbaResponseSent = false;
 
     public:
-        RecipientBlockAckAgreement(RecipientBlockAckAgreementHandler *blockAckHandler, MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
+        RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
         ~RecipientBlockAckAgreement();
 
         void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);

@@ -52,9 +52,6 @@ class OriginatorBlockAckAgreement
             inactivityTimer(new cMessage("InactivityTimer"))
         { }
 
-        void scheduleInactivityTimer();
-        void blockAckFrameReceived();
-
         int getBufferSize() const { return bufferSize; }
         SequenceNumber getStartingSequenceNumber() { return startingSequenceNumber; }
         bool getIsAddbaResponseReceived() const { return isAddbaResponseReceived; }
@@ -66,7 +63,7 @@ class OriginatorBlockAckAgreement
         int getNumSentBaPolicyFrames() const { return numSentBaPolicyFrames; }
 
         void setBufferSize(int bufferSize) { this->bufferSize = bufferSize; }
-        void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; scheduleInactivityTimer(); }
+        void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; }
         void setIsAMsduSupported(bool isAMsduSupported) { this->isAMsduSupported = isAMsduSupported; }
         void setIsDelayedBlockAckPolicySupported(bool isDelayedBlockAckPolicySupported) { this->isDelayedBlockAckPolicySupported = isDelayedBlockAckPolicySupported; }
         void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }

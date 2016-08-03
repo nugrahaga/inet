@@ -18,6 +18,8 @@ package inet.linklayer.ieee80211.mac.blockack;
 simple RecipientBlockAckAgreementPolicy
 {
     parameters:
+        string recipientBlockAckAgreementHandlerModule;
+        
         bool delayedAckPolicySupported = default(false);
         bool aMsduSupported = default(true);
         int maximumAllowedBufferSize = default(64);

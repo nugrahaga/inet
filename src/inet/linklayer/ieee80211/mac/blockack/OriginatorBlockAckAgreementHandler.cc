@@ -29,8 +29,6 @@ void OriginatorBlockAckAgreementHandler::initialize(int stage)
     if (stage == INITSTAGE_LAST) {
         rateSelection = dynamic_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-        slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-        phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
     }
 }
 

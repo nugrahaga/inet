@@ -34,7 +34,9 @@ void Hcf::initialize(int stage)
         tx = check_and_cast<ITx *>(getModuleByPath(par("txModule")));
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         originatorBlockAckAgreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler *>(getSubmodule("originatorBlockAckAgreementHandler"));
+        originatorBlockAckAgreementPolicy = check_and_cast<OriginatorBlockAckAgreementPolicy*>(getSubmodule("originatorBlockAckAgreementPolicy"));
         recipientBlockAckAgreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getSubmodule("recipientBlockAckAgreementHandler"));
+        recipientBlockAckAgreementPolicy = check_and_cast<RecipientBlockAckAgreementPolicy*>(getSubmodule("recipientBlockAckAgreementPolicy"));
         rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
         rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
@@ -172,6 +174,8 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
     }
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         sendUp(recipientDataService->dataFrameReceived(dataFrame));
+        if (dataFrame->getType() == ST_DATA_WITH_QOS)
+            recipientBlockAckAgreementPolicy->qosFrameReceived(dataFrame);
     }
     else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(frame)) {
         sendUp(recipientDataService->managementFrameReceived(mgmtFrame));
@@ -208,10 +212,13 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
 void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* frame)
 {
     if (auto addbaRequest = dynamic_cast<Ieee80211AddbaRequest *>(frame)) {
-        recipientBlockAckAgreementHandler->processReceivedAddbaRequest(addbaRequest);
-        auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest);
-        if (addbaResponse)
-            processUpperFrame(addbaResponse);
+        if (recipientBlockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
+            auto agreement = recipientBlockAckAgreementHandler->addAgreement(addbaRequest);
+            recipientBlockAckAgreementPolicy->agreementEstablished(agreement); // TODO:
+            auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest, recipientBlockAckAgreementPolicy->aMsduSupported(), recipientBlockAckAgreementPolicy->getBlockAckTimeoutValue(), recipientBlockAckAgreementPolicy->getMaximumAllowedBufferSize(), recipientBlockAckAgreementPolicy->delayedBlockAckPolicySupported());
+            if (addbaResponse)
+                processUpperFrame(addbaResponse);
+        }
     }
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse *>(frame)) {
         auto agreement = originatorBlockAckAgreementHandler->getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
@@ -221,8 +228,13 @@ void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* fram
         }
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba*>(frame)) {
-        if (delba->getInitiator())
-            recipientBlockAckAgreementHandler->processReceivedDelba(delba);
+        // 9.21.5 Teardown of the Block Ack mechanism
+        // When the originator has no data to send and the final Block Ack exchange has completed, it shall signal the end
+        // of its use of the Block Ack mechanism by sending the DELBA frame to its recipient. There is no management
+        // response frame from the recipient. The recipient of the DELBA frame shall release all resources allocated for
+        // the Block Ack transfer.
+        if (delba->getInitiator() && recipientBlockAckAgreementPolicy->isDelbaAccepted(delba))
+            recipientBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
         else if (originatorBlockAckAgreementPolicy->isDelbaAccepted(delba))
             originatorBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
     }

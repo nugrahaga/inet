@@ -21,6 +21,7 @@ simple OriginatorBlockAckAgreementPolicy
 {
     parameters:
         string originatorAckPolicyModule;
+        string originatorBlockAckAgreementHandlerModule;
         
         bool delayedAckPolicySupported = default(false);
         bool aMsduSupported = default(true);

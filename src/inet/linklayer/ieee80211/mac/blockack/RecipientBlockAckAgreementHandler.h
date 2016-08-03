@@ -37,32 +37,24 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule
 {
     protected:
         IRateSelection *rateSelection = nullptr;
-
-        int maximumAllowedBufferSize = -1;
-        bool isAMsduSupported = false;
-        bool isDelayedBlockAckPolicySupported = false;
-        simtime_t blockAckTimeoutValue = -1;
+        simtime_t sifs = -1;
 
         std::map<std::pair<MACAddress, Tid>, RecipientBlockAckAgreement *> blockAckAgreements;
 
-        simtime_t sifs = -1;
-
-    protected:
+    public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *msg) override;
+        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
 
-
-    public:
-        Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame);
+        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
+        virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
 
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
-        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *frame);
-        virtual void processReceivedDelba(Ieee80211Delba *frame);
+        virtual RecipientBlockAckAgreement* addAgreement(Ieee80211AddbaRequest *addbaReq);
         virtual void updateAgreement(Ieee80211AddbaResponse *frame);
 
-        RecipientBlockAckAgreement *getAgreement(Tid tid, MACAddress originatorAddr);
+        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
+        virtual RecipientBlockAckAgreement* getAgreement(cMessage* inactivityTimer);
 };
 
 } // namespace ieee80211

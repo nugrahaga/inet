@@ -21,40 +21,19 @@
 namespace inet {
 namespace ieee80211 {
 
-RecipientBlockAckAgreement::RecipientBlockAckAgreement(RecipientBlockAckAgreementHandler *blockAckHandler, MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t lastUsedTime) :
-    agreementHandler(blockAckHandler),
+RecipientBlockAckAgreement::RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t lastUsedTime) :
     startingSequenceNumber(startingSequenceNumber),
     bufferSize(bufferSize),
     blockAckTimeoutValue(lastUsedTime)
 {
     blockAckRecord = new BlockAckRecord(originatorAddress, tid);
     inactivityTimer = new cMessage("Inactivity Timer");
-    scheduleInactivityTimer();
-}
-
-RecipientBlockAckAgreement::~RecipientBlockAckAgreement()
-{
-    agreementHandler->cancelAndDelete(inactivityTimer);
 }
 
 void RecipientBlockAckAgreement::blockAckPolicyFrameReceived(Ieee80211DataFrame* frame)
 {
     ASSERT(frame->getAckPolicy() == BLOCK_ACK);
     blockAckRecord->blockAckPolicyFrameReceived(frame);
-}
-
-//
-// Every STA shall maintain an inactivity timer for every negotiated Block Ack setup. The inactivity timer at a
-// recipient is reset when MPDUs corresponding to the TID for which the Block Ack policy is set are received
-// and the Ack Policy subfield in the QoS Control field of that MPDU header is Block Ack or Implicit Block
-// Ack Request.
-//
-void RecipientBlockAckAgreement::scheduleInactivityTimer()
-{
-    if (blockAckTimeoutValue != 0) {
-        agreementHandler->cancelEvent(inactivityTimer);
-        agreementHandler->scheduleAt(simTime() + blockAckTimeoutValue, inactivityTimer);
-    }
 }
 
 } /* namespace ieee80211 */

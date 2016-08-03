@@ -29,30 +29,28 @@ void RecipientBlockAckAgreementHandler::initialize(int stage)
     if (stage == INITSTAGE_LAST) {
         rateSelection = dynamic_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-        isDelayedBlockAckPolicySupported = par("delayedAckPolicySupported");
-        isAMsduSupported = par("aMsduSupported");
-        maximumAllowedBufferSize = par("maximumAllowedBufferSize");
-        blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
     }
 }
 
-void RecipientBlockAckAgreementHandler::handleMessage(cMessage* msg)
+//
+// An originator that intends to use the Block Ack mechanism for the transmission of QoS data frames to an
+// intended recipient should first check whether the intended recipient STA is capable of participating in Block
+// Ack mechanism by discovering and examining its Delayed Block Ack and Immediate Block Ack capability
+// bits. If the intended recipient STA is capable of participating, the originator sends an ADDBA Request frame
+// indicating the TID for which the Block Ack is being set up.
+//
+RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::addAgreement(Ieee80211AddbaRequest* addbaReq)
 {
-    // The Block Ack Timeout Value field contains the duration, in TUs, after which the Block Ack setup is
-    // terminated, if there are no frame exchanges (see 10.5.4) within this duration using this Block Ack
-    // agreement. A value of 0 disables the timeout.
-    for (auto it : blockAckAgreements) {
-        auto *agreement = it.second;
-        if (agreement->getInactivityTimer() == msg) {
-            auto hcf = check_and_cast<Hcf*>(getParentModule()); // FIXME: khm
-            Tid tid = it.first.second;
-            MACAddress originatorAddr = it.first.first;
-            hcf->processUpperFrame(buildDelba(originatorAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
-            delete terminateAgreement(originatorAddr, tid);
-            return;
-        }
+    MACAddress originatorAddr = addbaReq->getTransmitterAddress();
+    auto id = std::make_pair(originatorAddr, addbaReq->getTid());
+    auto it = blockAckAgreements.find(id);
+    if (it == blockAckAgreements.end()) {
+        RecipientBlockAckAgreement *agreement = new RecipientBlockAckAgreement(originatorAddr, addbaReq->getTid(), addbaReq->getStartingSequenceNumber(), addbaReq->getBufferSize(), addbaReq->getBlockAckTimeoutValue());
+        blockAckAgreements[id] = agreement;
+        return agreement;
     }
-    throw cRuntimeError("Unknown message = %s", msg->getName());
+    else
+        throw cRuntimeError("TODO"); // TODO: update?
 }
 
 //
@@ -71,17 +69,17 @@ Ieee80211Delba* RecipientBlockAckAgreementHandler::buildDelba(MACAddress receive
     return delba;
 }
 
-Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ieee80211AddbaRequest* frame)
+Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ieee80211AddbaRequest* frame, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported)
 {
     Ieee80211AddbaResponse *addbaResponse = new Ieee80211AddbaResponse("AddbaResponse");
     addbaResponse->setReceiverAddress(frame->getTransmitterAddress());
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
     Tid tid = frame->getTid();
     addbaResponse->setTid(tid);
-    addbaResponse->setBlockAckPolicy(!frame->getBlockAckPolicy() && isDelayedBlockAckPolicySupported ? false : true);
+    addbaResponse->setBlockAckPolicy(!frame->getBlockAckPolicy() && delayedBlockAckPolicySupported ? false : true);
     addbaResponse->setBufferSize(frame->getBufferSize() <= maximumAllowedBufferSize ? frame->getBufferSize() : maximumAllowedBufferSize);
     addbaResponse->setBlockAckTimeoutValue(blockAckTimeoutValue == 0 ? blockAckTimeoutValue : frame->getBlockAckTimeoutValue());
-    addbaResponse->setAMsduSupported(isAMsduSupported);
+    addbaResponse->setAMsduSupported(aMsduSupported);
     addbaResponse->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
     return addbaResponse;
 }
@@ -97,39 +95,6 @@ void RecipientBlockAckAgreementHandler::updateAgreement(Ieee80211AddbaResponse *
     else
         throw cRuntimeError("Agreement is not found");
 }
-
-//
-// An originator that intends to use the Block Ack mechanism for the transmission of QoS data frames to an
-// intended recipient should first check whether the intended recipient STA is capable of participating in Block
-// Ack mechanism by discovering and examining its Delayed Block Ack and Immediate Block Ack capability
-// bits. If the intended recipient STA is capable of participating, the originator sends an ADDBA Request frame
-// indicating the TID for which the Block Ack is being set up.
-//
-void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211AddbaRequest *frame)
-{
-    MACAddress originatorAddr = frame->getTransmitterAddress();
-    auto id = std::make_pair(originatorAddr, frame->getTid());
-    auto it = blockAckAgreements.find(id);
-    if (it == blockAckAgreements.end()) {
-        RecipientBlockAckAgreement *agreement = new RecipientBlockAckAgreement(this, originatorAddr, frame->getTid(), frame->getStartingSequenceNumber(), frame->getBufferSize(), frame->getBlockAckTimeoutValue());
-        blockAckAgreements[id] = agreement;
-    }
-    else
-        throw cRuntimeError("TODO"); // TODO: update?
-}
-
-//
-// 9.21.5 Teardown of the Block Ack mechanism
-// When the originator has no data to send and the final Block Ack exchange has completed, it shall signal the end
-// of its use of the Block Ack mechanism by sending the DELBA frame to its recipient. There is no management
-// response frame from the recipient. The recipient of the DELBA frame shall release all resources allocated for
-// the Block Ack transfer.
-//
-void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba *frame)
-{
-    delete terminateAgreement(frame->getTransmitterAddress(), frame->getTid());
-}
-
 
 void RecipientBlockAckAgreementHandler::terminateAgreement(MACAddress originatorAddr, Tid tid)
 {
@@ -148,6 +113,17 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     auto it = blockAckAgreements.find(agreementId);
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
+
+RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(cMessage* inactivityTimer)
+{
+    for (auto it : blockAckAgreements) {
+        auto *agreement = it.second;
+        if (agreement->getInactivityTimer() == inactivityTimer)
+            return agreement;
+    }
+    throw cRuntimeError("Agreement not found");
+}
+
 
 } // namespace ieee80211
 } // namespace inet

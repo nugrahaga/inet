@@ -21,9 +21,10 @@
 namespace inet {
 namespace ieee80211 {
 
-void OriginatorBlockAckAgreementPolicy::initialize(int stage)
+void OriginatorBlockAckAgreementPolicy::initialize()
 {
     ackPolicy = check_and_cast<OriginatorAckPolicy*>(getModuleByPath(par("originatorAckPolicyModule")));
+    agreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler*>(getModuleByPath(par("originatorBlockAckAgreementHandlerModule")));
     delayedAckPolicySupported = par("delayedAckPolicySupported");
     aMsduSupported = par("aMsduSupported");
     maximumAllowedBufferSize = par("maximumAllowedBufferSize");

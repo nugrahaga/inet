@@ -18,16 +18,20 @@
 package inet.linklayer.ieee80211.mac.coordinationfunction;
 
 import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementHandler;
+import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementHandler;
+import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
 import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
+import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
 import inet.linklayer.ieee80211.mac.originator.QoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
 import inet.linklayer.ieee80211.mac.originator.TxopProcedure;
 import inet.linklayer.ieee80211.mac.recipient.RecipientQoSMacDataService;
+
 
 //
 // HCF -- Hybrid Coordination Function
@@ -45,7 +49,7 @@ module Hcf
         *.rxModule = "^." + rxModule;
 
         @class(Hcf);
-        @display("i=block/queue;bgb=627,680");
+        @display("i=block/queue;bgb=752.39996,783.864");
 
     submodules:
         edca: Edca {
@@ -56,35 +60,47 @@ module Hcf
             @display("p=52,348");
         }
         originatorQoSMacDataService: OriginatorQoSMacDataService {
-            @display("p=483,527");
+            @display("p=552.672,526.68");
         }
         recipientQoSMacDataService: RecipientQoSMacDataService {
             recipientBlockAckAgreementHandlerModule = "^.recipientBlockAckAgreementHandler";
-            @display("p=132,527");
+            @display("p=184.68,526.68");
         }
         frameSequenceHandler: FrameSequenceHandler {
             @display("p=122,65");
         }
         originatorBlockAckAgreementHandler: OriginatorBlockAckAgreementHandler {
-            @display("p=483,605");
+            @display("p=552.672,618.336");
+        }
+        originatorBlockAckAgreementPolicy: OriginatorBlockAckAgreementPolicy {
+            originatorBlockAckAgreementHandlerModule = "^.originatorBlockAckAgreementHandler";
+            originatorAckPolicyModule = "^.originatorAckPolicyModule";
+            @display("p=552.672,716.832");
         }
         recipientBlockAckAgreementHandler: RecipientBlockAckAgreementHandler {
-            @display("p=132,605");
+            @display("p=184.68,618.336");
+        }
+        recipientBlockAckAgreementPolicy: RecipientBlockAckAgreementPolicy {
+            recipientBlockAckAgreementHandlerModule = "^.recipientBlockAckAgreementHandler";
+            @display("p=184.68,716.832");
         }
         rtsProcedure: RtsProcedure {
-            @display("p=342,117.647995");
+            @display("p=366.624,117.647995");
         }
         edcaMgmtAndNonQoSRecoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.edca.edcaf[1]"; // best effort
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=342,400.824");
+            @display("p=366.624,400.824");
         }
         edcaDataRecoveryProcedures[numEdcafs]: QoSRecoveryProcedure {
             cwCalculatorModule = "^.edca.edcaf[" + string(index) + "]";
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=342,303.69598,row,50");
+            @display("p=366.624,305.064,row,50");
         }
         edcaTxopProcedures[numEdcafs]: TxopProcedure {
-            @display("p=342,207.93599,row,50");
+            @display("p=366.624,207.93599,row,50");
+        }
+        originatorAckPolicy: OriginatorAckPolicy {
+            @display("p=581.39996,64.296");
         }
 }

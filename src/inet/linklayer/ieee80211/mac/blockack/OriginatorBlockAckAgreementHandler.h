@@ -37,18 +37,18 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
 
         std::map<std::pair<MACAddress, Tid>, OriginatorBlockAckAgreement *> blockAckAgreements;
 
-    protected:
+    public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
+        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
 
-    public:
-        OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
-        OriginatorBlockAckAgreement *getAgreement(cMessage *inactivityTimer);
+        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
+        virtual OriginatorBlockAckAgreement *getAgreement(cMessage *inactivityTimer);
 
         virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
         virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        simtime_t getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const;
-        simtime_t getAddbaRequestEarlyTimeout() const;
+        virtual simtime_t getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const;
+        virtual simtime_t getAddbaRequestEarlyTimeout() const;
 
         virtual void createAgreement(Ieee80211AddbaRequest *addbaRequest);
         virtual void updateAgreement(OriginatorBlockAckAgreement *agreement, Ieee80211AddbaResponse *addbaResp);

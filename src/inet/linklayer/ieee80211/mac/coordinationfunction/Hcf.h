@@ -21,6 +21,7 @@
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementPolicy.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementPolicy.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/channelaccess/Edca.h"
 #include "inet/linklayer/ieee80211/mac/channelaccess/Hcca.h"
@@ -54,6 +55,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 {
     protected:
         Ieee80211Mac *mac = nullptr;
+        int numEdcafs = -1;
 
         // Transmission and Reception
         IRx *rx = nullptr;
@@ -63,7 +65,6 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // Channel Access Methods
         Edca *edca = nullptr;
-        int numEdcafs = -1;
         Hcca *hcca = nullptr;
 
         // MAC Data Service
@@ -85,6 +86,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         OriginatorBlockAckAgreementHandler *originatorBlockAckAgreementHandler = nullptr;
         OriginatorBlockAckAgreementPolicy *originatorBlockAckAgreementPolicy = nullptr;
         RecipientBlockAckAgreementHandler *recipientBlockAckAgreementHandler = nullptr;
+        RecipientBlockAckAgreementPolicy *recipientBlockAckAgreementPolicy = nullptr;
 
         // Ack handler
         std::vector<AckHandler *> edcaAckHandlers;

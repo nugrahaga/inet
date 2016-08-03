@@ -26,6 +26,8 @@ namespace ieee80211 {
 class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
 {
     protected:
+        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
+
         int maximumAllowedBufferSize = -1;
         bool isAMsduSupported = false;
         bool isDelayedBlockAckPolicySupported = false;
@@ -33,8 +35,22 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
+        virtual void initialize() override;
         virtual void handleMessage(cMessage *msg) override;
+
+        virtual void scheduleInactivityTimer(RecipientBlockAckAgreement *agreement);
+
+    public:
+        virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq);
+        virtual bool isDelbaAccepted(Ieee80211Delba* delba);
+        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame);
+
+        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement);
+
+        simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
+        bool aMsduSupported() const { return isAMsduSupported; }
+        bool delayedBlockAckPolicySupported() const { return isDelayedBlockAckPolicySupported; }
+        int getMaximumAllowedBufferSize() const { return maximumAllowedBufferSize; }
 };
 
 } /* namespace ieee80211 */
