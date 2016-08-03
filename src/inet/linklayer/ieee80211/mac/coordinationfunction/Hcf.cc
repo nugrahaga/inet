@@ -314,6 +314,14 @@ void Hcf::originatorProcessTransmittedDataFrame(Ieee80211DataFrame* dataFrame, A
             processUpperFrame(addbaReq);
         }
     }
+    auto baReqParams = originatorQoSAckPolicy->computeBaReqParameters(edcaInProgressFrames[ac]);
+    auto address = std::get<0>(baReqParams);
+    if (address != MACAddress::UNSPECIFIED_ADDRESS) {
+        auto startingSequenceNumber = std::get<1>(baReqParams);
+        auto tid = std::get<2>(baReqParams);
+        auto basicBlockAckReq = originatorBlockAckProcedure->buildBasicBlockAckReqFrame(address, startingSequenceNumber, tid);
+        //processUpperFrame(basicBlockAckReq);
+    }
     if (dataFrame->getAckPolicy() == NO_ACK)
         edcaInProgressFrames[ac]->dropFrame(dataFrame);
 }

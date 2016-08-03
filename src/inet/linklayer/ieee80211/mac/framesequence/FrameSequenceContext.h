@@ -58,9 +58,6 @@ class INET_API FrameSequenceContext
         virtual IFrameSequenceStep *getLastStep() const { return steps.size() > 0 ? steps.back() : nullptr; }
         virtual IFrameSequenceStep *getStepBeforeLast() const { return steps.size() > 1 ? steps[steps.size() - 2] : nullptr; }
 
-        virtual std::vector<Ieee80211DataFrame*> getOutstandingFrames();
-        virtual std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver();
-
         OriginatorAckProcedure* getAckProcedure() { return ackProcedure; }
         InProgressFrames* getInProgressFrames() { return inProgressFrames; }
         RtsProcedure* getRtsProcedure() { return rtsProcedure; }

@@ -125,10 +125,6 @@ class INET_API BlockAckReqBlockAckFs : public IFrameSequence {
         int firstStep = -1;
         int step = -1;
 
-    protected:
-        virtual int computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames);
-        virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber);
-
     public:
         virtual void startSequence(FrameSequenceContext *context, int firstStep) override;
         virtual IFrameSequenceStep *prepareStep(FrameSequenceContext *context) override;

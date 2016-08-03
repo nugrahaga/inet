@@ -18,6 +18,7 @@
 #ifndef __INET_ORIGINATORQOSACKPOLICY_H
 #define __INET_ORIGINATORQOSACKPOLICY_H
 
+#include  "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
@@ -37,11 +38,14 @@ class INET_API OriginatorQoSAckPolicy : public cSimpleModule
         virtual void initialize() override;
 
         virtual bool checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
+        std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames);
+        virtual int computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames);
+        virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber);
 
     public:
         virtual AckPolicy getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame);
-        virtual bool isBaReqNeeded(FrameSequenceContext *context);
+        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBaReqParameters(InProgressFrames *inProgressFrames);
 };
 
 } /* namespace ieee80211 */

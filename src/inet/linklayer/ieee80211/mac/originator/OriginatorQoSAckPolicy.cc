@@ -17,6 +17,7 @@
 
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "OriginatorQoSAckPolicy.h"
+#include <tuple>
 
 namespace inet {
 namespace ieee80211 {
@@ -29,26 +30,56 @@ void OriginatorQoSAckPolicy::initialize()
     blockAckReqTreshold = par("blockAckReqTreshold");
 }
 
-bool OriginatorQoSAckPolicy::isBaReqNeeded(FrameSequenceContext *context)
+std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames)
 {
-    auto outstandingFramesPerReceiver = context->getOutstandingFramesPerReceiver();
-    for (auto outstandingFrames : outstandingFramesPerReceiver) {
-        if ((int)outstandingFrames.second.size() >= blockAckReqTreshold)
-            return true;
+    auto outstandingFrames = inProgressFrames->getOutstandingFrames();
+    std::map<MACAddress, std::vector<Ieee80211DataFrame*>> outstandingFramesPerReceiver;
+    for (auto frame : outstandingFrames)
+        outstandingFramesPerReceiver[frame->getReceiverAddress()].push_back(frame);
+    return outstandingFramesPerReceiver;
+}
+
+
+int OriginatorQoSAckPolicy::computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames)
+{
+    ASSERT(outstandingFrames.size() > 0);
+    int startingSequenceNumber = outstandingFrames[0]->getSequenceNumber();
+    for (int i = 1; i < (int)outstandingFrames.size(); i++) {
+        int seqNum = outstandingFrames[i]->getSequenceNumber();
+        if (seqNum < startingSequenceNumber)
+            startingSequenceNumber = seqNum;
     }
-    return false;
+    return startingSequenceNumber;
+}
 
+bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber)
+{
+    // The Compressed Bitmap subfield of the BA Control field or BAR Control field shall be set to 1 in all
+    // BlockAck and BlockAckReq frames sent from one HT STA to another HT STA and shall be set to 0 otherwise.
+    return false; // non-HT STA
+//    for (auto frame : outstandingFrames)
+//        if (frame->getSequenceNumber() >= startingSequenceNumber && frame->getFragmentNumber() > 0)
+//            return false;
+//    return true;
+}
 
-//    auto outstandingFramesPerReceiver = context->getOutstandingFramesPerReceiver();
-//    auto largestOutstandingFrames = outstandingFramesPerReceiver.begin();
-//    for (auto it = outstandingFramesPerReceiver.begin(); it != outstandingFramesPerReceiver.end(); it++) {
-//        if (it->second.size() > largestOutstandingFrames->second.size())
-//            largestOutstandingFrames = it;
-//    }
-//    MACAddress receiverAddress = largestOutstandingFrames->first;
-//    int startingSequenceNumber = computeStartingSequenceNumber(largestOutstandingFrames->second);
-//    Tid tid = largestOutstandingFrames->second.at(0)->getTid();
-//    Ieee80211BlockAckReq *blockAckReq = isCompressedBlockAckReq(largestOutstandingFrames->second, startingSequenceNumber) ? nullptr : context->getBlockAckProcedure()->buildBasicBlockAckReqFrame(receiverAddress, tid, startingSequenceNumber);
+std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBaReqParameters(InProgressFrames *inProgressFrames)
+{
+    auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
+    for (auto outstandingFrames : outstandingFramesPerReceiver) {
+        if ((int)outstandingFrames.second.size() >= blockAckReqTreshold) {
+            auto largestOutstandingFrames = outstandingFramesPerReceiver.begin();
+            for (auto it = outstandingFramesPerReceiver.begin(); it != outstandingFramesPerReceiver.end(); it++) {
+                if (it->second.size() > largestOutstandingFrames->second.size())
+                    largestOutstandingFrames = it;
+            }
+            MACAddress receiverAddress = largestOutstandingFrames->first;
+            SequenceNumber startingSequenceNumber = computeStartingSequenceNumber(largestOutstandingFrames->second);
+            Tid tid = largestOutstandingFrames->second.at(0)->getTid();
+            return std::make_tuple(receiverAddress, startingSequenceNumber, tid);
+        }
+    }
+    return std::make_tuple(MACAddress::UNSPECIFIED_ADDRESS, -1, -1);
 }
 
 AckPolicy OriginatorQoSAckPolicy::getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)

@@ -57,7 +57,7 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
     else {
         Ieee80211DataFrame *dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
         auto agreement = context->getBlockAckAgreementHandler()->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
-        if (context->getAckPolicy()->isBaReqNeeded(context))
+        if (dynamic_cast<Ieee80211BlockAckReq*>(frameToTransmit))
             return 2;
         else if (agreement == nullptr)
             return 1;

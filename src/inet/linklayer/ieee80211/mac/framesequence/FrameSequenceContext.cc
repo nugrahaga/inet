@@ -38,20 +38,6 @@ FrameSequenceContext::~FrameSequenceContext()
         delete step;
 }
 
-std::vector<Ieee80211DataFrame*> FrameSequenceContext::getOutstandingFrames()
-{
-    return inProgressFrames->getOutstandingFrames();
-}
-
-std::map<MACAddress, std::vector<Ieee80211DataFrame*>> FrameSequenceContext::getOutstandingFramesPerReceiver()
-{
-    auto outstandingFrames = getOutstandingFrames();
-    std::map<MACAddress, std::vector<Ieee80211DataFrame*>> outstandingFramesPerReceiver;
-    for (auto frame : outstandingFrames)
-        outstandingFramesPerReceiver[frame->getReceiverAddress()].push_back(frame);
-    return outstandingFramesPerReceiver;
-}
-
 } // namespace ieee80211
 } // namespace inet
 

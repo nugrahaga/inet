@@ -293,6 +293,7 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
 {
     switch (step) {
         case 0: {
+            auto blockAckReq = context->getInProgressFrames()->getFrameToTransmit();
             if (context->getNumSteps() == 0)
                 return new TransmitStep(blockAckReq, 0);
             else
@@ -324,29 +325,6 @@ bool BlockAckReqBlockAckFs::completeStep(FrameSequenceContext *context)
         default:
             throw cRuntimeError("Unknown step");
     }
-}
-
-int BlockAckReqBlockAckFs::computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames)
-{
-    ASSERT(outstandingFrames.size() > 0);
-    int startingSequenceNumber = outstandingFrames[0]->getSequenceNumber();
-    for (int i = 1; i < (int)outstandingFrames.size(); i++) {
-        int seqNum = outstandingFrames[i]->getSequenceNumber();
-        if (seqNum < startingSequenceNumber)
-            startingSequenceNumber = seqNum;
-    }
-    return startingSequenceNumber;
-}
-
-bool BlockAckReqBlockAckFs::isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber)
-{
-    // The Compressed Bitmap subfield of the BA Control field or BAR Control field shall be set to 1 in all
-    // BlockAck and BlockAckReq frames sent from one HT STA to another HT STA and shall be set to 0 otherwise.
-    return false; // non-HT STA
-//    for (auto frame : outstandingFrames)
-//        if (frame->getSequenceNumber() >= startingSequenceNumber && frame->getFragmentNumber() > 0)
-//            return false;
-//    return true;
 }
 
 } // namespace ieee80211
