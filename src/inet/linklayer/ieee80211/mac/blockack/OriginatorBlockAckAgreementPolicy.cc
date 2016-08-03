@@ -21,6 +21,8 @@
 namespace inet {
 namespace ieee80211 {
 
+Define_Module(OriginatorBlockAckAgreementPolicy);
+
 void OriginatorBlockAckAgreementPolicy::initialize()
 {
     ackPolicy = check_and_cast<OriginatorAckPolicy*>(getModuleByPath(par("originatorAckPolicyModule")));

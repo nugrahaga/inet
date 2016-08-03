@@ -38,7 +38,7 @@ class INET_API FrameSequenceContext
     protected:
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
-        OriginatorAckPolicy *ackPolicy = nullptr;
+        OriginatorAckPolicy *originatorAckPolicy = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         TxopProcedure *txopProcedure = nullptr;
         OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
@@ -49,7 +49,7 @@ class INET_API FrameSequenceContext
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, const IIeee80211Mode *mode);
+        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorAckPolicy *ackPolicy, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
@@ -67,7 +67,7 @@ class INET_API FrameSequenceContext
         TxopProcedure* getTxopProcedure() { return txopProcedure; }
         OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
         OriginatorBlockAckAgreementHandler *getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
-        OriginatorAckPolicy *getAckPolicy() { return ackPolicy; }
+        OriginatorAckPolicy *getAckPolicy() { return originatorAckPolicy; }
         const IIeee80211Mode* getMode() { return mode; }
 };
 

@@ -74,7 +74,7 @@ module Hcf
         }
         originatorBlockAckAgreementPolicy: OriginatorBlockAckAgreementPolicy {
             originatorBlockAckAgreementHandlerModule = "^.originatorBlockAckAgreementHandler";
-            originatorAckPolicyModule = "^.originatorAckPolicyModule";
+            originatorAckPolicyModule = "^.originatorAckPolicy";
             @display("p=552.672,716.832");
         }
         recipientBlockAckAgreementHandler: RecipientBlockAckAgreementHandler {
