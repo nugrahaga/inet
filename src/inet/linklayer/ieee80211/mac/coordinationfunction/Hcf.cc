@@ -174,9 +174,9 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
         recipientAckProcedure->processTransmittedAck(ack);
     }
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
-        sendUp(recipientDataService->dataFrameReceived(dataFrame));
         if (dataFrame->getType() == ST_DATA_WITH_QOS)
             recipientBlockAckAgreementPolicy->qosFrameReceived(dataFrame);
+        sendUp(recipientDataService->dataFrameReceived(dataFrame));
     }
     else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(frame)) {
         sendUp(recipientDataService->managementFrameReceived(mgmtFrame));

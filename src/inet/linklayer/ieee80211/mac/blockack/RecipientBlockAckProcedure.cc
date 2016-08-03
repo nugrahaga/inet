@@ -65,6 +65,7 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
             blockAck->setDuration(0);
             blockAck->setCompressedBitmap(false);
             blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
+            blockAck->setTidInfo(tid);
             return blockAck;
         }
         else

@@ -50,15 +50,6 @@ int TxOpFs::selectMgmtOrDataQap(AlternativesFs *frameSequence, FrameSequenceCont
     return 0;
 }
 
-//        if (action == BaPolicyAction::SEND_ADDBA_REQUEST) {
-//            // The Starting Sequence Number subfield of the Block Ack Starting Sequence Control subfield
-//            // contains the sequence number of the first MSDU for which this Basic BlockAckReq frame is sent
-//            auto addbaReq = context->getBlockAckAgreementHandler()->buildAddbaRequest(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid(), dataFrameToTransmit->getSequenceNumber() + 1);
-//            context->getBlockAckAgreementHandler()->processAddbaRequest(addbaReq);
-//            context->insertMgmtFrame(addbaReq);
-//            return 1;
-//        }
-
 int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceContext *context)
 {
     Ieee80211Frame *frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
@@ -74,7 +65,7 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
         else if (context->getAckPolicy()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
             return 0;
         else
-            throw cRuntimeError("Unknown TxOp sequence");
+            return 1;
     }
 }
 
