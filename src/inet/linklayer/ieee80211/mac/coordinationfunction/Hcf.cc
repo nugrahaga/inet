@@ -320,7 +320,7 @@ void Hcf::originatorProcessTransmittedDataFrame(Ieee80211DataFrame* dataFrame, A
         auto startingSequenceNumber = std::get<1>(baReqParams);
         auto tid = std::get<2>(baReqParams);
         auto basicBlockAckReq = originatorBlockAckProcedure->buildBasicBlockAckReqFrame(address, startingSequenceNumber, tid);
-        //processUpperFrame(basicBlockAckReq);
+        // FIXME: processUpperFrame(basicBlockAckReq);
     }
     if (dataFrame->getAckPolicy() == NO_ACK)
         edcaInProgressFrames[ac]->dropFrame(dataFrame);

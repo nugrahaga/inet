@@ -54,12 +54,12 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
     Ieee80211Frame *frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
     if (dynamic_cast<Ieee80211ManagementFrame*>(frameToTransmit))
         return 3;
+    else if (dynamic_cast<Ieee80211BlockAckReq*>(frameToTransmit))
+        return 2;
     else {
         Ieee80211DataFrame *dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
         auto agreement = context->getBlockAckAgreementHandler()->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
-        if (dynamic_cast<Ieee80211BlockAckReq*>(frameToTransmit))
-            return 2;
-        else if (agreement == nullptr)
+        if (agreement == nullptr)
             return 1;
         else if (context->getAckPolicy()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
             return 0;
