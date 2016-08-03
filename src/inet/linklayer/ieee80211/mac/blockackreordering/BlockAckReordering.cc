@@ -31,8 +31,6 @@ BlockAckReordering::ReorderBuffer BlockAckReordering::processReceivedQoSFrame(Re
     // recipient to reset the timer to detect Block Ack timeout (see 10.5.4).
     // This allows the recipient to delete the Block Ack if the originator does not switch
     // back to using Block Ack.
-    if (dataFrame->getAckPolicy() == BLOCK_ACK) // TODO: Implicit Block Ack
-        agreement->scheduleInactivityTimer();
     if (receiveBuffer->insertFrame(dataFrame)) {
         if (dataFrame->getAckPolicy() == BLOCK_ACK)
             agreement->blockAckPolicyFrameReceived(dataFrame);

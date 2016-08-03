@@ -38,10 +38,8 @@ class INET_API RecipientBlockAckAgreement
 
     public:
         RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
-        ~RecipientBlockAckAgreement();
 
         void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);
-        void scheduleInactivityTimer();
 
         BlockAckRecord *getBlockAckRecord() { return blockAckRecord; }
         cMessage *getInactivityTimer() { return inactivityTimer; }
