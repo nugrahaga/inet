@@ -49,7 +49,7 @@ class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, publ
         virtual void initialize(int stage) override;
 
     public:
-        // IContentionBasedChannelAccess
+        // IChannelAccess::ICallback
         virtual void requestChannel(IChannelAccess::ICallback* callback) override;
         virtual void releaseChannel(IChannelAccess::ICallback* callback) override;
 

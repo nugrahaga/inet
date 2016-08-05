@@ -42,7 +42,7 @@ Ieee80211Frame *CtsProcedure::setFrameMode(Ieee80211Frame *frame, const IIeee802
 
 void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame)
 {
-    // TODO:
+    // don't care
 }
 
 simtime_t CtsProcedure::getCtsDuration() const
@@ -73,9 +73,9 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
         return nullptr;
 }
 
-void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* rtsFrame)
+void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 {
-    // TODO:
+    delete ctsFrame;
 }
 
 } /* namespace ieee80211 */

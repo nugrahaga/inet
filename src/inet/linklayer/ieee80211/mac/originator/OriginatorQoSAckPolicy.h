@@ -25,8 +25,6 @@
 namespace inet {
 namespace ieee80211 {
 
-class FrameSequenceContext;
-
 class INET_API OriginatorQoSAckPolicy : public cSimpleModule
 {
     protected:
@@ -46,6 +44,7 @@ class INET_API OriginatorQoSAckPolicy : public cSimpleModule
         virtual AckPolicy getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame);
         virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBaReqParameters(InProgressFrames *inProgressFrames);
+        virtual bool isBaReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure);
 };
 
 } /* namespace ieee80211 */

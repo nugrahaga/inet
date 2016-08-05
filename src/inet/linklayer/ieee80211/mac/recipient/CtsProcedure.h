@@ -59,7 +59,7 @@ class INET_API CtsProcedure
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;
 
         void processReceivedRts(Ieee80211RTSFrame *rtsFrame);
-        void processTransmittedCts(Ieee80211CTSFrame *rtsFrame);
+        void processTransmittedCts(Ieee80211CTSFrame *ctsFrame);
 
         simtime_t getCtsDuration() const;
         simtime_t getCtsEarlyTimeout() const;

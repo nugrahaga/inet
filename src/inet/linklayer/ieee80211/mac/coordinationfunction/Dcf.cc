@@ -127,6 +127,8 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
             ctsProcedure->processTransmittedCts(ctsFrame);
         }
     }
+    else
+        throw cRuntimeError("Unknown control frame");
 }
 
 FrameSequenceContext* Dcf::buildContext()

@@ -65,6 +65,8 @@ simtime_t TxopProcedure::getLimit() const
 
 void TxopProcedure::startTxop(AccessCategory ac)
 {
+    if (start != -1)
+        throw cRuntimeError("Txop is already running");
     if (limit == -1) {
         auto referenceMode = rateSelection->getSlowestMandatoryMode();
         limit = getTxopLimit(referenceMode, ac).get();

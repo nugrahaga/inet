@@ -15,7 +15,6 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "OriginatorQoSAckPolicy.h"
 #include <tuple>
 
@@ -61,6 +60,19 @@ bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211
 //        if (frame->getSequenceNumber() >= startingSequenceNumber && frame->getFragmentNumber() > 0)
 //            return false;
 //    return true;
+}
+
+bool OriginatorQoSAckPolicy::isBaReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure)
+{
+    simtime_t remainingTxop = txopProcedure->getRemaining();
+
+
+    auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
+    for (auto outstandingFrames : outstandingFramesPerReceiver) {
+        if ((int)outstandingFrames.second.size() >= blockAckReqTreshold)
+            return true;
+    }
+    return false;
 }
 
 std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBaReqParameters(InProgressFrames *inProgressFrames)
