@@ -21,6 +21,7 @@
 #include  "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 
 namespace inet {
 namespace ieee80211 {

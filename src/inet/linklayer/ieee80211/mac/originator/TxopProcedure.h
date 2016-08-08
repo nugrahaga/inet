@@ -20,6 +20,7 @@
 
 #include "inet/common/INETDefs.h"
 #include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 
 namespace inet {

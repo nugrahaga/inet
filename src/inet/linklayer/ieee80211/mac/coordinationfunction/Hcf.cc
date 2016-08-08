@@ -314,6 +314,7 @@ void Hcf::originatorProcessTransmittedDataFrame(Ieee80211DataFrame* dataFrame, A
             processUpperFrame(addbaReq);
         }
     }
+    // FIXME: originatorQoSAckPolicy->isBaReqNeeded();
     auto baReqParams = originatorQoSAckPolicy->computeBaReqParameters(edcaInProgressFrames[ac]);
     auto address = std::get<0>(baReqParams);
     if (address != MACAddress::UNSPECIFIED_ADDRESS) {

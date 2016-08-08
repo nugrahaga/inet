@@ -36,7 +36,6 @@ namespace ieee80211 {
 class INET_API FrameSequenceContext
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
         OriginatorAckProcedure *ackProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
@@ -50,7 +49,7 @@ class INET_API FrameSequenceContext
         std::vector<IFrameSequenceStep *> steps;
 
     public:
-        FrameSequenceContext(IRateSelection *rateSelection, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *ackPolicy, const IIeee80211Mode *mode);
+        FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *ackPolicy, const IIeee80211Mode *mode);
         virtual ~FrameSequenceContext();
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
@@ -59,7 +58,6 @@ class INET_API FrameSequenceContext
         virtual IFrameSequenceStep *getLastStep() const { return steps.size() > 0 ? steps.back() : nullptr; }
         virtual IFrameSequenceStep *getStepBeforeLast() const { return steps.size() > 1 ? steps[steps.size() - 2] : nullptr; }
 
-        IRateSelection *getRateSelection() { return rateSelection; }
         OriginatorAckProcedure* getAckProcedure() { return ackProcedure; }
         InProgressFrames* getInProgressFrames() { return inProgressFrames; }
         RtsProcedure* getRtsProcedure() { return rtsProcedure; }

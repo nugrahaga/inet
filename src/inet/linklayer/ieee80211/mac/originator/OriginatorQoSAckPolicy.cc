@@ -64,9 +64,8 @@ bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211
 
 bool OriginatorQoSAckPolicy::isBaReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure)
 {
+    // FIXME
     simtime_t remainingTxop = txopProcedure->getRemaining();
-
-
     auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
     for (auto outstandingFrames : outstandingFramesPerReceiver) {
         if ((int)outstandingFrames.second.size() >= blockAckReqTreshold)
