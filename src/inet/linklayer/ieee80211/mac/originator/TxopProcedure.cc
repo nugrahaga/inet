@@ -88,5 +88,12 @@ simtime_t TxopProcedure::getRemaining() const
     return now > start + limit ? 0 : now - start;
 }
 
+// FIXME: implement!
+bool TxopProcedure::isFinalFragment(Ieee80211Frame* frame)
+{
+    return false;
+}
+
 } // namespace ieee80211
 } // namespace inet
+

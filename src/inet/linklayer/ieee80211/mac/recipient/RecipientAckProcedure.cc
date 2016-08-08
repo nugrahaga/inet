@@ -37,6 +37,19 @@ void RecipientAckProcedure::processTransmittedAck(Ieee80211ACKFrame* ack)
     delete ack;
 }
 
+bool RecipientAckProcedure::isAckNeeded(Ieee80211Frame* frame)
+{
+    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
+        if (dataFrame->getAckPolicy() != NORMAL_ACK)
+            return false;
+    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame)) {
+        if (dataOrMgmtFrame->getTransmitterAddress().isMulticast())
+            return false;
+        return true;
+    }
+    return false;
+}
+
 simtime_t RecipientAckProcedure::getAckEarlyTimeout() const
 {
     // Note: This excludes ACK duration. If there's no RXStart indication within this interval, retransmission should begin immediately
@@ -54,23 +67,15 @@ simtime_t RecipientAckProcedure::getAckFullTimeout() const
     return sifs + slotTime + getAckDuration();
 }
 
-Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211Frame* frame) {
-    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
-        if (dataFrame->getAckPolicy() != NORMAL_ACK)
-            return nullptr;
-    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame)) {
-        if (dataOrMgmtFrame->getTransmitterAddress().isMulticast())
-            return nullptr;
-        Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
-        ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
-        if (!frame->getMoreFragments())
-            ack->setDuration(0);
-        else
-            ack->setDuration(frame->getDuration() - sifs - rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK));
-        // setFrameMode(ack, rateSelection->getModeForControlFrame(ack)); // FIXME: move
-        return ack;
-    }
-    return nullptr;
+Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211Frame* frame)
+{
+    Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
+    ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
+    if (!frame->getMoreFragments())
+        ack->setDuration(0);
+    else
+        ack->setDuration(frame->getDuration() - sifs - rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK));
+    return ack;
 }
 
 } /* namespace ieee80211 */

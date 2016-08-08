@@ -24,6 +24,9 @@
 namespace inet {
 namespace ieee80211 {
 
+//
+// TODO: 9.7.6.5 Rate selection for control response frames
+//
 class INET_API BasicRateSelection : public IRateSelection, public cSimpleModule, public cListener
 {
     protected:

@@ -13,46 +13,32 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-// 
+//
 
-#ifndef __INET_TXOPPROCEDURE_H
-#define __INET_TXOPPROCEDURE_H
+#ifndef __INET_ORIGINATORPROTECTIONMECHANISM_H
+#define __INET_ORIGINATORPROTECTIONMECHANISM_H
 
-#include "inet/common/INETDefs.h"
-#include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-using namespace physicallayer;
-
-class INET_API TxopProcedure : public cSimpleModule
+class INET_API OriginatorProtectionMechanism
 {
     protected:
         IRateSelection *rateSelection = nullptr;
-        simtime_t start = -1;
-        simtime_t limit = -1;
+
+        simtime_t sifs = -1;
 
     protected:
-        s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
+        virtual simtime_t computeRtsDurationPerId(Ieee80211RTSFrame *rtsFrame, Ieee80211Frame *pendingFrame);
 
     public:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-
-        virtual void startTxop(AccessCategory ac);
-        virtual void stopTxop();
-
-        virtual simtime_t getStart() const;
-        virtual simtime_t getLimit() const;
-        virtual simtime_t getRemaining() const;
-        virtual bool isFinalFragment(Ieee80211Frame *frame);
+        virtual simtime_t computeDurationPerId(Ieee80211Frame *frame, Ieee80211Frame *pendingFrame);
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-
-#endif // ifndef __INET_TXOPPROCEDURE_H
+#endif // ifndef __INET_ORIGINATORPROTECTIONMECHANISM_H

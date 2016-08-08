@@ -168,8 +168,8 @@ void Hcf::frameSequenceFinished()
 void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
     recipientAckProcedure->processReceivedFrame(frame);
-    auto ack = recipientAckProcedure->buildAck(frame);
-    if (ack) {
+    if (RecipientAckProcedure::isAckNeeded(frame)) {
+        auto ack = recipientAckProcedure->buildAck(frame);
         tx->transmitFrame(ack, sifs, this);
         recipientAckProcedure->processTransmittedAck(ack);
     }
@@ -315,14 +315,14 @@ void Hcf::originatorProcessTransmittedDataFrame(Ieee80211DataFrame* dataFrame, A
         }
     }
     // FIXME: originatorQoSAckPolicy->isBaReqNeeded();
-    auto baReqParams = originatorQoSAckPolicy->computeBaReqParameters(edcaInProgressFrames[ac]);
-    auto address = std::get<0>(baReqParams);
-    if (address != MACAddress::UNSPECIFIED_ADDRESS) {
-        auto startingSequenceNumber = std::get<1>(baReqParams);
-        auto tid = std::get<2>(baReqParams);
-        auto basicBlockAckReq = originatorBlockAckProcedure->buildBasicBlockAckReqFrame(address, startingSequenceNumber, tid);
-        // FIXME: processUpperFrame(basicBlockAckReq);
-    }
+//    auto baReqParams = originatorQoSAckPolicy->computeBaReqParameters(edcaInProgressFrames[ac]);
+//    auto address = std::get<0>(baReqParams);
+//    if (address != MACAddress::UNSPECIFIED_ADDRESS) {
+//        auto startingSequenceNumber = std::get<1>(baReqParams);
+//        auto tid = std::get<2>(baReqParams);
+//        auto basicBlockAckReq = originatorBlockAckProcedure->buildBasicBlockAckReqFrame(address, startingSequenceNumber, tid);
+//        // FIXME: processUpperFrame(basicBlockAckReq);
+//    }
     if (dataFrame->getAckPolicy() == NO_ACK)
         edcaInProgressFrames[ac]->dropFrame(dataFrame);
 }
