@@ -33,6 +33,8 @@ class INET_API OriginatorProtectionMechanism
 
     protected:
         virtual simtime_t computeRtsDurationPerId(Ieee80211RTSFrame *rtsFrame, Ieee80211Frame *pendingFrame);
+        virtual simtime_t computeDataFrameDurationPerId(Ieee80211DataFrame *dataFrame, Ieee80211Frame *pendingFrame);
+        virtual simtime_t computeMgmtFrameDurationPerId(Ieee80211ManagementFrame *mgmtFrame, Ieee80211Frame *pendingFrame);
 
     public:
         virtual simtime_t computeDurationPerId(Ieee80211Frame *frame, Ieee80211Frame *pendingFrame);
