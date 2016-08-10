@@ -80,7 +80,11 @@ simtime_t SingleProtectionMechanism::computeBlockAckReqDurationPerId(Ieee80211Bl
 // For a BlockAck frame that is not sent in response to a BlockAckReq or an implicit Block Ack
 // request, the Duration/ID field is set to the estimated time required to transmit an ACK frame
 // plus a SIFS interval.
-// TODO: implement
+//
+simtime_t SingleProtectionMechanism::computeBlockAckDurationPerId(Ieee80211BlockAck* blockAck)
+{
+    throw cRuntimeError("Unimplemented");
+}
 
 //
 // For management frames, non-QoS data frames (i.e., with bit 7 of the Frame Control field equal

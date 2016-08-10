@@ -60,6 +60,15 @@ simtime_t CtsProcedure::getCtsFullTimeout() const
     return sifs + slotTime + getCtsDuration();
 }
 
+//
+// A STA that is addressed by an RTS frame shall transmit a CTS frame after a SIFS period if the NAV at the
+// STA receiving the RTS frame indicates that the medium is idle. If the NAV at the STA receiving the RTS
+// indicates the medium is not idle, that STA shall not respond to the RTS frame. The RA field of the CTS frame
+// shall be the value obtained from the TA field of the RTS frame to which this CTS frame is a response. The
+// Duration field in the CTS frame shall be the duration field from the received RTS frame, adjusted by
+// subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
+// determined by the rules in 9.7.
+//
 Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
 {
     if (rx->isMediumFree()) {
@@ -80,4 +89,3 @@ void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 
 } /* namespace ieee80211 */
 } /* namespace inet */
-

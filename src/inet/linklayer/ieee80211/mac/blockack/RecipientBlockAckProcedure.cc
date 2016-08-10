@@ -15,8 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
+#include "RecipientBlockAckProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -24,19 +24,15 @@ namespace ieee80211 {
 RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler* agreementHandler, IRateSelection *rateSelection)
 {
     this->agreementHandler = agreementHandler;
-    this->rateSelection = rateSelection;
-    this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
 }
 
 
 void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq)
 {
- // TODO??
 }
 
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
 {
-// TODO??
 }
 
 //
@@ -62,7 +58,12 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
                 }
             }
             blockAck->setReceiverAddress(blockAckReq->getTransmitterAddress());
-            blockAck->setDuration(0);
+            // For a BlockAck frame transmitted in response to a BlockAckReq frame or transmitted in response to a frame
+            // containing an implicit Block Ack request, the Duration/ID field is set to the value obtained from the
+            // Duration/ID field of the frame that elicited the response minus the time, in microseconds, between the end of
+            // the PPDU carrying the frame that elicited the response and the end of the PPDU carrying the BlockAck
+            // frame.
+            blockAck->setDuration(blockAckReq->getDuration() - );
             blockAck->setCompressedBitmap(false);
             blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
             blockAck->setTidInfo(tid);

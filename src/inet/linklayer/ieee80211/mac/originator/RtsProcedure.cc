@@ -70,13 +70,20 @@ simtime_t RtsProcedure::getCtsDuration() const
     return rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS);
 }
 
+//
+// After transmitting an RTS frame, the STA shall wait for a CTSTimeout interval, with a value of aSIFSTime +
+// aSlotTime + aPHY-RX-START-Delay, starting at the PHY-TXEND.confirm primitive. If a PHY-RXSTART.indication
+// primitive does not occur during the CTSTimeout interval, the STA shall conclude that the transmission of
+// the RTS has failed, and this STA shall invoke its backoff procedure upon expiration of the CTSTimeout interval.
+//
 simtime_t RtsProcedure::getCtsEarlyTimeout() const
 {
-    return sifs + slotTime + phyRxStartDelay; // see getAckEarlyTimeout()
+    return sifs + slotTime + phyRxStartDelay;
 }
 
 simtime_t RtsProcedure::getCtsFullTimeout() const
 {
+    // Process Validate_MPDU, 2455 dRts:=dUsec((2*aSifsTime)+(2*aSlotTime)+ackctstime
     return sifs + slotTime + getCtsDuration();
 }
 

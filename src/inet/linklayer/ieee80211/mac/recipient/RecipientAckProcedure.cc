@@ -73,8 +73,13 @@ Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211Frame* frame)
     ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
     if (!frame->getMoreFragments())
         ack->setDuration(0);
-    else
+    else {
+        // For an ACK frame, the Duration/ID field is set to the value obtained from the Duration/ID field of the frame
+        // that elicited the response minus the time, in microseconds between the end of the PPDU carrying the frame
+        // that elicited the response and the end of the PPDU carrying the ACK frame.
+        // TODO: slotTime
         ack->setDuration(frame->getDuration() - sifs - rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK));
+    }
     return ack;
 }
 

@@ -34,11 +34,6 @@ class INET_API RecipientBlockAckProcedure
 {
     protected:
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
-        IRateSelection *rateSelection = nullptr;
-
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
 
     public:
         RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler *agreementHandler, IRateSelection *rateSelection);

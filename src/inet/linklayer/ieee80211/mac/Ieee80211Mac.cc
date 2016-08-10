@@ -77,7 +77,6 @@ void Ieee80211Mac::initialize(int stage)
     else if (stage == INITSTAGE_LINK_LAYER_2) {
         rateControl = dynamic_cast<IRateControl *>(getSubmodule("rateControl")); // optional module
         rateSelection = check_and_cast<IRateSelection *>(getSubmodule("rateSelection"));
-        rateSelection->setRateControl(rateControl);
         rx = check_and_cast<IRx *>(getSubmodule("rx"));
         tx = check_and_cast<ITx *>(getSubmodule("tx"));
         dcf = check_and_cast<Dcf *>(getSubmodule("dcf"));

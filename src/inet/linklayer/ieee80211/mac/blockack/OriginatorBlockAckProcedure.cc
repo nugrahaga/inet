@@ -20,21 +20,17 @@
 namespace inet {
 namespace ieee80211 {
 
-OriginatorBlockAckProcedure::OriginatorBlockAckProcedure(IRateSelection* rateSelection) :
+OriginatorBlockAckProcedure::OriginatorBlockAckProcedure(IQoSRateSelection* rateSelection) :
     rateSelection(rateSelection)
 {
-    this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-    this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-    this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
 }
 
 Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const
 {
     throw cRuntimeError("Unsupported feature");
     Ieee80211CompressedBlockAckReq *blockAckReq = new Ieee80211CompressedBlockAckReq("CompressedBlockAckReq");
-    //TODO: blockAckReq->setTransmitterAddress(params->getAddress());
     blockAckReq->setReceiverAddress(receiverAddress);
-    blockAckReq->setDuration(sifs);
+    // FIXME: blockAckReq->setDuration();
     blockAckReq->setStartingSequenceNumber(startingSequenceNumber);
     blockAckReq->setTidInfo(tid);
     return blockAckReq;
@@ -44,31 +40,26 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildBasicBlockAckReqFrame(co
 {
     Ieee80211BasicBlockAckReq *blockAckReq = new Ieee80211BasicBlockAckReq("BasicBlockAckReq");
     blockAckReq->setReceiverAddress(receiverAddress);
-    // For a BlockAckReq frame, the Duration/ID field is set to the estimated time required to
-    // transmit one ACK or BlockAck frame, as applicable, plus one SIFS interval.
     blockAckReq->setStartingSequenceNumber(startingSequenceNumber);
     blockAckReq->setTidInfo(tid);
-    auto blockAckDur = rateSelection->getModeForControlFrame(blockAckReq)->getDuration(LENGTH_BASIC_BLOCKACK);
-    blockAckReq->setDuration(blockAckDur + sifs);
     return blockAckReq;
 }
 
-
-simtime_t OriginatorBlockAckProcedure::getBlockAckEarlyTimeout() const
+simtime_t OriginatorBlockAckProcedure::getBlockAckEarlyTimeout(Ieee80211BlockAckReq* blockAckReq) const
 {
-    return sifs + slotTime + phyRxStartDelay; // see getAckEarlyTimeout()
+    auto mode = rateSelection->computeResponseBlockAckFrameMode(blockAckReq);
+    return mode->getSifsTime() + mode->getSlotTime() + mode->getPhyRxStartDelay();
 }
 
 simtime_t OriginatorBlockAckProcedure::getBlockAckFullTimeout(Ieee80211BlockAckReq* blockAckReq) const
 {
     if (dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        return sifs + slotTime + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_BASIC_BLOCKACK);
+        auto mode = rateSelection->computeResponseBlockAckFrameMode(blockAckReq);
+        return mode->getSifsTime() + mode->getSlotTime() + mode->getDuration(LENGTH_BASIC_BLOCKACK);
     }
     else
         throw cRuntimeError("Unsupported BlockAck Request");
 }
 
-
 } /* namespace ieee80211 */
 } /* namespace inet */
-

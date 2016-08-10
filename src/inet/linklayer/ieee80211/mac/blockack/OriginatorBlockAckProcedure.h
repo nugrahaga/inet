@@ -19,8 +19,8 @@
 #define __INET_ORIGINATORBLOCKACKPROCEDURE_H
 
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
+#include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -28,19 +28,15 @@ namespace ieee80211 {
 class INET_API OriginatorBlockAckProcedure
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
-
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = 1;
+        IQoSRateSelection *rateSelection = nullptr;
 
     public:
-        OriginatorBlockAckProcedure(IRateSelection *rateSelection);
+        OriginatorBlockAckProcedure(IQoSRateSelection *rateSelection);
 
         virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
         virtual Ieee80211BlockAckReq *buildBasicBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
 
-        simtime_t getBlockAckEarlyTimeout() const;
+        simtime_t getBlockAckEarlyTimeout(Ieee80211BlockAckReq* blockAckReq) const;
         simtime_t getBlockAckFullTimeout(Ieee80211BlockAckReq* blockAckReq) const;
 };
 
