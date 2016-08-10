@@ -28,9 +28,15 @@ OriginatorAckProcedure::OriginatorAckProcedure(IRateSelection *rateSelection) :
    this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
 }
 
+//
+// After transmitting an MPDU that requires an ACK frame as a response (see Annex G), the STA shall wait for an
+// ACKTimeout interval, with a value of aSIFSTime + aSlotTime + aPHY-RX-START-Delay, starting at the
+// PHY-TXEND.confirm primitive. If a PHY-RXSTART.indication primitive does not occur during the
+// ACKTimeout interval, the STA concludes that the transmission of the MPDU has failed, and this STA shall
+// invoke its backoff procedure upon expiration of the ACKTimeout interval.
+//
 simtime_t OriginatorAckProcedure::getAckEarlyTimeout() const
 {
-    // Note: This excludes ACK duration. If there's no RXStart indication within this interval, retransmission should begin immediately
     return sifs + slotTime + phyRxStartDelay;
 }
 
