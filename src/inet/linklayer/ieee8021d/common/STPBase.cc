@@ -46,7 +46,7 @@ void STPBase::initialize(int stage)
         switchModule = findContainingNode(this);
         if (!switchModule)
             throw cRuntimeError("Containing @networkNode module not found");
-        numPorts = switchModule->gate("ethg$o", 0)->getVectorSize();
+        numPorts = ifTable->getNumInterfaces();
     }
 
     if (stage == INITSTAGE_LINK_LAYER_2) {    // "auto" MAC addresses assignment takes place in stage 0
