@@ -30,7 +30,7 @@ simtime_t OriginatorProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFra
 {
     simtime_t pendingFrameDuration = rateSelection->getMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
     simtime_t ctsFrameDuration = rateSelection->getResponseCtsFrameMode()->getDuration(LENGTH_CTS);
-    simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+    simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
     simtime_t durationId = ctsFrameDuration + pendingFrameDuration + ackFrameDuration;
     return durationId + 3 * sifs;
 }
@@ -47,7 +47,7 @@ simtime_t OriginatorProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFra
 //
 simtime_t OriginatorProtectionMechanism::computeDataFrameDurationPerId(Ieee80211DataFrame* dataFrame, Ieee80211Frame* pendingFrame)
 {
-    simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+    simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
     if (dataFrame->getReceiverAddress().isMulticast())
         return 0;
     if (!dataFrame->getMoreFragments()) {
@@ -71,7 +71,7 @@ simtime_t OriginatorProtectionMechanism::computeDataFrameDurationPerId(Ieee80211
 //
 simtime_t OriginatorProtectionMechanism::computeMgmtFrameDurationPerId(Ieee80211ManagementFrame* mgmtFrame, Ieee80211Frame* pendingFrame)
 {
-    simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+    simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
     if (mgmtFrame->getReceiverAddress().isMulticast())
         return 0;
     if (!mgmtFrame->getMoreFragments()) {

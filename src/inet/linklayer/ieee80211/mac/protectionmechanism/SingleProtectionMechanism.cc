@@ -30,13 +30,13 @@ namespace ieee80211 {
 simtime_t SingleProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFrame* rtsFrame, Ieee80211Frame *pendingFrame)
 {
     // TODO: We assume that the RTS frame is not part of a dual clear-to-send
-    simtime_t pendingFrameDuration = rateSelection->getMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
-    simtime_t ctsFrameDuration = rateSelection->getResponseCtsFrameMode()->getDuration(LENGTH_CTS);
+    simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
+    simtime_t ctsFrameDuration = rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
     simtime_t durationId = ctsFrameDuration + pendingFrameDuration;
     int numOfSifs = 2;
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(pendingFrame)) {
         if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
-            simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+            simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
             durationId += ackFrameDuration;
             numSifs++;
         }
@@ -68,7 +68,7 @@ simtime_t SingleProtectionMechanism::computeBlockAckReqDurationPerId(Ieee80211Bl
 {
     //  TODO: ACK or BlockAck frame, as applicable
     if (dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        simtime_t blockAckFrameDuration = rateSelection->getResponseBlockAckDuration()->getDuration(LENGTH_BASICBLOCKACK);
+        simtime_t blockAckFrameDuration = rateSelection->computeResponseBlockAckFrameMode(blockAckReq)->getDuration(LENGTH_BASIC_BLOCKACK);
         simtime_t blockAckReqDurationPerId = blockAckFrameDuration + sifs;
         return blockAckReqDurationPerId;
     }
@@ -80,12 +80,7 @@ simtime_t SingleProtectionMechanism::computeBlockAckReqDurationPerId(Ieee80211Bl
 // For a BlockAck frame that is not sent in response to a BlockAckReq or an implicit Block Ack
 // request, the Duration/ID field is set to the estimated time required to transmit an ACK frame
 // plus a SIFS interval.
-//
-simtime_t SingleProtectionMechanism::computeBlockAckDurationPerId(Ieee80211BlockAck* blockAck)
-{
-    simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
-    return ackFrameDuration + sifs;
-}
+// TODO: implement
 
 //
 // For management frames, non-QoS data frames (i.e., with bit 7 of the Frame Control field equal
@@ -123,7 +118,7 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationPerId(Ieee802
         individuallyAddressedDataWithNoAckOrBlockAck = !groupAddressed && (dataFrame->getAckPolicy() == AckPolicy::NO_ACK || dataFrame->getAckPolicy() == AckPolicy::BLOCK_ACK);
     }
     if (mgmtFrame || nonQoSData || individuallyAddressedDataWithNormalAck) {
-        simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+        simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
         if (txop->isFinalFragment(dataOrMgmtFrame)) {
             return ackFrameDuration + sifs;
         }
@@ -137,7 +132,8 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationPerId(Ieee802
             return 0;
         else {
             simtime_t pendingFrameDuration = rateSelection->getMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
-            simtime_t ackFrameDuration = rateSelection->getResponseAckDuration()->getDuration(LENGTH_ACK);
+            // TODO: We assume that the response frame is always an ACK frame.
+            simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
             return pendingFrameDuration + sifs + ackFrameDuration + sifs;
         }
     }

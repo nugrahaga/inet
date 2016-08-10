@@ -65,8 +65,6 @@ bool DcfFs::isSelfCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *con
     return false; // TODO: Implement
 }
 
-// FIXME: Each fragment and ACK acts as a virtual RTS and CTS; therefore no further RTS/CTS frames need to be generated
-// after the RTS/CTS that began the frame exchange sequence even though subsequent fragments may be larger than dot11RTSThreshold.
 bool DcfFs::isRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
 {
     return context->getInProgressFrames()->getFrameToTransmit()->getByteLength() > context->getRtsProcedure()->getRtsThreshold();

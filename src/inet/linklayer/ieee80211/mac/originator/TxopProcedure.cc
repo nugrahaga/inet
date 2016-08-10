@@ -94,6 +94,18 @@ bool TxopProcedure::isFinalFragment(Ieee80211Frame* frame)
     return false;
 }
 
+// FIXME: implement!
+bool TxopProcedure::isTxopInitiator(Ieee80211Frame* frame)
+{
+    return false;
+}
+
+// FIXME: implement!
+bool TxopProcedure::isTxopTerminator(Ieee80211Frame* frame)
+{
+    return false;
+}
+
 } // namespace ieee80211
 } // namespace inet
 

@@ -48,7 +48,10 @@ class INET_API TxopProcedure : public cSimpleModule
         virtual simtime_t getStart() const;
         virtual simtime_t getLimit() const;
         virtual simtime_t getRemaining() const;
+
         virtual bool isFinalFragment(Ieee80211Frame *frame);
+        virtual bool isTxopInitiator(Ieee80211Frame *frame);
+        virtual bool isTxopTerminator(Ieee80211Frame *frame);
 };
 
 } /* namespace ieee80211 */
