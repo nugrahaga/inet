@@ -607,20 +607,21 @@ void RSTP::sendBPDUs()
 {
     // send BPDUs through all ports, if they are required
     for (unsigned int i = 0; i < numPorts; i++) {
-        Ieee8021dInterfaceData *iPort = getPortInterfaceData(i);
+        int interfaceId = ifTable->getInterface(i)->getInterfaceId();
+        Ieee8021dInterfaceData *iPort = getPortInterfaceData(interfaceId);
         if ((iPort->getRole() != Ieee8021dInterfaceData::ROOT)
             && (iPort->getRole() != Ieee8021dInterfaceData::ALTERNATE)
             && (iPort->getRole() != Ieee8021dInterfaceData::DISABLED) && (!iPort->isEdge()))
         {
-            sendBPDU(i);
+            sendBPDU(interfaceId);
         }
     }
 }
 
-void RSTP::sendBPDU(int port)
+void RSTP::sendBPDU(int interfaceId)
 {
     // send a BPDU throuth port
-    Ieee8021dInterfaceData *iport = getPortInterfaceData(port);
+    Ieee8021dInterfaceData *iport = getPortInterfaceData(interfaceId);
     int r = getRootIndex();
     Ieee8021dInterfaceData *rootPort;
     if (r != -1)
@@ -642,7 +643,7 @@ void RSTP::sendBPDU(int port)
         }
         frame->setBridgePriority(bridgePriority);
         frame->setTcaFlag(false);
-        frame->setPortNum(port);
+        frame->setPortNum(interfaceId);
         frame->setBridgeAddress(bridgeAddress);
         if (simTime() < iport->getTCWhile())
             frame->setTcFlag(true);
@@ -657,7 +658,7 @@ void RSTP::sendBPDU(int port)
         auto macAddressReq = frame->ensureTag<MACAddressReq>();
         macAddressReq->setSourceAddress(bridgeAddress);
         macAddressReq->setDestinationAddress(MACAddress::STP_MULTICAST_ADDRESS);
-        frame->ensureTag<InterfaceReq>()->setInterfaceId(port);
+        frame->ensureTag<InterfaceReq>()->setInterfaceId(interfaceId);
         frame->setControlInfo(etherctrl);
         send(frame, "relayOut");
     }
