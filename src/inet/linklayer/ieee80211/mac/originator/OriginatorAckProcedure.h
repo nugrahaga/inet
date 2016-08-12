@@ -36,9 +36,7 @@ class INET_API OriginatorAckProcedure
     public:
         OriginatorAckProcedure(IRateSelection *rateSelection);
 
-        simtime_t getAckDuration() const;
-        simtime_t getAckFullTimeout() const;
-        simtime_t getAckEarlyTimeout() const;
+        simtime_t getAckTimeout() const;
 };
 
 } /* namespace ieee80211 */

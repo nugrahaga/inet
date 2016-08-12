@@ -48,6 +48,7 @@ Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFra
 Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const
 {
     // protect CTS + Data + ACK
+    // TODO: single protection mechanism takes care
     simtime_t duration =
             3 * sifs
             + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS)
@@ -76,15 +77,9 @@ simtime_t RtsProcedure::getCtsDuration() const
 // primitive does not occur during the CTSTimeout interval, the STA shall conclude that the transmission of
 // the RTS has failed, and this STA shall invoke its backoff procedure upon expiration of the CTSTimeout interval.
 //
-simtime_t RtsProcedure::getCtsEarlyTimeout() const
+simtime_t RtsProcedure::getCtsTimeout() const
 {
     return sifs + slotTime + phyRxStartDelay;
-}
-
-simtime_t RtsProcedure::getCtsFullTimeout() const
-{
-    // Process Validate_MPDU, 2455 dRts:=dUsec((2*aSifsTime)+(2*aSlotTime)+ackctstime
-    return sifs + slotTime + getCtsDuration();
 }
 
 bool RtsProcedure::isBroadcastOrMulticast(Ieee80211Frame *frame) const

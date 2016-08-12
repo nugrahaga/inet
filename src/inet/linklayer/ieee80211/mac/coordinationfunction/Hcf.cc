@@ -132,7 +132,7 @@ void Hcf::handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs)
         else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(internallyCollidedFrame)) {
             ASSERT(ac == AccessCategory::AC_BE);
             edcaMgmtAndNonQoSRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame, stationRetryCounters[AccessCategory::AC_BE]);
-            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(mgmtFrame);
+            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgmtFrameRetryLimitReached(mgmtFrame);
         }
         else // TODO: + NonQoSDataFrame
             throw cRuntimeError("Unknown frame");
@@ -382,7 +382,7 @@ void Hcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
         else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(failedFrame)) {
             EV_INFO << "Management frame transmission failed\n";
             edcaMgmtAndNonQoSRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame, stationRetryCounters[ac]);
-            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgtmFrameRetryLimitReached(mgmtFrame);
+            retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isDataOrMgmtFrameRetryLimitReached(mgmtFrame);
         }
         else
             throw cRuntimeError("Unknown frame"); // TODO: qos, nonqos
@@ -495,6 +495,7 @@ bool Hcf::isReceptionInProgress()
 
 void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
+    // TODO: set duration and mode
     tx->transmitFrame(frame, ifs, this);
 }
 

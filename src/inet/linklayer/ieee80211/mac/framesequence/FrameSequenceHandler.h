@@ -33,8 +33,7 @@ class INET_API FrameSequenceHandler : public IFrameSequenceHandler, public cSimp
         IFrameSequence *frameSequence = nullptr;
         FrameSequenceContext *context = nullptr;
 
-        cMessage *endReceptionTimeout = nullptr;
-        cMessage *startReceptionTimeout = nullptr;
+        cMessage *timeout = nullptr;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }

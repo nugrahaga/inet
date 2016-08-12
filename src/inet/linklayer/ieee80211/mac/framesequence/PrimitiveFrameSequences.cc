@@ -100,7 +100,7 @@ IFrameSequenceStep *ManagementFs::prepareStep(FrameSequenceContext *context)
                 return new TransmitStep(mgmtFrame, context->getMode()->getSifsTime());
         }
         case 1: {
-            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout(), context->getAckProcedure()->getAckFullTimeout());
+            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout());
         }
         case 2:
             return nullptr;
@@ -175,7 +175,7 @@ IFrameSequenceStep *RtsCtsFs::prepareStep(FrameSequenceContext *context)
                 return new RtsTransmitStep(dataOrMgmtFrame, rtsFrame, context->getMode()->getSifsTime());
         }
         case 1:
-            return new ReceiveStep(context->getRtsProcedure()->getCtsEarlyTimeout(), context->getRtsProcedure()->getCtsFullTimeout());
+            return new ReceiveStep(context->getRtsProcedure()->getCtsEarlyTimeout());
         case 2:
             return nullptr;
         default:
@@ -217,7 +217,7 @@ IFrameSequenceStep *FragFrameAckFs::prepareStep(FrameSequenceContext *context)
                 return new TransmitStep(frame, context->getMode()->getSifsTime());
         }
         case 1:
-            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout(), context->getAckProcedure()->getAckFullTimeout());
+            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout());
         case 2:
             return nullptr;
         default:
@@ -259,7 +259,7 @@ IFrameSequenceStep *LastFrameAckFs::prepareStep(FrameSequenceContext *context)
                 return new TransmitStep(frame, context->getMode()->getSifsTime());
         }
         case 1:
-            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout(), context->getAckProcedure()->getAckFullTimeout());
+            return new ReceiveStep(context->getAckProcedure()->getAckEarlyTimeout());
         case 2:
             return nullptr;
         default:
@@ -302,7 +302,7 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
         case 1: {
             ITransmitStep *txStep = check_and_cast<ITransmitStep *>(context->getLastStep());
             auto blockAckReq = check_and_cast<Ieee80211BlockAckReq*>(txStep->getFrameToTransmit());
-            return new ReceiveStep(context->getBlockAckProcedure()->getBlockAckEarlyTimeout(), context->getBlockAckProcedure()->getBlockAckFullTimeout(blockAckReq));
+            return new ReceiveStep(context->getBlockAckProcedure()->getBlockAckEarlyTimeout());
         }
         case 2:
             return nullptr;

@@ -64,7 +64,7 @@ class INET_API FrameSequenceContext
         TxopProcedure* getTxopProcedure() { return txopProcedure; }
         OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
         OriginatorBlockAckAgreementHandler *getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
-        OriginatorQoSAckPolicy *getAckPolicy() { return originatorAckPolicy; }
+        OriginatorQoSAckPolicy *getAckPolicyProcedure() { return originatorAckPolicy; }
         const IIeee80211Mode* getMode() { return mode; }
 };
 

@@ -40,15 +40,5 @@ simtime_t OriginatorAckProcedure::getAckEarlyTimeout() const
     return sifs + slotTime + phyRxStartDelay;
 }
 
-simtime_t OriginatorAckProcedure::getAckDuration() const
-{
-    return rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK);
-}
-
-simtime_t OriginatorAckProcedure::getAckFullTimeout() const
-{
-    return sifs + slotTime + getAckDuration();
-}
-
 } /* namespace ieee80211 */
 } /* namespace inet */

@@ -61,7 +61,7 @@ int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceConte
         auto agreement = context->getBlockAckAgreementHandler()->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
         if (agreement == nullptr)
             return 1;
-        else if (context->getAckPolicy()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
+        else if (context->getAckPolicyProcedure()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
             return 0;
         else
             return 1;

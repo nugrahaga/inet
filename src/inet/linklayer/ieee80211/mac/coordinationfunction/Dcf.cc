@@ -79,6 +79,7 @@ void Dcf::processLowerFrame(Ieee80211Frame* frame)
 
 void Dcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
+    // TODO: set duration and mode
     tx->transmitFrame(frame, ifs, this);
 }
 
@@ -189,7 +190,7 @@ void Dcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
     ASSERT(ackHandler->getAckStatus(failedFrame) == AckHandler::Status::WAITING_FOR_NORMAL_ACK);
     EV_INFO << "Data/Mgmt frame transmission failed\n";
     recoveryProcedure->dataOrMgmtFrameTransmissionFailed(failedFrame, stationRetryCounters);
-    if (recoveryProcedure->isDataOrMgtmFrameRetryLimitReached(failedFrame)) {
+    if (recoveryProcedure->isDataOrMgmtFrameRetryLimitReached(failedFrame)) {
         inProgressFrames->dropFrame(failedFrame);
         delete failedFrame;
     }

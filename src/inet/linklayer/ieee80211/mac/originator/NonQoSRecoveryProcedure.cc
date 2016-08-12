@@ -158,7 +158,7 @@ void NonQoSRecoveryProcedure::rtsFrameTransmissionFailed(Ieee80211DataOrMgmtFram
 // or MMPDU is equal to dot11LongRetryLimit. When either of these limits is reached, retry attempts
 // shall cease, and the MPDU of type Data (and any MSDU of which it is a part) or MMPDU shall be discarded.
 //
-bool NonQoSRecoveryProcedure::isDataOrMgtmFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame)
+bool NonQoSRecoveryProcedure::isDataOrMgmtFrameRetryLimitReached(Ieee80211DataOrMgmtFrame* failedFrame)
 {
     if (failedFrame->getByteLength() >= rtsThreshold)
         return getRc(failedFrame, longRetryCounter) >= longRetryLimit;

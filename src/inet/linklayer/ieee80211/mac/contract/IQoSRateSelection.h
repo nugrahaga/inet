@@ -19,8 +19,9 @@
 #define __INET_IQOSRATESELECTION_H
 
 #include "inet/common/INETDefs.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
+#include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
 
 using namespace inet::physicallayer;
 

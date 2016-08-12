@@ -60,20 +60,17 @@ class INET_API ReceiveStep : public IReceiveStep
 {
     protected:
         Completion completion = Completion::UNDEFINED;
-        simtime_t earlyTimeout = -1;
-        simtime_t expectedDuration = -1;
+        simtime_t timeout = -1;
         Ieee80211Frame *receivedFrame = nullptr;
 
     public:
-        ReceiveStep(simtime_t earlyTimeout = -1, simtime_t expectedDuration = -1) :
-            earlyTimeout(earlyTimeout),
-            expectedDuration(expectedDuration)
+        ReceiveStep(simtime_t timeout = -1) :
+            timeout(timeout)
         { }
 
         virtual Completion getCompletion() override { return completion; }
         virtual void setCompletion(Completion completion) override { this->completion = completion; }
-        virtual simtime_t getEarlyTimeout() override { return earlyTimeout; }
-        virtual simtime_t getExpectedDuration() override { return expectedDuration; }
+        virtual simtime_t getTimeout() override { return timeout; }
         virtual Ieee80211Frame *getReceivedFrame() override { return receivedFrame; }
         virtual void setFrameToReceive(Ieee80211Frame *frame) override { this->receivedFrame = frame; }
 };
