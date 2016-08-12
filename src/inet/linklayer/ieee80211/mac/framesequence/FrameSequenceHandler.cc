@@ -121,16 +121,9 @@ void FrameSequenceHandler::startFrameSequenceStep()
                 break;
             }
             case IFrameSequenceStep::Type::RECEIVE: {
-                auto receiveStep = static_cast<ReceiveStep *>(nextStep);
-                simtime_t earlyTimeout = receiveStep->getEarlyTimeout();
-                if (earlyTimeout != -1)
-                    scheduleAt(simTime() + earlyTimeout, timeout);
                 // start reception timer, break loop if timer expires before reception is over
-                simtime_t expectedDuration = receiveStep->getExpectedDuration();
-                if (expectedDuration != -1) {
-                    EV_INFO << "Receiving, timeout = " << simTime() + expectedDuration << "\n";
-                    scheduleAt(simTime() + expectedDuration, endReceptionTimeout);
-                }
+                auto receiveStep = static_cast<ReceiveStep *>(nextStep);
+                scheduleAt(simTime() + receiveStep->getTimeout(), timeout);
                 break;
             }
             default:
@@ -148,7 +141,6 @@ void FrameSequenceHandler::finishFrameSequenceStep()
     if (!stepResult) {
         lastStep->setCompletion(IFrameSequenceStep::Completion::REJECTED);
         cancelEvent(timeout);
-        cancelEvent(endReceptionTimeout);
         abortFrameSequence();
     }
     else {
@@ -175,7 +167,6 @@ void FrameSequenceHandler::finishFrameSequenceStep()
 void FrameSequenceHandler::finishFrameSequence(bool ok)
 {
     EV_INFO << (ok ? "Frame sequence finished\n" : "Frame sequence aborted\n");
-    cancelEvent(endReceptionTimeout);
     delete context;
     delete frameSequence;
     context = nullptr;
