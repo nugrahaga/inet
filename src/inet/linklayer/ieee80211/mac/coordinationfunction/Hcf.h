@@ -38,6 +38,7 @@
 #include "inet/linklayer/ieee80211/mac/originator/QoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
+#include "inet/linklayer/ieee80211/mac/protectionmechanism/SingleProtectionMechanism.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/recipient/CtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/recipient/QoSCtsPolicy.h"
@@ -64,7 +65,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         IRx *rx = nullptr;
         ITx *tx = nullptr;
 
-        IRateSelection *rateSelection = nullptr;
+        IQoSRateSelection *rateSelection = nullptr;
 
         // Channel Access Methods
         Edca *edca = nullptr;
@@ -114,9 +115,8 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // Station retry counters
         std::vector<StationRetryCounters*> stationRetryCounters;
 
-        const IIeee80211Mode *referenceMode = nullptr;
-
-        simtime_t sifs = -1;
+        // Protection mechanisms
+        SingleProtectionMechanism *singleProtectionMechanism = nullptr;
 
     protected:
         virtual ~Hcf();
@@ -141,7 +141,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessReceivedControlFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame, AccessCategory ac);
         virtual void originatorProcessReceivedDataFrame(Ieee80211DataFrame* frame, Ieee80211Frame* lastTransmittedFrame, AccessCategory ac);
 
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
+        void setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     protected:
         // IFrameSequenceHandler::ICallback

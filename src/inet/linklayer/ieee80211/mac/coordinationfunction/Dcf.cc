@@ -78,7 +78,7 @@ void Dcf::processLowerFrame(Ieee80211Frame* frame)
 
 void Dcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
-    // TODO: set duration and mode
+    setFrameMode(frame, rateSelection->computeMode(frame));
     tx->transmitFrame(frame, ifs, this);
 }
 
@@ -127,7 +127,7 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
         if (ctsPolicy->isCtsNeeded(rtsFrame)) {
             auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
             ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
-            auto mode = rateSelection->computeResponseCtsFrameMode(rtsFrame);
+            setMode(ctsFrame, rateSelection->computeResponseCtsFrameMode(rtsFrame));
             tx->transmitFrame(ctsFrame, sifs, this);
             ctsProcedure->processTransmittedCts(ctsFrame);
         }
@@ -198,6 +198,14 @@ void Dcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
         inProgressFrames->dropFrame(failedFrame);
         delete failedFrame;
     }
+}
+
+void Dcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
+ {
+    ASSERT(frame->getControlInfo() == nullptr);
+    Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
+    ctrl->setMode(mode);
+    frame->setControlInfo(ctrl);
 }
 
 Dcf::~Dcf()

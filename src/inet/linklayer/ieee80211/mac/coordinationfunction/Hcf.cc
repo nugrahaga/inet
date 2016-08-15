@@ -171,6 +171,7 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
             recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
             auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
             ack->setDuration(recipientAckPolicy->computeAckDurationField(dataOrMgmtFrame));
+            setFrameMode(ack, rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame));
             tx->transmitFrame(ack, sifs, this);
             recipientAckProcedure->processTransmittedAck(ack);
         }
@@ -197,6 +198,7 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
         if (ctsPolicy->isCtsNeeded(rtsFrame)) {
             auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
             ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
+            setFrameMode(ctsFrame, rateSelection->computeResponseCtsFrameMode(rtsFrame));
             tx->transmitFrame(ctsFrame, sifs, this);
             ctsProcedure->processTransmittedCts(ctsFrame);
         }
@@ -206,6 +208,7 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
         if (recipientAckPolicy->isBlockAckNeeded(blockAckRequest)) {
             auto blockAck = recipientBlockAckProcedure->buildBlockAck(blockAckRequest);
             blockAck->setDuration(recipientAckPolicy->computeBasicBlockAckDurationField(blockAckRequest));
+            setFrameMode(blockAck, rateSelection->computeResponseBlockAckFrameMode(blockAckRequest));
             tx->transmitFrame(blockAck, sifs, this);
             recipientBlockAckProcedure->processTransmittedBlockAck(blockAck);
         }
@@ -499,8 +502,23 @@ bool Hcf::isReceptionInProgress()
 
 void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
-    // TODO: set duration and mode
-    tx->transmitFrame(frame, ifs, this);
+    auto channelOwner = edca->getChannelOwner();
+    if (channelOwner) {
+        AccessCategory ac = channelOwner->getAccessCategory();
+        setFrameMode(frame, rateSelection->computeMode(frame, edcaTxops[ac]));
+        frame->setDuration(singleProtectionMechanism->computeDurationPerId(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
+        tx->transmitFrame(frame, ifs, this);
+    }
+    else
+        throw cRuntimeError("Hcca is unimplemented");
+}
+
+void Hcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
+ {
+    ASSERT(frame->getControlInfo() == nullptr);
+    Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
+    ctrl->setMode(mode);
+    frame->setControlInfo(ctrl);
 }
 
 Hcf::~Hcf()

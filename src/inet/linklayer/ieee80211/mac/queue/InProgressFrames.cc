@@ -48,6 +48,8 @@ void InProgressFrames::ensureHasFrameToTransmit()
         }
     }
 }
+
+
 bool InProgressFrames::isEligibleStatusToTransmit(AckHandler::Status status)
 {
     return status == AckHandler::Status::BLOCK_ACK_ARRIVED_UNACKED || status == AckHandler::Status::NORMAL_ACK_NOT_ARRIVED || status == AckHandler::Status::FRAME_NOT_YET_TRANSMITTED;
@@ -62,6 +64,34 @@ Ieee80211DataOrMgmtFrame *InProgressFrames::getFrameToTransmit()
             return frame;
     }
     return nullptr;
+}
+
+Ieee80211DataOrMgmtFrame* InProgressFrames::getPendingFrameFor(Ieee80211Frame *frame)
+{
+    auto frameToTransmit = getFrameToTransmit();
+    if (dynamic_cast<Ieee80211RTSFrame *>(frame))
+        return frameToTransmit;
+    else {
+        for (auto frame : inProgressFrames) {
+            AckHandler::Status ackStatus = ackHandler->getAckStatus(frame);
+            if (isEligibleStatusToTransmit(frame) && frameToTransmit != frame)
+                return frame;
+        }
+        auto frames = dataService->extractFramesToTransmit(pendingQueue);
+        if (frames) {
+            auto firstFrame = (*frames)[0];
+            for (auto frame : *frames) {
+                ackHandler->frameGotInProgress(frame);
+                inProgressFrames.push_back(frame);
+            }
+            delete frames;
+            // FIXME: If the next Txop sequence were a BlockAckReqBlockAckFs then this would return
+            // a wrong pending frame.
+            return firstFrame;
+        }
+        else
+            return nullptr;
+    }
 }
 
 void InProgressFrames::dropFrame(int seqNum, int fragNum)

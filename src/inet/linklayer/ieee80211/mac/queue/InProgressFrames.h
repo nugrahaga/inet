@@ -63,6 +63,7 @@ class INET_API InProgressFrames
         { }
 
         virtual Ieee80211DataOrMgmtFrame *getFrameToTransmit();
+        virtual Ieee80211DataOrMgmtFrame *getPendingFrameFor(Ieee80211Frame *frame);
         virtual void dropFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
         virtual void dropFrame(int seqNum, int fragNum);
         virtual void dropFrames(std::set<SequenceControlField> seqAndFragNums);

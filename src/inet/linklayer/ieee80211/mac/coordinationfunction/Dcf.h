@@ -102,7 +102,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
         virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
 
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
+        void setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     protected:
         // IChannelAccess::ICallback
