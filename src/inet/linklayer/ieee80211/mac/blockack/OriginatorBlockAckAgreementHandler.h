@@ -27,15 +27,14 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
+class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule, public cListener
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
-
+        Ieee80211ModeSet *modeSet = nullptr;
         std::map<std::pair<MACAddress, Tid>, OriginatorBlockAckAgreement *> blockAckAgreements;
+
+    protected:
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
 
     public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -46,15 +45,11 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule
 
         virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
         virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        virtual simtime_t getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const;
-        virtual simtime_t getAddbaRequestEarlyTimeout() const;
+        virtual simtime_t getAddbaRequestTimeout() const;
 
         virtual void createAgreement(Ieee80211AddbaRequest *addbaRequest);
         virtual void updateAgreement(OriginatorBlockAckAgreement *agreement, Ieee80211AddbaResponse *addbaResp);
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
-
-        // FIXME: delete
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 };
 
 } // namespace ieee80211

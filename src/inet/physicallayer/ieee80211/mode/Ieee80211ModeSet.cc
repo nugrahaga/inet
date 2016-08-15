@@ -145,6 +145,16 @@ Ieee80211ModeSet::Ieee80211ModeSet(const char *name, const std::vector<Entry> en
 {
     std::vector<Entry> *nonConstEntries = const_cast<std::vector<Entry> *>(&this->entries);
     std::stable_sort(nonConstEntries->begin(), nonConstEntries->end(), EntryNetBitrateComparator());
+    auto referenceMode = entries[0].mode;
+    for (auto entry : entries) {
+        auto mode = entry.mode;
+        if (mode->getSifsTime() != referenceMode->getSifsTime() ||
+            mode->getSlotTime() != referenceMode->getSlotTime() ||
+            mode->getPhyRxStartDelay() != referenceMode->getPhyRxStartDelay())
+        {
+            throw cRuntimeError("Sifs, slot and phyRxStartDelay time must be identical within a ModeSet");
+        }
+    }
 }
 
 int Ieee80211ModeSet::findModeIndex(const IIeee80211Mode *mode) const

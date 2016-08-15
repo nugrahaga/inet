@@ -25,19 +25,6 @@ CtsProcedure::CtsProcedure(IRx *rx, IRateSelection *rateSelection) :
     rx(rx),
     rateSelection(rateSelection)
 {
-    this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-    this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-    this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
-}
-
-// TODO: move this part to somewhere else
-Ieee80211Frame *CtsProcedure::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
-{
-    ASSERT(frame->getControlInfo() == nullptr);
-    Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
-    ctrl->setMode(mode);
-    frame->setControlInfo(ctrl);
-    return frame;
 }
 
 void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame)
@@ -47,17 +34,12 @@ void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame)
 
 simtime_t CtsProcedure::getCtsDuration() const
 {
-    return rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS);
+    return rateSelection->computeResponseCtsFrameMode()->getDuration(LENGTH_CTS);
 }
 
-simtime_t CtsProcedure::getCtsEarlyTimeout() const
+simtime_t CtsProcedure::getTimeout() const
 {
-    return sifs + slotTime + phyRxStartDelay; // see getAckEarlyTimeout()
-}
-
-simtime_t CtsProcedure::getCtsFullTimeout() const
-{
-    return sifs + slotTime + getCtsDuration();
+    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
 //
@@ -74,8 +56,7 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
     if (rx->isMediumFree()) {
         Ieee80211CTSFrame *cts = new Ieee80211CTSFrame("CTS");
         cts->setReceiverAddress(rtsFrame->getTransmitterAddress());
-        cts->setDuration(rtsFrame->getDuration() - sifs - rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS));
-        setFrameMode(cts, rateSelection->getModeForControlFrame(cts));
+        cts->setDuration(ceil(rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration()));
         return cts;
     }
     else
@@ -85,6 +66,13 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
 void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 {
     delete ctsFrame;
+}
+
+void CtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

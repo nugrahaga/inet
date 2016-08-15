@@ -15,6 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/common/NotifierConsts.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/coordinationfunction/Hcf.h"
 #include "RecipientBlockAckAgreementHandler.h"
@@ -28,7 +29,6 @@ void RecipientBlockAckAgreementHandler::initialize(int stage)
 {
     if (stage == INITSTAGE_LAST) {
         rateSelection = dynamic_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
-        sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
     }
 }
 
@@ -65,7 +65,7 @@ Ieee80211Delba* RecipientBlockAckAgreementHandler::buildDelba(MACAddress receive
     delba->setInitiator(false);
     delba->setTid(tid);
     delba->setReasonCode(reasonCode);
-    delba->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
+    // TODO: single protection: delba->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
     return delba;
 }
 
@@ -80,7 +80,7 @@ Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ie
     addbaResponse->setBufferSize(frame->getBufferSize() <= maximumAllowedBufferSize ? frame->getBufferSize() : maximumAllowedBufferSize);
     addbaResponse->setBlockAckTimeoutValue(blockAckTimeoutValue == 0 ? blockAckTimeoutValue : frame->getBlockAckTimeoutValue());
     addbaResponse->setAMsduSupported(aMsduSupported);
-    addbaResponse->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
+    addbaResponse->setDuration(rateSelection->computeResponseAckFrameMode(frame)->getDuration(LENGTH_ACK) + modeSet->getSifsTime());
     return addbaResponse;
 }
 
@@ -114,6 +114,12 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
+void RecipientBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+}
 
 } // namespace ieee80211
 } // namespace inet

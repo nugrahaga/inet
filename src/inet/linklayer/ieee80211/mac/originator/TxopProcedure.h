@@ -28,20 +28,21 @@ namespace ieee80211 {
 
 using namespace physicallayer;
 
-class INET_API TxopProcedure : public cSimpleModule
+class INET_API TxopProcedure : public cSimpleModule, public cListener
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
         simtime_t start = -1;
         simtime_t limit = -1;
 
     protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+
         s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
 
     public:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-
         virtual void startTxop(AccessCategory ac);
         virtual void stopTxop();
 

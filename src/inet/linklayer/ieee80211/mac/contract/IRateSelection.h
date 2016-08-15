@@ -19,17 +19,14 @@
 #define __INET_IRATESELECTION_H
 
 #include "inet/common/INETDefs.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
 
 using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
-
-class Ieee80211Frame;
-class Ieee80211DataOrMgmtFrame;
-class IRateControl;
 
 /**
  * Abstract interface for rate selection. Rate selection decides what bit rate

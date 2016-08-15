@@ -15,6 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/NotifierConsts.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211DSSSMode.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211HRDSSSMode.h"
@@ -30,8 +32,8 @@ Define_Module(TxopProcedure);
 void TxopProcedure::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
         limit = par("txopLimit");
-        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
     }
 }
 
@@ -68,7 +70,7 @@ void TxopProcedure::startTxop(AccessCategory ac)
     if (start != -1)
         throw cRuntimeError("Txop is already running");
     if (limit == -1) {
-        auto referenceMode = rateSelection->getSlowestMandatoryMode();
+        auto referenceMode = modeSet->getSlowestMandatoryMode();
         limit = getTxopLimit(referenceMode, ac).get();
     }
     start = simTime();
@@ -104,6 +106,13 @@ bool TxopProcedure::isTxopInitiator(Ieee80211Frame* frame)
 bool TxopProcedure::isTxopTerminator(Ieee80211Frame* frame)
 {
     return false;
+}
+
+void TxopProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } // namespace ieee80211

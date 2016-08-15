@@ -36,8 +36,7 @@ class INET_API OriginatorBlockAckProcedure
         virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
         virtual Ieee80211BlockAckReq *buildBasicBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
 
-        simtime_t getBlockAckEarlyTimeout(Ieee80211BlockAckReq* blockAckReq) const;
-        simtime_t getBlockAckFullTimeout(Ieee80211BlockAckReq* blockAckReq) const;
+        simtime_t getTimeout(Ieee80211BlockAckReq* blockAckReq) const;
 };
 
 } /* namespace ieee80211 */

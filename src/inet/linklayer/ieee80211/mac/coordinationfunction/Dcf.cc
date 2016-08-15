@@ -35,9 +35,8 @@ void Dcf::initialize(int stage)
         recoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
         rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
         rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
-        referenceMode = rateSelection->getSlowestMandatoryMode();
-        sifs = referenceMode->getSifsTime();
         dcfChannelAccess = check_and_cast<Dcaf *>(getSubmodule("channelAccess"));
+        // TODO: sifs
         tx = check_and_cast<ITx *>(getModuleByPath(par("txModule")));
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         pendingQueue = new PendingQueue(par("maxQueueSize"), nullptr);
@@ -134,7 +133,7 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
 
 FrameSequenceContext* Dcf::buildContext()
 {
-    return new FrameSequenceContext(inProgressFrames, originatorAckProcedure, rtsProcedure, nullptr, nullptr, nullptr, nullptr, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(modeSet, inProgressFrames, originatorAckProcedure, rtsProcedure, nullptr, nullptr, nullptr, nullptr);
 }
 
 void Dcf::transmissionComplete()

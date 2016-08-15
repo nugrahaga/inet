@@ -15,8 +15,10 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "RtsProcedure.h"
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/NotifierConsts.h"
 #include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.h"
+#include "RtsProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -25,36 +27,34 @@ Define_Module(RtsProcedure);
 
 void RtsProcedure::initialize(int stage)
 {
-    if (stage == INITSTAGE_LINK_LAYER_2) {
+    if (stage == INITSTAGE_LOCAL) {
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+    }
+    else if (stage == INITSTAGE_LINK_LAYER_2) {
         this->rtsThreshold = par("rtsThreshold");
-        // TODO: control bitrate
-        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
-        this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-        this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-        this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
     }
 }
 
 Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const
 {
-    const IIeee80211Mode *mode = dataFrame->getControlInfo() ? getFrameMode(dataFrame) : nullptr;
-    if (isBroadcastOrMulticast(dataFrame))
-        mode = rateSelection->getModeForMulticastDataOrMgmtFrame(dataFrame);
-    else
-        mode = rateSelection->getModeForUnicastDataOrMgmtFrame(dataFrame);
-    return buildRtsFrame(dataFrame, mode);
+//    const IIeee80211Mode *mode = dataFrame->getControlInfo() ? getFrameMode(dataFrame) : nullptr;
+//    if (isBroadcastOrMulticast(dataFrame))
+//        mode = rateSelection->getModeForMulticastDataOrMgmtFrame(dataFrame);
+//    else
+//        mode = rateSelection->getModeForUnicastDataOrMgmtFrame(dataFrame);
+//    return buildRtsFrame(dataFrame, mode);
 }
 
 Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const
 {
     // protect CTS + Data + ACK
     // TODO: single protection mechanism takes care
-    simtime_t duration =
-            3 * sifs
-            + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS)
-            + dataFrameMode->getDuration(dataFrame->getBitLength())
-            + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK);
-    return buildRtsFrame(dataFrame->getReceiverAddress(), duration);
+//    simtime_t duration =
+//            3 * sifs
+//            + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS)
+//            + dataFrameMode->getDuration(dataFrame->getBitLength())
+//            + rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK);
+//    return buildRtsFrame(dataFrame->getReceiverAddress(), duration);
 }
 
 Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const
@@ -62,13 +62,7 @@ Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(const MACAddress& receiverAddress
     Ieee80211RTSFrame *rts = new Ieee80211RTSFrame("RTS");
     rts->setReceiverAddress(receiverAddress);
     rts->setDuration(duration);
-    setFrameMode(rts, rateSelection->getModeForControlFrame(rts));
     return rts;
-}
-
-simtime_t RtsProcedure::getCtsDuration() const
-{
-    return rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_CTS);
 }
 
 //
@@ -77,7 +71,7 @@ simtime_t RtsProcedure::getCtsDuration() const
 // primitive does not occur during the CTSTimeout interval, the STA shall conclude that the transmission of
 // the RTS has failed, and this STA shall invoke its backoff procedure upon expiration of the CTSTimeout interval.
 //
-simtime_t RtsProcedure::getCtsTimeout() const
+simtime_t RtsProcedure::getTimeout() const
 {
     return sifs + slotTime + phyRxStartDelay;
 }
@@ -93,14 +87,11 @@ const IIeee80211Mode *RtsProcedure::getFrameMode(Ieee80211Frame *frame) const
     return ctrl->getMode();
 }
 
-// TODO: move this part to somewhere else
-Ieee80211Frame *RtsProcedure::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
+void RtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    ASSERT(frame->getControlInfo() == nullptr);
-    Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
-    ctrl->setMode(mode);
-    frame->setControlInfo(ctrl);
-    return frame;
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

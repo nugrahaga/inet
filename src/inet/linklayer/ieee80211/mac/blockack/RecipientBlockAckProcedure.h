@@ -19,6 +19,7 @@
 #define __INET_RECIPIENTBLOCKACKPROCEDURE_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
+#include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -30,13 +31,19 @@ namespace ieee80211 {
 // STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
 // The rules that specify the contents of this BlockAck frame are defined in 9.21.
 //
-class INET_API RecipientBlockAckProcedure
+class INET_API RecipientBlockAckProcedure : public cListener
 {
     protected:
+        IQoSRateSelection *rateSelection = nullptr;
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
+
+    protected:
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        simtime_t computeBasicBlockAckDuration(Ieee80211BlockAckReq* blockAckReq) const;
 
     public:
-        RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler *agreementHandler, IRateSelection *rateSelection);
+        RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler *agreementHandler, IQoSRateSelection *rateSelection);
 
         virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq);
         virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck);

@@ -61,8 +61,7 @@ class INET_API IReceiveStep : public IFrameSequenceStep
     public:
         virtual Type getType() override { return Type::RECEIVE; }
 
-        virtual simtime_t getExpectedDuration() = 0;
-        virtual simtime_t getEarlyTimeout() = 0;
+        virtual simtime_t getTimeout() = 0;
         virtual Ieee80211Frame *getReceivedFrame() = 0;
         virtual void setFrameToReceive(Ieee80211Frame *frame) = 0;
 };

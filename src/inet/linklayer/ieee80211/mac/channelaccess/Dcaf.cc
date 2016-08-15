@@ -27,24 +27,32 @@ Define_Module(Dcaf);
 
 void Dcaf::initialize(int stage)
 {
-    if (stage == INITSTAGE_LINK_LAYER_2) {
+    if (stage == INITSTAGE_LOCAL) {
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+    }
+    else if (stage == INITSTAGE_LINK_LAYER_2) {
+        // TODO: calculateTimingParameters()
         contention = check_and_cast<IContention *>(getSubmodule("contention"));
-        auto rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         auto rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         rx->registerContention(contention);
-        auto referenceMode = rateSelection->getSlowestMandatoryMode();
-        slotTime = referenceMode->getSlotTime();
-        sifs = referenceMode->getSifsTime();
+        slotTime = modeSet->getSlotTime();
+        sifs = modeSet->getSifsTime();
         int difs = par("difsTime");
+        // The PIFS and DIFS are derived by the Equation (9-2) and Equation (9-3), as illustrated in Figure 9-14.
+        // PIFS = aSIFSTime + aSlotTime (9-2)
+        // DIFS = aSIFSTime + 2 × aSlotTime (9-3)
         ifs = difs == -1 ? sifs + 2 * slotTime : difs;
-        eifs = sifs + ifs + referenceMode->getDuration(LENGTH_ACK);
+        // The EIFS is derived from the SIFS and the DIFS and the length of time it takes to transmit an ACK frame at the
+        // lowest PHY mandatory rate by Equation (9-4).
+        // EIFS = aSIFSTime + DIFS + ACKTxTime
+        eifs = sifs + ifs + modeSet->getSlowestMandatoryMode()->getDuration(LENGTH_ACK);
         ASSERT(ifs > sifs);
         cwMin = par("cwMin");
         cwMax = par("cwMax");
         if (cwMin == -1)
-            cwMin = referenceMode->getLegacyCwMin();
+            cwMin = modeSet->getCwMin();
         if (cwMax == -1)
-            cwMax = referenceMode->getLegacyCwMax();
+            cwMax = modeSet->getCwMax();
         cw = cwMin;
     }
 }
@@ -93,6 +101,13 @@ void Dcaf::requestChannel(IChannelAccess::ICallback* callback)
 void Dcaf::expectedChannelAccess(simtime_t time)
 {
     // don't care
+}
+
+void Dcaf::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

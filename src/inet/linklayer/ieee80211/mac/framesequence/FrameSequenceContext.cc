@@ -20,15 +20,15 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *originatorAckPolicy, const IIeee80211Mode *mode) :
+FrameSequenceContext::FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *originatorAckPolicy) :
+    modeSet(modeSet),
     inProgressFrames(inProgressFrames),
     ackProcedure(ackProcedure),
     rtsProcedure(rtsProcedure),
     txopProcedure(txopProcedure),
     blockAckProcedure(blockAckProcedure),
     blockAckAgreementHandler(agreementHandler),
-    originatorAckPolicy(originatorAckPolicy),
-    mode(mode)
+    originatorAckPolicy(originatorAckPolicy)
 {
 }
 
@@ -36,6 +36,11 @@ FrameSequenceContext::~FrameSequenceContext()
 {
     for (auto step : steps)
         delete step;
+}
+
+simtime_t FrameSequenceContext::getIfs()
+{
+    return getNumSteps() == 0 ? 0 : modeSet->getSifsTime();
 }
 
 } // namespace ieee80211

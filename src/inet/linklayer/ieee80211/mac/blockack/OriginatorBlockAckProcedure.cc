@@ -45,20 +45,10 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildBasicBlockAckReqFrame(co
     return blockAckReq;
 }
 
-simtime_t OriginatorBlockAckProcedure::getBlockAckEarlyTimeout(Ieee80211BlockAckReq* blockAckReq) const
+simtime_t OriginatorBlockAckProcedure::getTimeout(Ieee80211BlockAckReq* blockAckReq) const
 {
     auto mode = rateSelection->computeResponseBlockAckFrameMode(blockAckReq);
     return mode->getSifsTime() + mode->getSlotTime() + mode->getPhyRxStartDelay();
-}
-
-simtime_t OriginatorBlockAckProcedure::getBlockAckFullTimeout(Ieee80211BlockAckReq* blockAckReq) const
-{
-    if (dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        auto mode = rateSelection->computeResponseBlockAckFrameMode(blockAckReq);
-        return mode->getSifsTime() + mode->getSlotTime() + mode->getDuration(LENGTH_BASIC_BLOCKACK);
-    }
-    else
-        throw cRuntimeError("Unsupported BlockAck Request");
 }
 
 } /* namespace ieee80211 */

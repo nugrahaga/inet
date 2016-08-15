@@ -23,9 +23,6 @@ namespace ieee80211 {
 RecipientAckProcedure::RecipientAckProcedure(IRateSelection *rateSelection) :
     rateSelection(rateSelection)
 {
-   this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-   this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-   this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
 }
 
 void RecipientAckProcedure::processReceivedFrame(Ieee80211Frame* frame)
@@ -50,21 +47,10 @@ bool RecipientAckProcedure::isAckNeeded(Ieee80211Frame* frame)
     return false;
 }
 
-simtime_t RecipientAckProcedure::getAckEarlyTimeout() const
-{
-    // Note: This excludes ACK duration. If there's no RXStart indication within this interval, retransmission should begin immediately
-    return sifs + slotTime + phyRxStartDelay;
-}
-
 
 simtime_t RecipientAckProcedure::getAckDuration() const
 {
     return rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK);
-}
-
-simtime_t RecipientAckProcedure::getAckFullTimeout() const
-{
-    return sifs + slotTime + getAckDuration();
 }
 
 Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211Frame* frame)
@@ -74,15 +60,27 @@ Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211Frame* frame)
     if (!frame->getMoreFragments())
         ack->setDuration(0);
     else {
-        // For an ACK frame, the Duration/ID field is set to the value obtained from the Duration/ID field of the frame
+        // Non-QoS: For ACK frames sent by non-QoS STAs, if the More Fragments bit was equal to 0 in the Frame Control field
+        // of the immediately previous individually addressed data or management frame, the duration value is set to 0.
+        // In other ACK frames sent by non-QoS STAs, the duration value is the value obtained from the Duration/ID
+        // field of the immediately previous data, management, PS-Poll, BlockAckReq, or BlockAck frame minus the
+        // time, in microseconds, required to transmit the ACK frame and its SIFS interval. If the calculated duration
+        // includes a fractional microsecond, that value is rounded up to the next higher integer.
+
+        // QoS: For an ACK frame, the Duration/ID field is set to the value obtained from the Duration/ID field of the frame
         // that elicited the response minus the time, in microseconds between the end of the PPDU carrying the frame
         // that elicited the response and the end of the PPDU carrying the ACK frame.
-        // TODO: slotTime
-        ack->setDuration(frame->getDuration() - sifs - rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK));
+        ack->setDuration(ceil(frame->getDuration() - modeSet->getSifsTime() - getAckDuration()));
     }
     return ack;
 }
 
+void RecipientAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+}
+
 } /* namespace ieee80211 */
 } /* namespace inet */
-

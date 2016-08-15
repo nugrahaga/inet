@@ -37,33 +37,29 @@ namespace ieee80211 {
 // subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
 // determined by the rules in 9.7.
 //
-class INET_API CtsProcedure
+class INET_API CtsProcedure : public cListener
 {
     protected:
         IRx *rx = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
         IRateSelection *rateSelection = nullptr;
 
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
-
     protected:
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
         Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
+        simtime_t getCtsDuration() const;
 
     public:
         CtsProcedure(IRx *rx, IRateSelection *rateSelection);
 
-        Ieee80211CTSFrame * buildCts(Ieee80211RTSFrame *rtsFrame);
+        Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame *rtsFrame);
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;
 
         void processReceivedRts(Ieee80211RTSFrame *rtsFrame);
         void processTransmittedCts(Ieee80211CTSFrame *ctsFrame);
 
-        simtime_t getCtsDuration() const;
-        simtime_t getCtsEarlyTimeout() const;
-        simtime_t getCtsFullTimeout() const;
+        simtime_t getTimeout() const;
 };
 
 } /* namespace ieee80211 */

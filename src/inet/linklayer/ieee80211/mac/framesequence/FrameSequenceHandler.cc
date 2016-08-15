@@ -39,7 +39,7 @@ void FrameSequenceHandler::initialize(int stage)
 
 void FrameSequenceHandler::handleMessage(cMessage* message)
 {
-    ASSERT(message == timeout || message == endReceptionTimeout);
+    ASSERT(message == timeout);
     auto lastStep = context->getLastStep();
     switch (lastStep->getType()) {
         case IFrameSequenceStep::Type::RECEIVE:

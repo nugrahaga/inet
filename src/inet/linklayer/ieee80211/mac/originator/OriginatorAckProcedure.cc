@@ -20,12 +20,8 @@
 namespace inet {
 namespace ieee80211 {
 
-OriginatorAckProcedure::OriginatorAckProcedure(IRateSelection *rateSelection) :
-    rateSelection(rateSelection)
+OriginatorAckProcedure::OriginatorAckProcedure()
 {
-   this->sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
-   this->slotTime = rateSelection->getSlowestMandatoryMode()->getSlotTime();
-   this->phyRxStartDelay = rateSelection->getSlowestMandatoryMode()->getPhyRxStartDelay();
 }
 
 //
@@ -35,7 +31,7 @@ OriginatorAckProcedure::OriginatorAckProcedure(IRateSelection *rateSelection) :
 // ACKTimeout interval, the STA concludes that the transmission of the MPDU has failed, and this STA shall
 // invoke its backoff procedure upon expiration of the ACKTimeout interval.
 //
-simtime_t OriginatorAckProcedure::getAckEarlyTimeout() const
+simtime_t OriginatorAckProcedure::getTimeout() const
 {
     return sifs + slotTime + phyRxStartDelay;
 }

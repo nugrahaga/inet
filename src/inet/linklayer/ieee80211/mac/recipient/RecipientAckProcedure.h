@@ -37,14 +37,15 @@ namespace ieee80211 {
 // acknowledgment, transmission of the ACK frame shall commence after a SIFS period, without regard to the
 // busy/idle state of the medium. (See Figure 9-9.)
 //
-class INET_API RecipientAckProcedure
+class INET_API RecipientAckProcedure : public cListener
 {
     protected:
         IRateSelection *rateSelection = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
 
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
+    protected:
+        simtime_t getAckDuration() const;
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
     public:
         virtual ~RecipientAckProcedure() { };
@@ -55,10 +56,6 @@ class INET_API RecipientAckProcedure
         virtual void processReceivedFrame(Ieee80211Frame *frame);
         virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
         virtual Ieee80211ACKFrame* buildAck(Ieee80211Frame *frame);
-
-        simtime_t getAckDuration() const;
-        simtime_t getAckFullTimeout() const;
-        simtime_t getAckEarlyTimeout() const;
 };
 
 } /* namespace ieee80211 */

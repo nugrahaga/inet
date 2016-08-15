@@ -47,6 +47,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
 {
     protected:
         Ieee80211Mac *mac = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
 
         // Transmission and reception
         IRx *rx = nullptr;

@@ -17,6 +17,8 @@
 //
 
 #include "Edcaf.h"
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/NotifierConsts.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -28,27 +30,28 @@ inline simtime_t fallback(simtime_t a, simtime_t b) {return a!=-1 ? a : b;}
 
 void Edcaf::initialize(int stage)
 {
-    if (stage == INITSTAGE_LINK_LAYER_2) {
+    if (stage == INITSTAGE_LOCAL) {
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+    }
+    else if (stage == INITSTAGE_LINK_LAYER_2) {
         ac = getAccessCategory(par("accessCategory"));
         contention = check_and_cast<IContention *>(getSubmodule("contention"));
         collisionController = check_and_cast<IEdcaCollisionController *>(getModuleByPath(par("collisionControllerModule")));
         auto rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         rx->registerContention(contention);
-        auto rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
-        auto referenceMode = rateSelection->getSlowestMandatoryMode();
-        slotTime = referenceMode->getSlotTime();
-        sifs = referenceMode->getSifsTime();
+        slotTime = modeSet->getSlotTime();
+        sifs = modeSet->getSifsTime();
         int aifsn = par("aifsn");
         simtime_t aifs = sifs + fallback(getAifsNumber(ac), aifsn) * slotTime;
         ifs = aifs;
-        eifs = sifs + aifs + referenceMode->getDuration(LENGTH_ACK);
+        eifs = sifs + aifs + modeSet->getSlowestMandatoryMode()->getDuration(LENGTH_ACK);
         ASSERT(ifs > sifs);
         cwMin = par("cwMin");
         cwMax = par("cwMax");
         if (cwMin == -1)
-            cwMin = getCwMin(ac, referenceMode->getLegacyCwMin());
+            cwMin = getCwMin(ac, modeSet->getCwMin());
         if (cwMax == -1)
-            cwMax = getCwMax(ac, referenceMode->getLegacyCwMax(), referenceMode->getLegacyCwMin());
+            cwMax = getCwMax(ac, modeSet->getCwMax(), modeSet->getCwMin());
         cw = cwMin;
     }
 }
@@ -154,6 +157,13 @@ int Edcaf::getCwMin(AccessCategory ac, int aCwMin)
         case AC_VO: return (aCwMin + 1) / 4 - 1;
         default: throw cRuntimeError("Unknown access category = %d", ac);
     }
+}
+
+void Edcaf::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 

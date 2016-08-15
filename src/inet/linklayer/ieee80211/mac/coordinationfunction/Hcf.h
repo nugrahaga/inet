@@ -55,6 +55,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 {
     protected:
         Ieee80211Mac *mac = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
         int numEdcafs = -1;
 
         // Transmission and Reception
@@ -135,6 +136,8 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessReceivedManagementFrame(Ieee80211ManagementFrame *frame, Ieee80211Frame *lastTransmittedFrame, AccessCategory ac);
         virtual void originatorProcessReceivedControlFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame, AccessCategory ac);
         virtual void originatorProcessReceivedDataFrame(Ieee80211DataFrame* frame, Ieee80211Frame* lastTransmittedFrame, AccessCategory ac);
+
+        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     protected:
         // IFrameSequenceHandler::ICallback

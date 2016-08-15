@@ -73,6 +73,12 @@ class INET_API Ieee80211ModeSet : public IPrintableObject, public cObject
 
     static const Ieee80211ModeSet *findModeSet(const char *mode);
     static const Ieee80211ModeSet *getModeSet(const char *mode);
+
+    simtime_t getSifsTime() const { return entries[0].mode->getSifsTime(); }
+    simtime_t getSlotTime() const { return entries[0].mode->getSlotTime(); }
+    simtime_t getPhyRxStartDelay() const { return entries[0].mode->getPhyRxStartDelay(); }
+    int getCwMin() const { return entries[0].mode->getLegacyCwMin(); }
+    int getCwMax() const { return entries[0].mode->getLegacyCwMax(); }
 };
 
 } // namespace physicallayer

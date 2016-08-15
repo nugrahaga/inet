@@ -20,7 +20,5 @@ package inet.linklayer.ieee80211.mac.originator;
 simple TxopProcedure 
 {
     parameters:
-        string rateSelectionModule;
-        
         double txopLimit @unit("s") = default(-1s);
 }

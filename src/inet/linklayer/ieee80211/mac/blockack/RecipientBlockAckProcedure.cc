@@ -15,15 +15,18 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/NotifierConsts.h"
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
 #include "RecipientBlockAckProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
 
-RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler* agreementHandler, IRateSelection *rateSelection)
+RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler* agreementHandler, IQoSRateSelection *rateSelection) :
+        rateSelection(rateSelection),
+        agreementHandler(agreementHandler)
 {
-    this->agreementHandler = agreementHandler;
 }
 
 
@@ -33,6 +36,11 @@ void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq
 
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
 {
+}
+
+simtime_t RecipientBlockAckProcedure::computeBasicBlockAckDuration(Ieee80211BlockAckReq* blockAckReq) const
+{
+    return rateSelection->computeResponseBlockAckFrameMode(blockAckReq)->getDuration(LENGTH_BASIC_BLOCKACK);
 }
 
 //
@@ -63,7 +71,7 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
             // Duration/ID field of the frame that elicited the response minus the time, in microseconds, between the end of
             // the PPDU carrying the frame that elicited the response and the end of the PPDU carrying the BlockAck
             // frame.
-            blockAck->setDuration(blockAckReq->getDuration() - );
+            blockAck->setDuration(blockAckReq->getDuration() - modeSet->getSifsTime() - computeBasicBlockAckDuration(blockAckReq));
             blockAck->setCompressedBitmap(false);
             blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
             blockAck->setTidInfo(tid);
@@ -74,6 +82,13 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
     }
     else
         throw cRuntimeError("Unsupported Block Ack Request");
+}
+
+void RecipientBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    //Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

@@ -33,13 +33,16 @@ class RecipientBlockAckAgreement;
 // 9.21.3 Data and acknowledgment transfer using immediate Block Ack policy and delayed
 // Block Ack policy
 //
-class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule
+class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule, public cListener
 {
     protected:
         IRateSelection *rateSelection = nullptr;
-        simtime_t sifs = -1;
+        Ieee80211ModeSet *modeSet = nullptr;
 
         std::map<std::pair<MACAddress, Tid>, RecipientBlockAckAgreement *> blockAckAgreements;
+
+    protected:
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
     public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }

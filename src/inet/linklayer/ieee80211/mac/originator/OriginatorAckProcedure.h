@@ -29,14 +29,10 @@ class INET_API OriginatorAckProcedure
     protected:
         IRateSelection *rateSelection = nullptr;
 
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
-
     public:
-        OriginatorAckProcedure(IRateSelection *rateSelection);
+        OriginatorAckProcedure();
 
-        simtime_t getAckTimeout() const;
+        simtime_t getTimeout() const;
 };
 
 } /* namespace ieee80211 */

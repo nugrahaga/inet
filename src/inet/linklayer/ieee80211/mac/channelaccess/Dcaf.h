@@ -26,9 +26,10 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
+class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule, public cListener
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
         IContention *contention = nullptr;
         IChannelAccess::ICallback *callback = nullptr;
 
@@ -48,6 +49,7 @@ class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, publ
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
     public:
         // IChannelAccess::ICallback
         virtual void requestChannel(IChannelAccess::ICallback* callback) override;

@@ -27,7 +27,7 @@ Define_Module(Hcf);
 
 void Hcf::initialize(int stage)
 {
-    if (stage == INITSTAGE_LINK_LAYER_2) {
+    if (stage == INITSTAGE_LOCAL) {
         numEdcafs = par("numEdcafs");
         edca = check_and_cast<Edca *>(getSubmodule("edca"));
         hcca = check_and_cast<Hcca *>(getSubmodule("hcca"));
@@ -40,17 +40,16 @@ void Hcf::initialize(int stage)
         rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
         rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
-        referenceMode = rateSelection->getSlowestMandatoryMode();
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        sifs = referenceMode->getSifsTime();
+        // TODO: sifs
         originatorDataService = check_and_cast<OriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
         recipientDataService = check_and_cast<RecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
         originatorAckProcedure = new OriginatorAckProcedure(rateSelection);
         originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
         recipientAckProcedure = new RecipientAckProcedure(rateSelection);
         ctsProcedure = new CtsProcedure(rx, rateSelection);
-        originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
-        recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
+//        originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
+//        recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
         lifetimeHandler = new EdcaTransmitLifetimeHandler(0, 0, 0, 0); // FIXME: needs only one timeout parameter
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
         for (int ac = 0; ac < numEdcafs; ac++) {
@@ -111,7 +110,7 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, originatorQoSAckPolicy, rateSelection->getSlowestMandatoryMode());
+    return new FrameSequenceContext(modeSet, edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, originatorQoSAckPolicy);
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)

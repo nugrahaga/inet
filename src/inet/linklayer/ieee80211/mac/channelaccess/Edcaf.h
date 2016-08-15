@@ -34,9 +34,10 @@ namespace ieee80211 {
 /**
  * Implements IEEE 802.11 Enhanced Distributed Channel Access Function.
  */
-class INET_API Edcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule
+class INET_API Edcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule, public cListener
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
         IContention *contention = nullptr;
         IChannelAccess::ICallback *callback = nullptr;
         IEdcaCollisionController *collisionController = nullptr;
@@ -57,6 +58,7 @@ class INET_API Edcaf : public IChannelAccess, public IContention::ICallback, pub
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
+        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
         AccessCategory getAccessCategory(const char *ac);
         virtual int getAifsNumber(AccessCategory ac);

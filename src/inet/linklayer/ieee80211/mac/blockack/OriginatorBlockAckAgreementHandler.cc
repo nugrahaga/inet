@@ -15,6 +15,8 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/NotifierConsts.h"
 #include "inet/linklayer/ieee80211/mac/coordinationfunction/Hcf.h"
 #include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.h"
 #include "OriginatorBlockAckAgreementHandler.h"
@@ -27,8 +29,7 @@ Define_Module(OriginatorBlockAckAgreementHandler);
 void OriginatorBlockAckAgreementHandler::initialize(int stage)
 {
     if (stage == INITSTAGE_LAST) {
-        rateSelection = dynamic_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
-        sifs = rateSelection->getSlowestMandatoryMode()->getSifsTime();
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
     }
 }
 
@@ -39,15 +40,9 @@ void OriginatorBlockAckAgreementHandler::createAgreement(Ieee80211AddbaRequest *
     blockAckAgreements[agreementId] = blockAckAgreement;
 }
 
-simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestDuration(Ieee80211AddbaRequest *addbaReq) const
+simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestTimeout() const
 {
-    const IIeee80211Mode *mode = rateSelection->getModeForUnicastDataOrMgmtFrame(addbaReq);
-    return mode->getDuration(addbaReq->getBitLength());
-}
-
-simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestEarlyTimeout() const
-{
-    return sifs + slotTime + phyRxStartDelay;
+    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
 Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported)
@@ -61,10 +56,9 @@ Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MAC
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
     addbaRequest->setBlockAckPolicy(delayedBlockAckPolicySupported ? 0 : 1);
     addbaRequest->setStartingSequenceNumber(startingSequenceNumber);
-    setFrameMode(addbaRequest, rateSelection->getModeForUnicastDataOrMgmtFrame(addbaRequest));
     // Within all management frames sent by the QoS STA, the Duration field contains a duration
     // value as defined in 8.2.5.
-    addbaRequest->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
+    // TODO: single protection mechanism addbaRequest->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
     return addbaRequest;
 }
 
@@ -83,7 +77,7 @@ Ieee80211Delba* OriginatorBlockAckAgreementHandler::buildDelba(MACAddress receiv
     delba->setReasonCode(reasonCode);
     // The Initiator subfield indicates if the originator or the recipient of the data is sending this frame.
     delba->setInitiator(true);
-    delba->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
+    // TODO: mgmt frame, single protection mechanism delba->setDuration(rateSelection->get()->getDuration(LENGTH_ACK) + sifs);
     return delba;
 }
 
@@ -105,14 +99,11 @@ void OriginatorBlockAckAgreementHandler::updateAgreement(OriginatorBlockAckAgree
     agreement->setBlockAckTimeoutValue(addbaResp->getBlockAckTimeoutValue());
 }
 
-// TODO: move this part to somewhere else
-Ieee80211Frame *OriginatorBlockAckAgreementHandler::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
+void OriginatorBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    ASSERT(frame->getControlInfo() == nullptr);
-    Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
-    ctrl->setMode(mode);
-    frame->setControlInfo(ctrl);
-    return frame;
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } // namespace ieee80211
