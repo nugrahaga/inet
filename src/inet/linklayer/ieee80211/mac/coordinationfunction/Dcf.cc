@@ -41,7 +41,7 @@ void Dcf::initialize(int stage)
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         pendingQueue = new PendingQueue(par("maxQueueSize"), nullptr);
         ackHandler = new AckHandler();
-        originatorAckProcedure = new OriginatorAckProcedure(rateSelection);
+        originatorAckProcedure = new OriginatorAckProcedure();
         recipientAckProcedure = new RecipientAckProcedure(rateSelection);
         inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
         ctsProcedure = new CtsProcedure(rx, rateSelection);
@@ -96,11 +96,13 @@ bool Dcf::isReceptionInProgress()
 
 void Dcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
-    recipientAckProcedure->processReceivedFrame(frame);
-    auto ack = recipientAckProcedure->buildAck(frame);
-    if (ack) {
-        tx->transmitFrame(ack, sifs, this);
-        recipientAckProcedure->processTransmittedAck(ack);
+    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
+        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
+        if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
+            auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
+            tx->transmitFrame(ack, sifs, this);
+            recipientAckProcedure->processTransmittedAck(ack);
+        }
     }
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         sendUp(recipientDataService->dataFrameReceived(dataFrame));

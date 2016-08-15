@@ -43,7 +43,7 @@ class INET_API RateSelection : public IRateSelection, public cSimpleModule, publ
         IRateControl *dataOrMgmtRateControl = nullptr;
 
         const Ieee80211ModeSet *modeSet = nullptr;
-        std::map<MACAddress, IIeee80211Mode *> lastTransmittedFrameMode;
+        std::map<MACAddress, const IIeee80211Mode *> lastTransmittedFrameMode;
 
         // originator frame modes
         const IIeee80211Mode *multicastFrameMode = nullptr;
@@ -62,7 +62,7 @@ class INET_API RateSelection : public IRateSelection, public cSimpleModule, publ
         virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
 
         virtual const IIeee80211Mode *getMode(Ieee80211Frame *frame);
-        virtual const IIeee80211Mode *computeControlFrameMode(Ieee80211Frame *frame, TxopProcedure *txopProcedure);
+        virtual const IIeee80211Mode *computeControlFrameMode(Ieee80211Frame *frame);
         virtual const IIeee80211Mode *computeResponseControlFrameMode(Ieee80211Frame *frame);
         virtual const IIeee80211Mode *computeDataOrMgmtFrameMode(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
 

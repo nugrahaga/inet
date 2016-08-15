@@ -19,6 +19,7 @@
 #define __INET_QOSRATESELECTION_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRateControl.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -42,7 +43,7 @@ class INET_API QoSRateSelection : public IQoSRateSelection, public cSimpleModule
         IRateControl *dataOrMgmtRateControl = nullptr;
 
         const Ieee80211ModeSet *modeSet = nullptr;
-        std::map<MACAddress, IIeee80211Mode *> lastTransmittedFrameMode;
+        std::map<MACAddress, const IIeee80211Mode *> lastTransmittedFrameMode;
 
         // originator frame modes
         const IIeee80211Mode *multicastFrameMode = nullptr;

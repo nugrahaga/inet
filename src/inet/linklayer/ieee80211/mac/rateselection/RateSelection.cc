@@ -84,12 +84,12 @@ const IIeee80211Mode* RateSelection::computeDataOrMgmtFrameMode(Ieee80211DataOrM
 
 }
 
-const IIeee80211Mode* RateSelection::computeControlFrameMode(Ieee80211Frame* frame, TxopProcedure *txopProcedure)
+const IIeee80211Mode* RateSelection::computeControlFrameMode(Ieee80211Frame* frame)
 {
 
 }
 
-const IIeee80211Mode* RateSelection::computeMode(Ieee80211Frame* frame, TxopProcedure *txopProcedure)
+const IIeee80211Mode* RateSelection::computeMode(Ieee80211Frame* frame)
 {
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame))
         return computeDataOrMgmtFrameMode(dataOrMgmtFrame);
@@ -108,11 +108,6 @@ void RateSelection::frameTransmitted(Ieee80211Frame* frame)
 {
     auto receiverAddr = frame->getReceiverAddress();
     lastTransmittedFrameMode[receiverAddr] = getMode(frame);
-}
-
-const Ieee80211ModeSet* RateSelection::getModeSet()
-{
-    return modeSet;
 }
 
 } // namespace ieee80211

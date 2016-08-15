@@ -48,7 +48,7 @@ class INET_API CtsProcedure : public cListener
         void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
         Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
-        simtime_t getCtsDuration() const;
+        simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
 
     public:
         CtsProcedure(IRx *rx, IRateSelection *rateSelection);

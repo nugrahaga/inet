@@ -15,14 +15,11 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
+#include "inet/common/NotifierConsts.h"
 #include "OriginatorAckProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
-
-OriginatorAckProcedure::OriginatorAckProcedure()
-{
-}
 
 //
 // After transmitting an MPDU that requires an ACK frame as a response (see Annex G), the STA shall wait for an
@@ -33,7 +30,14 @@ OriginatorAckProcedure::OriginatorAckProcedure()
 //
 simtime_t OriginatorAckProcedure::getTimeout() const
 {
-    return sifs + slotTime + phyRxStartDelay;
+    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
+}
+
+
+void OriginatorAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

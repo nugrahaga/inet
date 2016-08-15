@@ -27,21 +27,18 @@ namespace ieee80211 {
 // frame, plus one ACK or BlockAck frame if required, plus any NDPs required, plus explicit
 // feedback if required, plus applicable IFS durations.
 //
-simtime_t SingleProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFrame* rtsFrame, Ieee80211Frame *pendingFrame)
+simtime_t SingleProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFrame* rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
 {
     // TODO: We assume that the RTS frame is not part of a dual clear-to-send
-    simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
+    simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
     simtime_t ctsFrameDuration = rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
-    simtime_t durationId = ctsFrameDuration + pendingFrameDuration;
-    int numOfSifs = 2;
+    simtime_t durationId = ctsFrameDuration + sifs + pendingFrameDuration + sifs;
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(pendingFrame)) {
         if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
             simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
-            durationId += ackFrameDuration;
-            numSifs++;
+            durationId += ackFrameDuration + sifs;
         }
     }
-    durationId += numSifs * sifs;
     return durationId;
 }
 
@@ -105,12 +102,12 @@ simtime_t SingleProtectionMechanism::computeBlockAckDurationPerId(Ieee80211Block
 //  ii) Otherwise, the estimated time required for the transmission of the following frame and its
 //      response frame, if required (including appropriate IFS values)
 //
-simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationPerId(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, TxopProcedure *txop)
+simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationPerId(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
 {
     bool mgmtFrame = false;
     bool mgmtFrameWithNoAck = false;
     bool groupAddressed = dataOrMgmtFrame->getReceiverAddress().isMulticast();
-    if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(dataOrMgmtFrame)) {
+    if (dynamic_cast<Ieee80211ManagementFrame*>(dataOrMgmtFrame)) {
         mgmtFrame = true;
         mgmtFrameWithNoAck = false; // FIXME: ack policy?
     }
@@ -118,44 +115,44 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationPerId(Ieee802
     bool individuallyAddressedDataWithNormalAck = false;
     bool individuallyAddressedDataWithNoAckOrBlockAck = false;
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(dataOrMgmtFrame)) {
-        individuallyAddressDataWithNormalAck = !groupAddressed && dataFrame->getAckPolicy() == AckPolicy::NORMAL_ACK;
+        individuallyAddressedDataWithNormalAck = !groupAddressed && dataFrame->getAckPolicy() == AckPolicy::NORMAL_ACK;
         individuallyAddressedDataWithNoAckOrBlockAck = !groupAddressed && (dataFrame->getAckPolicy() == AckPolicy::NO_ACK || dataFrame->getAckPolicy() == AckPolicy::BLOCK_ACK);
     }
     if (mgmtFrame || nonQoSData || individuallyAddressedDataWithNormalAck) {
-        simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
+        simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
         if (txop->isFinalFragment(dataOrMgmtFrame)) {
             return ackFrameDuration + sifs;
         }
         else {
-            simtime_t pendingFrameDuration = rateSelection->getMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
+            simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
             return ackFrameDuration + sifs + pendingFrameDuration + sifs + ackFrameDuration + sifs;
         }
     }
     if (individuallyAddressedDataWithNoAckOrBlockAck || mgmtFrameWithNoAck || groupAddressed) {
-        if (txop->isFinalFragment(frame))
+        if (txop->isFinalFragment(dataOrMgmtFrame))
             return 0;
         else {
-            simtime_t pendingFrameDuration = rateSelection->getMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
+            simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
             // TODO: We assume that the response frame is always an ACK frame.
-            simtime_t ackFrameDuration = rateSelection->getResponseAckFrameMode()->getDuration(LENGTH_ACK);
+            simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
             return pendingFrameDuration + sifs + ackFrameDuration + sifs;
         }
     }
     throw cRuntimeError("Unknown frame");
 }
 
-simtime_t SingleProtectionMechanism::computeDurationPerId(Ieee80211Frame* frame, Ieee80211Frame *pendingFrame, TxopProcedure *txop)
+simtime_t SingleProtectionMechanism::computeDurationPerId(Ieee80211Frame* frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
 {
-    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame>(frame))
-        return computeRtsDurationPerId(rtsFrame, pendingFrame);
-    else if (auto ctsFrame = dynamic_cast<Ieee80211CTSFrame>(frame))
-        return computeCtsDurationPerId(cts);
+    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame*>(frame))
+        return computeRtsDurationPerId(rtsFrame, pendingFrame, txop);
+    else if (auto ctsFrame = dynamic_cast<Ieee80211CTSFrame*>(frame))
+        return computeCtsDurationPerId(ctsFrame);
     else if (auto blockAckReq = dynamic_cast<Ieee80211BlockAckReq*>(frame))
         return computeBlockAckReqDurationPerId(blockAckReq);
     else if (auto blockAck = dynamic_cast<Ieee80211BlockAck*>(frame))
         return computeBlockAckDurationPerId(blockAck);
     else if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame))
-        return computeMgmtOrNonQoSDataFrameDurationPerId(dataOrMgmtFrame, txop);
+        return computeDataOrMgmtFrameDurationPerId(dataOrMgmtFrame, pendingFrame, txop);
     else
         throw cRuntimeError("Unknown frame type");
 }

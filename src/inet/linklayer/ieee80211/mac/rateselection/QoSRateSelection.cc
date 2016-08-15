@@ -150,7 +150,7 @@ const IIeee80211Mode* QoSRateSelection::computeDataOrMgmtFrameMode(Ieee80211Data
 
 const IIeee80211Mode* QoSRateSelection::computeControlFrameMode(Ieee80211Frame* frame, TxopProcedure *txopProcedure)
 {
-    ASSERT(!isControlResponseFrame(frame));
+    ASSERT(!isControlResponseFrame(frame, txopProcedure));
     if (controlFrameMode)
         return controlFrameMode;
     // This subclause describes the rate selection rules for control frames that initiate a TXOP and that are not carried
@@ -214,7 +214,7 @@ const IIeee80211Mode* QoSRateSelection::computeMode(Ieee80211Frame* frame, TxopP
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame))
         return computeDataOrMgmtFrameMode(dataOrMgmtFrame);
     else
-        return computeControlFrameMode(frame);
+        return computeControlFrameMode(frame, txopProcedure);
 }
 
 void QoSRateSelection::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
@@ -228,11 +228,6 @@ void QoSRateSelection::frameTransmitted(Ieee80211Frame* frame)
 {
     auto receiverAddr = frame->getReceiverAddress();
     lastTransmittedFrameMode[receiverAddr] = getMode(frame);
-}
-
-const Ieee80211ModeSet* QoSRateSelection::getModeSet()
-{
-    return modeSet;
 }
 
 } /* namespace ieee80211 */

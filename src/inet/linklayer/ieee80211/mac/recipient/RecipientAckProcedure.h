@@ -44,18 +44,18 @@ class INET_API RecipientAckProcedure : public cListener
         Ieee80211ModeSet *modeSet = nullptr;
 
     protected:
-        simtime_t getAckDuration() const;
+        simtime_t getAckDuration(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
         void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
     public:
         virtual ~RecipientAckProcedure() { };
         RecipientAckProcedure(IRateSelection *rateSelection);
 
-        static bool isAckNeeded(Ieee80211Frame *frame);
+        static bool isAckNeeded(Ieee80211DataOrMgmtFrame *frame);
 
-        virtual void processReceivedFrame(Ieee80211Frame *frame);
+        virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
         virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
-        virtual Ieee80211ACKFrame* buildAck(Ieee80211Frame *frame);
+        virtual Ieee80211ACKFrame* buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
 };
 
 } /* namespace ieee80211 */

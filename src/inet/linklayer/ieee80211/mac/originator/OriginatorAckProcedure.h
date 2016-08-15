@@ -24,15 +24,16 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorAckProcedure
+class INET_API OriginatorAckProcedure : public cListener
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
+        Ieee80211ModeSet *modeSet = nullptr;
+
+    protected:
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
     public:
-        OriginatorAckProcedure();
-
-        simtime_t getTimeout() const;
+        virtual simtime_t getTimeout() const;
 };
 
 } /* namespace ieee80211 */

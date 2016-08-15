@@ -44,7 +44,7 @@ void Hcf::initialize(int stage)
         // TODO: sifs
         originatorDataService = check_and_cast<OriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
         recipientDataService = check_and_cast<RecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
-        originatorAckProcedure = new OriginatorAckProcedure(rateSelection);
+        originatorAckProcedure = new OriginatorAckProcedure();
         originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
         recipientAckProcedure = new RecipientAckProcedure(rateSelection);
         ctsProcedure = new CtsProcedure(rx, rateSelection);
@@ -166,11 +166,13 @@ void Hcf::frameSequenceFinished()
 
 void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
-    recipientAckProcedure->processReceivedFrame(frame);
-    if (RecipientAckProcedure::isAckNeeded(frame)) {
-        auto ack = recipientAckProcedure->buildAck(frame);
-        tx->transmitFrame(ack, sifs, this);
-        recipientAckProcedure->processTransmittedAck(ack);
+    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
+        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
+        if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
+            auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
+            tx->transmitFrame(ack, sifs, this);
+            recipientAckProcedure->processTransmittedAck(ack);
+        }
     }
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         if (dataFrame->getType() == ST_DATA_WITH_QOS)

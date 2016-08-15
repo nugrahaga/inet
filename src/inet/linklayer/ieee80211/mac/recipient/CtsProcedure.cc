@@ -16,6 +16,7 @@
 //
 
 #include "CtsProcedure.h"
+#include "inet/common/NotifierConsts.h"
 #include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.h"
 
 namespace inet {
@@ -32,9 +33,9 @@ void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame)
     // don't care
 }
 
-simtime_t CtsProcedure::getCtsDuration() const
+simtime_t CtsProcedure::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
 {
-    return rateSelection->computeResponseCtsFrameMode()->getDuration(LENGTH_CTS);
+    return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
 }
 
 simtime_t CtsProcedure::getTimeout() const
@@ -56,7 +57,7 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
     if (rx->isMediumFree()) {
         Ieee80211CTSFrame *cts = new Ieee80211CTSFrame("CTS");
         cts->setReceiverAddress(rtsFrame->getTransmitterAddress());
-        cts->setDuration(ceil(rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration()));
+        cts->setDuration(ceil(rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration(rtsFrame)));
         return cts;
     }
     else
@@ -70,7 +71,6 @@ void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 
 void CtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    Enter_Method("receiveModeSetChangeNotification");
     if (signalID == NF_MODESET_CHANGED)
         modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
