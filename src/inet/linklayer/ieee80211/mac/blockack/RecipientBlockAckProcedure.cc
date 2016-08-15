@@ -23,6 +23,8 @@
 namespace inet {
 namespace ieee80211 {
 
+Define_Module(RecipientBlockAckProcedure);
+
 RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler* agreementHandler, IQoSRateSelection *rateSelection) :
         rateSelection(rateSelection),
         agreementHandler(agreementHandler)
@@ -32,15 +34,13 @@ RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreemen
 
 void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq)
 {
+    numReceivedBlockAckReq++;
 }
 
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
 {
-}
-
-simtime_t RecipientBlockAckProcedure::computeBasicBlockAckDuration(Ieee80211BlockAckReq* blockAckReq) const
-{
-    return rateSelection->computeResponseBlockAckFrameMode(blockAckReq)->getDuration(LENGTH_BASIC_BLOCKACK);
+    numSentBlockAck++;
+    delete blockAck;
 }
 
 //
@@ -55,40 +55,24 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
         Tid tid = basicBlockAckReq->getTidInfo();
         MACAddress originatorAddr = basicBlockAckReq->getTransmitterAddress();
         RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr);
-        if (agreement) {
-            Ieee80211BasicBlockAck *blockAck = new Ieee80211BasicBlockAck("BasicBlockAck");
-            int startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();
-            for (SequenceNumber seqNum = startingSequenceNumber; seqNum < startingSequenceNumber + 64; seqNum++) {
-                BitVector &bitmap = blockAck->getBlockAckBitmap(seqNum - startingSequenceNumber);
-                for (FragmentNumber fragNum = 0; fragNum < 16; fragNum++) {
-                    bool ackState = agreement->getBlockAckRecord()->getAckState(seqNum, fragNum);
-                    bitmap.setBit(fragNum, ackState);
-                }
+        ASSERT(agreement != nullptr);
+        Ieee80211BasicBlockAck *blockAck = new Ieee80211BasicBlockAck("BasicBlockAck");
+        int startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();
+        for (SequenceNumber seqNum = startingSequenceNumber; seqNum < startingSequenceNumber + 64; seqNum++) {
+            BitVector &bitmap = blockAck->getBlockAckBitmap(seqNum - startingSequenceNumber);
+            for (FragmentNumber fragNum = 0; fragNum < 16; fragNum++) {
+                bool ackState = agreement->getBlockAckRecord()->getAckState(seqNum, fragNum);
+                bitmap.setBit(fragNum, ackState);
             }
-            blockAck->setReceiverAddress(blockAckReq->getTransmitterAddress());
-            // For a BlockAck frame transmitted in response to a BlockAckReq frame or transmitted in response to a frame
-            // containing an implicit Block Ack request, the Duration/ID field is set to the value obtained from the
-            // Duration/ID field of the frame that elicited the response minus the time, in microseconds, between the end of
-            // the PPDU carrying the frame that elicited the response and the end of the PPDU carrying the BlockAck
-            // frame.
-            blockAck->setDuration(blockAckReq->getDuration() - modeSet->getSifsTime() - computeBasicBlockAckDuration(blockAckReq));
-            blockAck->setCompressedBitmap(false);
-            blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
-            blockAck->setTidInfo(tid);
-            return blockAck;
         }
-        else
-            return nullptr;
+        blockAck->setReceiverAddress(blockAckReq->getTransmitterAddress());
+        blockAck->setCompressedBitmap(false);
+        blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
+        blockAck->setTidInfo(tid);
+        return blockAck;
     }
     else
         throw cRuntimeError("Unsupported Block Ack Request");
-}
-
-void RecipientBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    //Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

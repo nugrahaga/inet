@@ -27,32 +27,16 @@ namespace ieee80211 {
 //
 // 9.3.2.8 ACK procedure
 //
-// The cases when an ACK frame can be generated are shown in the frame exchange sequences listed in
-// Annex G.
-// On receipt of a management frame of subtype Action NoAck, a STA shall not send an ACK frame in response.
-// Upon successful reception of a frame of a type that requires acknowledgment with the To DS field set, an AP
-// shall generate an ACK frame. An ACK frame shall be transmitted by the destination STA that is not an AP,
-// when it successfully receives an individually addressed frame of a type that requires acknowledgment, but not
-// if it receives a group addressed frame of such type. After a successful reception of a frame requiring
-// acknowledgment, transmission of the ACK frame shall commence after a SIFS period, without regard to the
-// busy/idle state of the medium. (See Figure 9-9.)
+// After a successful reception of a frame requiring acknowledgment, transmission of the ACK frame
+// shall commence after a SIFS period, without regard to the busy/idle state of the medium. (See Figure 9-9.)
 //
-class INET_API RecipientAckProcedure : public cListener
+class INET_API RecipientAckProcedure
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
-        Ieee80211ModeSet *modeSet = nullptr;
-
-    protected:
-        simtime_t getAckDuration(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        int numReceivedAckableFrame = 0;
+        int numSentAck = 0;
 
     public:
-        virtual ~RecipientAckProcedure() { };
-        RecipientAckProcedure(IRateSelection *rateSelection);
-
-        static bool isAckNeeded(Ieee80211DataOrMgmtFrame *frame);
-
         virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
         virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
         virtual Ieee80211ACKFrame* buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);

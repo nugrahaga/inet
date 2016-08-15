@@ -167,9 +167,10 @@ void Hcf::frameSequenceFinished()
 void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
-        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
-        if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
+        if (recipientAckPolicy->isAckNeeded(dataOrMgmtFrame)) {
+            recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
             auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
+            ack->setDuration(recipientAckPolicy->computeAckDurationField(dataOrMgmtFrame));
             tx->transmitFrame(ack, sifs, this);
             recipientAckProcedure->processTransmittedAck(ack);
         }
@@ -193,16 +194,18 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
 {
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame)) {
         ctsProcedure->processReceivedRts(rtsFrame);
-        auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
-        if (ctsFrame) {
+        if (ctsPolicy->isCtsNeeded(rtsFrame)) {
+            auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
+            ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
             tx->transmitFrame(ctsFrame, sifs, this);
             ctsProcedure->processTransmittedCts(ctsFrame);
         }
     }
-    else if (auto blockAckRequest = dynamic_cast<Ieee80211BlockAckReq*>(frame)) {
+    else if (auto blockAckRequest = dynamic_cast<Ieee80211BasicBlockAckReq*>(frame)) {
         recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest);
-        auto blockAck = recipientBlockAckProcedure->buildBlockAck(blockAckRequest);
-        if (blockAck) {
+        if (recipientAckPolicy->isBlockAckNeeded(blockAckRequest)) {
+            auto blockAck = recipientBlockAckProcedure->buildBlockAck(blockAckRequest);
+            blockAck->setDuration(recipientAckPolicy->computeBasicBlockAckDurationField(blockAckRequest));
             tx->transmitFrame(blockAck, sifs, this);
             recipientBlockAckProcedure->processTransmittedBlockAck(blockAck);
         }

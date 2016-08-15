@@ -22,57 +22,25 @@
 namespace inet {
 namespace ieee80211 {
 
-CtsProcedure::CtsProcedure(IRx *rx, IRateSelection *rateSelection) :
-    rx(rx),
-    rateSelection(rateSelection)
-{
-}
-
 void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame)
 {
-    // don't care
+    numReceivedRts++;
 }
 
-simtime_t CtsProcedure::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
-{
-    return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
-}
-
-simtime_t CtsProcedure::getTimeout() const
-{
-    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
-}
-
-//
-// A STA that is addressed by an RTS frame shall transmit a CTS frame after a SIFS period if the NAV at the
-// STA receiving the RTS frame indicates that the medium is idle. If the NAV at the STA receiving the RTS
-// indicates the medium is not idle, that STA shall not respond to the RTS frame. The RA field of the CTS frame
-// shall be the value obtained from the TA field of the RTS frame to which this CTS frame is a response. The
-// Duration field in the CTS frame shall be the duration field from the received RTS frame, adjusted by
-// subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
-// determined by the rules in 9.7.
-//
 Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
 {
-    if (rx->isMediumFree()) {
-        Ieee80211CTSFrame *cts = new Ieee80211CTSFrame("CTS");
-        cts->setReceiverAddress(rtsFrame->getTransmitterAddress());
-        cts->setDuration(ceil(rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration(rtsFrame)));
-        return cts;
-    }
-    else
-        return nullptr;
+    Ieee80211CTSFrame *cts = new Ieee80211CTSFrame("CTS");
+    // The RA field of the CTS frame shall be the value
+    // obtained from the TA field of the to which this
+    // CTS frame is a response.
+    cts->setReceiverAddress(rtsFrame->getTransmitterAddress());
+    return cts;
 }
 
 void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 {
+    numSentCts++;
     delete ctsFrame;
-}
-
-void CtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

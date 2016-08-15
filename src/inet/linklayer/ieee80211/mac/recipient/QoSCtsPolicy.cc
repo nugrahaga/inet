@@ -15,28 +15,24 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
+#include "inet/common/ModuleAccess.h"
 #include "inet/common/NotifierConsts.h"
-#include "RecipientAckProcedure.h"
+#include "QoSCtsPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-void RecipientAckProcedure::processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
-{
-    numReceivedAckableFrame++;
-}
+Define_Module(QoSCtsPolicy);
 
-void RecipientAckProcedure::processTransmittedAck(Ieee80211ACKFrame* ack)
+//
+// For a CTS frame that is not part of a dual CTS sequence transmitted in response to an RTS frame, the
+// Duration/ID field is set to the value obtained from the Duration/ID field of the RTS frame that elicited the
+// response minus the time, in microseconds, between the end of the PPDU carrying the RTS frame and the end
+// of the PPDU carrying the CTS frame.
+//
+simtime_t QoSCtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* frame) const
 {
-    numSentAck++;
-    delete ack;
-}
-
-Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
-{
-    Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
-    ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
-    return ack;
+    return rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration(rtsFrame);
 }
 
 } /* namespace ieee80211 */

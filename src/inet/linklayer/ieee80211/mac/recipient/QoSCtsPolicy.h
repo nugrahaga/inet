@@ -13,31 +13,28 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "inet/common/NotifierConsts.h"
-#include "RecipientAckProcedure.h"
+#ifndef __INET_QOSCTSPOLICY_H
+#define __INET_QOSCTSPOLICY_H
+
+#include "inet/linklayer/ieee80211/mac/contract/IRx.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
+
+using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-void RecipientAckProcedure::processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
+class INET_API QoSCtsPolicy : public CtsPolicy
 {
-    numReceivedAckableFrame++;
-}
-
-void RecipientAckProcedure::processTransmittedAck(Ieee80211ACKFrame* ack)
-{
-    numSentAck++;
-    delete ack;
-}
-
-Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
-{
-    Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
-    ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
-    return ack;
-}
+    public:
+        virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const;
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif // ifndef __INET_QOSCTSPOLICY_H

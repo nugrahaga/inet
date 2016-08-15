@@ -65,11 +65,13 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // MAC Procedures
         AckHandler *ackHandler = nullptr;
         RecipientAckProcedure *recipientAckProcedure = nullptr;
+        RecipientAckPolicy *recipientAckPolicy = nullptr;
         OriginatorAckProcedure *originatorAckProcedure = nullptr;
         DcfTransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         CtsProcedure *ctsProcedure = nullptr;
+        CtsPolicy *ctsPolicy = nullptr;
         NonQoSRecoveryProcedure *recoveryProcedure = nullptr;
 
         // Queue
@@ -99,6 +101,8 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame) override;
         virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
         virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
+
+        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     protected:
         // IChannelAccess::ICallback

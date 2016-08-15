@@ -97,11 +97,12 @@ bool Dcf::isReceptionInProgress()
 void Dcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
-        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
-        if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
+        if (recipientAckPolicy->isAckNeeded(dataOrMgmtFrame)) {
+            recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
             auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
+            ack->setDuration(recipientAckPolicy->computeAckDurationField(dataOrMgmtFrame));
             tx->transmitFrame(ack, sifs, this);
-            recipientAckProcedure->processTransmittedAck(ack);
+            recipientAckProcedure->processTransmittedAck(ack); // TODO: too early
         }
     }
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
@@ -123,8 +124,10 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
 {
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame)) {
         ctsProcedure->processReceivedRts(rtsFrame);
-        auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
-        if (ctsFrame) {
+        if (ctsPolicy->isCtsNeeded(rtsFrame)) {
+            auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
+            ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
+            auto mode = rateSelection->computeResponseCtsFrameMode(rtsFrame);
             tx->transmitFrame(ctsFrame, sifs, this);
             ctsProcedure->processTransmittedCts(ctsFrame);
         }

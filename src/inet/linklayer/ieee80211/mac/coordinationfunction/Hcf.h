@@ -40,7 +40,9 @@
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/recipient/CtsProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/QoSCtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientQoSAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientQoSMacDataService.h"
 
 namespace inet {
@@ -74,9 +76,11 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // MAC Procedures
         RecipientAckProcedure *recipientAckProcedure = nullptr;
+        RecipientQoSAckPolicy *recipientAckPolicy = nullptr;
         OriginatorAckProcedure *originatorAckProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         CtsProcedure *ctsProcedure = nullptr;
+        QoSCtsPolicy *ctsPolicy = nullptr;
         OriginatorBlockAckProcedure *originatorBlockAckProcedure = nullptr;
         RecipientBlockAckProcedure *recipientBlockAckProcedure = nullptr;
         EdcaTransmitLifetimeHandler *lifetimeHandler = nullptr;

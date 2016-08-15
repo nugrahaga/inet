@@ -26,40 +26,17 @@
 namespace inet {
 namespace ieee80211 {
 
-//
-// 9.3.2.6 CTS procedure
-//
-// A STA that is addressed by an RTS frame shall transmit a CTS frame after a SIFS period if the NAV at the
-// STA receiving the RTS frame indicates that the medium is idle. If the NAV at the STA receiving the RTS
-// indicates the medium is not idle, that STA shall not respond to the RTS frame. The RA field of the CTS frame
-// shall be the value obtained from the TA field of the RTS frame to which this CTS frame is a response. The
-// Duration field in the CTS frame shall be the duration field from the received RTS frame, adjusted by
-// subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
-// determined by the rules in 9.7.
-//
-class INET_API CtsProcedure : public cListener
+class INET_API CtsProcedure
 {
     protected:
-        IRx *rx = nullptr;
-        Ieee80211ModeSet *modeSet = nullptr;
-        IRateSelection *rateSelection = nullptr;
-
-    protected:
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
-        Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
-        Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
-        simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
+        int numReceivedRts = 0;
+        int numSentCts = 0;
 
     public:
-        CtsProcedure(IRx *rx, IRateSelection *rateSelection);
-
         Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame *rtsFrame);
-        Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;
 
         void processReceivedRts(Ieee80211RTSFrame *rtsFrame);
         void processTransmittedCts(Ieee80211CTSFrame *ctsFrame);
-
-        simtime_t getTimeout() const;
 };
 
 } /* namespace ieee80211 */
