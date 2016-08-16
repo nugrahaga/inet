@@ -41,7 +41,7 @@ void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq
     if (ackPolicy->isBlockAckNeeded(blockAckRequest)) {
         auto blockAck = buildBlockAck(blockAckRequest);
         blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(blockAckRequest));
-        callback->transmitControlResponseFrame(blockAck, modeSet->getSifs(), this);
+        callback->transmitControlResponseFrame(blockAck, blockAckReq, modeSet->getSifs(), this);
         processTransmittedBlockAck(blockAck); // FIXME: too early
     }
 }
@@ -49,7 +49,6 @@ void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
 {
     numSentBlockAck++;
-    delete blockAck;
 }
 
 //

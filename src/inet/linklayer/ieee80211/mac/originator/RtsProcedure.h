@@ -43,8 +43,6 @@ class INET_API RtsProcedure : public cSimpleModule, public cListener
         Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
         Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
         bool isBroadcastOrMulticast(Ieee80211Frame *frame) const;
-        const IIeee80211Mode *getFrameMode(Ieee80211Frame *frame) const;
-        Ieee80211Frame *setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
     public:
         virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;

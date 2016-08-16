@@ -31,6 +31,7 @@ void OriginatorBlockAckAgreementPolicy::initialize()
     aMsduSupported = par("aMsduSupported");
     maximumAllowedBufferSize = par("maximumAllowedBufferSize");
     blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
+    addbaFailureTimeout = par("addbaFailureTimeout");
 }
 
 void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)
@@ -44,6 +45,12 @@ void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)
     Tid tid = id.second;
     MACAddress receiverAddr = id.first;
     hcf->processUpperFrame(agreementHandler->buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
+}
+
+simtime_t OriginatorBlockAckAgreementPolicy::getAddbaFailureTimeout() const
+{
+    // TODO: ADDBAFailureTimeout -- 6.3.29.2.2 Semantics of the service primitive
+    throw cRuntimeError("Unimplemented");
 }
 
 void OriginatorBlockAckAgreementPolicy::scheduleInactivityTimer(OriginatorBlockAckAgreement* agreement)
@@ -108,6 +115,13 @@ OriginatorBlockAckAgreementPolicy::~OriginatorBlockAckAgreementPolicy()
 void OriginatorBlockAckAgreementPolicy::agreementEstablished(OriginatorBlockAckAgreement* agreement)
 {
     scheduleInactivityTimer(agreement);
+}
+
+void OriginatorBlockAckAgreementPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

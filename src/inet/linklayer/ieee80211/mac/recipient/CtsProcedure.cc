@@ -37,7 +37,7 @@ void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame, ICtsPolicy *c
     if (ctsPolicy->isCtsNeeded(rtsFrame)) {
         auto ctsFrame = buildCts(rtsFrame);
         ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
-        callback->transmitControlResponseFrame(ctsFrame, modeSet->getSifsTime());
+        callback->transmitControlResponseFrame(ctsFrame, rtsFrame, modeSet->getSifsTime());
         processTransmittedCts(ctsFrame); // FIXME: too early
     }
     // If the NAV at the STA receiving the RTS indicates the medium is not idle,
@@ -58,7 +58,6 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
 void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 {
     numSentCts++;
-    delete ctsFrame;
 }
 
 void CtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)

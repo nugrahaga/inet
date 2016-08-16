@@ -42,19 +42,20 @@ void OriginatorBlockAckAgreementHandler::createAgreement(Ieee80211AddbaRequest *
 
 simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestTimeout() const
 {
+    // FIXME: policy
     return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
-Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber)
+Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy)
 {
     Ieee80211AddbaRequest *addbaRequest = new Ieee80211AddbaRequest("AddbaReq");
     addbaRequest->setReceiverAddress(receiverAddr);
     addbaRequest->setTid(tid);
-    addbaRequest->setAMsduSupported(aMsduSupported);
-    addbaRequest->setBlockAckTimeoutValue(blockAckTimeoutValue);
-    addbaRequest->setBufferSize(maximumAllowedBufferSize);
+    addbaRequest->setAMsduSupported(blockAckAgreementPolicy->isMsduSupported());
+    addbaRequest->setBlockAckTimeoutValue(blockAckAgreementPolicy->getBlockAckTimeoutValue());
+    addbaRequest->setBufferSize(blockAckAgreementPolicy->getMaximumAllowedBufferSize());
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
-    addbaRequest->setBlockAckPolicy(delayedBlockAckPolicySupported ? 0 : 1);
+    addbaRequest->setBlockAckPolicy(blockAckAgreementPolicy->isDelayedAckPolicySupported() ? 0 : 1);
     addbaRequest->setStartingSequenceNumber(startingSequenceNumber);
     return addbaRequest;
 }
@@ -88,8 +89,13 @@ void OriginatorBlockAckAgreementHandler::terminateAgreement(MACAddress originato
     }
 }
 
-void OriginatorBlockAckAgreementHandler::processTransmittedDataOrMgmtFrame(Ieee80211DataOrMgmtFrame* frame, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
+void OriginatorBlockAckAgreementHandler::processTransmittedDataFrame(Ieee80211DataFrame* frame, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
 {
+    auto agreement = getAgreement(dataFrame->getReceiverAddress(), dataFrame->getTid());
+    if (blockAckAgreementPolicy->isAddbaReqNeeded(dataFrame) && agreement == nullptr) {
+        auto addbaReq = buildAddbaRequest(dataFrame->getReceiverAddress(), dataFrame->getTid(), dataFrame->getSequenceNumber() + 1, blockAckAgreementPolicy);
+        callback->processMgmtFrame(addbaReq);
+    }
 }
 
 void OriginatorBlockAckAgreementHandler::processReceivedAddbaResp(Ieee80211AddbaResponse* addbaResp, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
@@ -111,6 +117,23 @@ void OriginatorBlockAckAgreementHandler::updateAgreement(OriginatorBlockAckAgree
     agreement->setBlockAckTimeoutValue(addbaResp->getBlockAckTimeoutValue());
 }
 
+void OriginatorBlockAckAgreementHandler::processTransmittedAddbaReq(Ieee80211AddbaRequest* addbaReq)
+{
+    createAgreement(addbaReq);
+}
+
+void OriginatorBlockAckAgreementHandler::processReceivedBlockAck(Ieee80211BlockAck* blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy)
+{
+    auto agreement = getAgreement(blockAck->getTransmitterAddress(), blockAck->getTidInfo());
+    if (agreement)
+        blockAckAgreementPolicy->blockAckReceived(agreement);
+}
+
+void OriginatorBlockAckAgreementHandler::processTransmittedDelba(Ieee80211Delba* delba)
+{
+    terminateAgreement(delba->getReceiverAddress(), delba->getTid());
+}
+
 void OriginatorBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* delba, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy)
 {
     if (blockAckAgreementPolicy->isDelbaAccepted(delba))
@@ -126,5 +149,3 @@ void OriginatorBlockAckAgreementHandler::receiveSignal(cComponent* source, simsi
 
 } // namespace ieee80211
 }// namespace inet
-
-

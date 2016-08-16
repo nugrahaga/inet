@@ -25,12 +25,10 @@
 namespace inet {
 namespace ieee80211 {
 
-//
-// TODO: ADDBAFailureTimeout -- 6.3.29.2.2 Semantics of the service primitive
-//
-class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public IOriginatorBlockAckAgreementPolicy
+class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public cListener, public IOriginatorBlockAckAgreementPolicy
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
         OriginatorQoSAckPolicy *ackPolicy = nullptr;
         OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
         std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
@@ -40,11 +38,13 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public 
         bool aMsduSupported = false;
         int maximumAllowedBufferSize = -1;
         simtime_t blockAckTimeoutValue = -1;
+        simtime_t addbaFailureTimeout = -1;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize() override;
         virtual void handleMessage(cMessage* msg) override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
 
         virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);
         virtual std::pair<MACAddress, Tid> findAgreement(cMessage *inactivityTimer);
@@ -55,6 +55,8 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public 
         virtual bool isAddbaReqNeeded(Ieee80211DataFrame *frame) override;
         virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement) override;
         virtual bool isDelbaAccepted(Ieee80211Delba *delba) override;
+
+        virtual simtime_t getAddbaFailureTimeout() const override;
 
         virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement) override;
         virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement) override;

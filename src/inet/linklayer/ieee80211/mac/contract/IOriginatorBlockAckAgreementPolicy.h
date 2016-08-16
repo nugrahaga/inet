@@ -35,6 +35,8 @@ class INET_API IOriginatorBlockAckAgreementPolicy
         virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement) = 0;
         virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement) = 0;
 
+        virtual simtime_t getAddbaFailureTimeout() const = 0;
+
         virtual bool isMsduSupported() const = 0;
         virtual simtime_t getBlockAckTimeoutValue() const = 0;
         virtual bool isDelayedAckPolicySupported() const = 0;

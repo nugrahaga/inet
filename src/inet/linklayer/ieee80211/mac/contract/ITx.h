@@ -37,7 +37,7 @@ class INET_API ITx
         {
             public:
                 virtual ~ICallback() {}
-                virtual void transmissionComplete() = 0;
+                virtual void transmissionComplete(Ieee80211Frame *frame) = 0;
         };
 
     public:

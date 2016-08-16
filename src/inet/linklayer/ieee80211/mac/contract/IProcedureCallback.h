@@ -28,7 +28,7 @@ class INET_API IProcedureCallback
     public:
         virtual ~IProcedureCallback() { }
 
-        virtual void transmitControlResponseFrame(Ieee80211Frame *frame, simtime_t ifs) = 0;
+        virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame, simtime_t ifs) = 0;
         virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) = 0;
 
 };

@@ -32,7 +32,7 @@ void RecipientAckProcedure::processReceivedFrame(Ieee80211DataOrMgmtFrame *dataO
     if (ackPolicy->isAckNeeded(dataOrMgmtFrame)) {
         auto ackFrame = recipientAckProcedure->buildAck(dataOrMgmtFrame);
         ackFrame->setDuration(ackPolicy->computeAckDurationField(dataOrMgmtFrame));
-        callback->transmitControlResponseFrame(ackFrame, modeSet->getSifs());
+        callback->transmitControlResponseFrame(ackFrame, dataOrMgmtFrame, modeSet->getSifs());
         processTransmittedAck(ackFrame); // FIXME: too early
     }
 }
@@ -40,7 +40,6 @@ void RecipientAckProcedure::processReceivedFrame(Ieee80211DataOrMgmtFrame *dataO
 void RecipientAckProcedure::processTransmittedAck(Ieee80211ACKFrame* ack)
 {
     numSentAck++;
-    delete ack;
 }
 
 Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)

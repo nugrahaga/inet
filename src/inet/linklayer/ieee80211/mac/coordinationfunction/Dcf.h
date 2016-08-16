@@ -116,7 +116,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void frameSequenceFinished() override;
 
         // ITx::ICallback
-        virtual void transmissionComplete() override;
+        virtual void transmissionComplete(Ieee80211Frame *frame) override;
 
     public:
         virtual ~Dcf();

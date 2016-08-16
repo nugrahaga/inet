@@ -112,6 +112,11 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
+void RecipientBlockAckAgreementHandler::processTransmittedAddbaResp(Ieee80211AddbaResponse* addbaResp)
+{
+    updateAgreement(addbaResp);
+}
+
 void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback)
 {
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
@@ -120,6 +125,11 @@ void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211Add
         auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
         callback->processMgmtFrame(addbaResponse);
     }
+}
+
+void RecipientBlockAckAgreementHandler::processTransmittedDelba(Ieee80211Delba* delba)
+{
+    terminateAgreement(delba->getReceiverAddress(), delba->getTid());
 }
 
 void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* delba, IRecipientBlockAckAgreementPolicy* blockAckAgreementPolicy)
@@ -137,4 +147,3 @@ void RecipientBlockAckAgreementHandler::receiveSignal(cComponent* source, simsig
 
 } // namespace ieee80211
 }// namespace inet
-

@@ -27,6 +27,10 @@
 namespace inet {
 namespace ieee80211 {
 
+/*
+ * This class implements...
+ * TODO: OriginatorBlockAckAgreementProcedure?
+ */
 class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule, public cListener
 {
     protected:
@@ -39,19 +43,21 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule, public
         virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
         virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
 
-        virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber);
+    protected:
+        virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy);
         virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        virtual simtime_t getAddbaRequestTimeout() const;
-
         virtual void createAgreement(Ieee80211AddbaRequest *addbaRequest);
         virtual void updateAgreement(OriginatorBlockAckAgreement *agreement, Ieee80211AddbaResponse *addbaResp);
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
         virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
 
     public:
-        virtual void processTransmittedDataOrMgmtFrame(Ieee80211DataOrMgmtFrame *frame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
+        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy);
+        virtual void processTransmittedAddbaReq(Ieee80211AddbaRequest *addbaReq);
+        virtual void processTransmittedDataFrame(Ieee80211DataFrame *frame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
         virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
         virtual void processReceivedDelba(Ieee80211Delba *delba, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy);
+        virtual void processTransmittedDelba(Ieee80211Delba *delba);
 };
 
 } // namespace ieee80211

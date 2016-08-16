@@ -82,11 +82,12 @@ void Tx::radioTransmissionFinished()
     if (transmitting) {
         EV_DETAIL << "Tx: radioTransmissionFinished()\n";
         transmitting = false;
+        auto transmittedFrame = inet::utils::dupPacketAndControlInfo(frame);
         frame = nullptr;
         ASSERT(txCallback != nullptr);
         ITx::ICallback *tmpTxCallback = txCallback;
         txCallback = nullptr;
-        tmpTxCallback->transmissionComplete();
+        tmpTxCallback->transmissionComplete(transmittedFrame);
         rx->frameTransmitted(durationField);
         if (hasGUI())
             updateDisplayString();

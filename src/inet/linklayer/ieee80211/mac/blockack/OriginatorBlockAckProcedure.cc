@@ -30,7 +30,6 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildCompressedBlockAckReqFra
     throw cRuntimeError("Unsupported feature");
     Ieee80211CompressedBlockAckReq *blockAckReq = new Ieee80211CompressedBlockAckReq("CompressedBlockAckReq");
     blockAckReq->setReceiverAddress(receiverAddress);
-    // FIXME: blockAckReq->setDuration();
     blockAckReq->setStartingSequenceNumber(startingSequenceNumber);
     blockAckReq->setTidInfo(tid);
     return blockAckReq;
@@ -47,8 +46,7 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildBasicBlockAckReqFrame(co
 
 simtime_t OriginatorBlockAckProcedure::getTimeout(Ieee80211BlockAckReq* blockAckReq) const
 {
-    auto mode = rateSelection->computeResponseBlockAckFrameMode(blockAckReq);
-    return mode->getSifsTime() + mode->getSlotTime() + mode->getPhyRxStartDelay();
+    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
 void OriginatorBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)

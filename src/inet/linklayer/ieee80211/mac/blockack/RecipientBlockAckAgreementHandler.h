@@ -53,14 +53,15 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule, public 
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
         virtual RecipientBlockAckAgreement* addAgreement(Ieee80211AddbaRequest *addbaReq);
         virtual void updateAgreement(Ieee80211AddbaResponse *frame);
-
         virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
         virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
+        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
 
     public:
+        virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp);
         virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
         virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
-        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
+        virtual void processTransmittedDelba(Ieee80211Delba *delba);
 };
 
 } // namespace ieee80211

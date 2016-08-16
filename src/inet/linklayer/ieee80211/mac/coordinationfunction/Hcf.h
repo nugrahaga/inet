@@ -132,9 +132,13 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual bool hasFrameToTransmit();
         virtual bool hasFrameToTransmit(AccessCategory ac);
 
+        // Recipient
         virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
         virtual void recipientProcessReceivedControlFrame(Ieee80211Frame *frame);
         virtual void recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame *frame);
+        virtual void recipientProcessTransmittedControlResponseFrame(Ieee80211Frame *frame);
+
+        // Originator
         virtual void originatorProcessTransmittedManagementFrame(Ieee80211ManagementFrame *mgmtFrame, AccessCategory ac);
         virtual void originatorProcessTransmittedControlFrame(Ieee80211Frame *controlFrame, AccessCategory ac);
         virtual void originatorProcessTransmittedDataFrame(Ieee80211DataFrame *dataFrame, AccessCategory ac);
@@ -158,10 +162,10 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void channelGranted(IChannelAccess *channelAccess) override;
 
         // ITx::ICallback
-        virtual void transmissionComplete() override;
+        virtual void transmissionComplete(Ieee80211Frame *frame) override;
 
         // IProcedureCallback
-        virtual void transmitControlResponseFrame(Ieee80211Frame *frame, simtime_t ifs) override;
+        virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame, simtime_t ifs) override;
         virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) override;
 
     public:
