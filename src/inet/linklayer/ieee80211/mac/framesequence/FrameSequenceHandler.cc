@@ -111,9 +111,6 @@ void FrameSequenceHandler::startFrameSequenceStep()
             case IFrameSequenceStep::Type::TRANSMIT: {
                 auto transmitStep = static_cast<TransmitStep *>(nextStep);
                 EV_INFO << "Transmitting, frame = " << transmitStep->getFrameToTransmit() << "\n";
-                // The allowable frame exchange sequence is defined by the rule frame sequence.
-                // Except where modified by the pifs attribute, frames are separated by a SIFS.
-                // (G.2 Basic sequences)
                 callback->transmitFrame(transmitStep->getFrameToTransmit(), transmitStep->getIfs());
                 // TODO: lifetime
                 // if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(transmitStep->getFrameToTransmit()))
