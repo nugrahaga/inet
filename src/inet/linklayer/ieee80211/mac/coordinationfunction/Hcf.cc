@@ -195,32 +195,16 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
 
 void Hcf::recipientProcessReceivedManagementFrame(Ieee80211ManagementFrame* frame)
 {
-    if (auto addbaRequest = dynamic_cast<Ieee80211AddbaRequest *>(frame)) {
-        if (recipientBlockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
-            auto agreement = recipientBlockAckAgreementHandler->addAgreement(addbaRequest);
-            recipientBlockAckAgreementPolicy->agreementEstablished(agreement); // TODO:
-            auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest, recipientBlockAckAgreementPolicy->aMsduSupported(), recipientBlockAckAgreementPolicy->getBlockAckTimeoutValue(), recipientBlockAckAgreementPolicy->getMaximumAllowedBufferSize(), recipientBlockAckAgreementPolicy->delayedBlockAckPolicySupported());
-            if (addbaResponse)
-                processUpperFrame(addbaResponse);
-        }
-    }
+    if (auto addbaRequest = dynamic_cast<Ieee80211AddbaRequest *>(frame))
+        recipientBlockAckAgreementHandler->processReceivedAddbaRequest(addbaRequest, recipientBlockAckAgreementPolicy, this);
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse *>(frame)) {
-        auto agreement = originatorBlockAckAgreementHandler->getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
-        if (originatorBlockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement)) {
-            originatorBlockAckAgreementHandler->updateAgreement(agreement, addbaResp);
-            originatorBlockAckAgreementPolicy->agreementEstablished(agreement);
-        }
+        originatorBlockAckAgreementHandler->processReceivedAddbaResp(addbaResp, originatorBlockAckAgreementPolicy, this)
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba*>(frame)) {
-        // 9.21.5 Teardown of the Block Ack mechanism
-        // When the originator has no data to send and the final Block Ack exchange has completed, it shall signal the end
-        // of its use of the Block Ack mechanism by sending the DELBA frame to its recipient. There is no management
-        // response frame from the recipient. The recipient of the DELBA frame shall release all resources allocated for
-        // the Block Ack transfer.
-        if (delba->getInitiator() && recipientBlockAckAgreementPolicy->isDelbaAccepted(delba))
-            recipientBlockAckAgreementHandler->terminateAgreement(delba->getReceiverAddress(), delba->getTid());
-        else if (originatorBlockAckAgreementPolicy->isDelbaAccepted(delba))
-            originatorBlockAckAgreementHandler->terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
+        if (delba->getInitiator())
+            recipientBlockAckAgreementHandler->processReceivedDelba(delba, recipientBlockAckAgreementPolicy);
+        else
+            originatorBlockAckAgreementHandler->processReceivedDelba(delba, originatorBlockAckAgreementPolicy);
     }
     else
         throw cRuntimeError("Unknown management frame");
@@ -496,6 +480,11 @@ void Hcf::transmitControlResponseFrame(Ieee80211Frame* frame, simtime_t ifs)
     tx->transmitFrame(frame, ifs, this);
 }
 
+void Hcf::processMgmtFrame(Ieee80211ManagementFrame* mgmtFrame)
+{
+    processUpperFrame(mgmtFrame);
+}
+
 void Hcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
  {
     ASSERT(frame->getControlInfo() == nullptr);
@@ -525,4 +514,3 @@ Hcf::~Hcf()
 
 } // namespace ieee80211
 } // namespace inet
-

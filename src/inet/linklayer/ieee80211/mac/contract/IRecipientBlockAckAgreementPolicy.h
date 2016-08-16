@@ -13,27 +13,33 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-// 
+//
 
-#ifndef __INET_IPROCEDURECALLBACK_H
-#define __INET_IPROCEDURECALLBACK_H
+#ifndef __IRECIPIENTBLOCKACKAGREEMENTPOLICY_H
+#define __IRECIPIENTBLOCKACKAGREEMENTPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API IProcedureCallback
+class INET_API IRecipientBlockAckAgreementPolicy
 {
     public:
-        virtual ~IProcedureCallback() { }
+        virtual ~IRecipientBlockAckAgreementPolicy() { }
 
-        virtual void transmitControlResponseFrame(Ieee80211Frame *frame, simtime_t ifs) = 0;
-        virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) = 0;
+        virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq) = 0;
+        virtual bool isDelbaAccepted(Ieee80211Delba* delba) = 0;
+        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame) = 0;
+        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement) = 0;
 
+        virtual simtime_t getBlockAckTimeoutValue() const = 0;
+        virtual bool aMsduSupported() const = 0;
+        virtual bool delayedBlockAckPolicySupported() const = 0;
+        virtual int getMaximumAllowedBufferSize() const = 0;
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif /* INET_LINKLAYER_IEEE80211_MAC_CONTRACT_IPROCEDURECALLBACK_H_ */
+#endif // ifndef __IRECIPIENTBLOCKACKAGREEMENTPOLICY_H

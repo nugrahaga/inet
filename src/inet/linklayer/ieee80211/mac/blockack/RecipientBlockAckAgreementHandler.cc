@@ -65,22 +65,20 @@ Ieee80211Delba* RecipientBlockAckAgreementHandler::buildDelba(MACAddress receive
     delba->setInitiator(false);
     delba->setTid(tid);
     delba->setReasonCode(reasonCode);
-    // TODO: single protection: delba->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
     return delba;
 }
 
-Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ieee80211AddbaRequest* frame, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported)
+Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ieee80211AddbaRequest* frame, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy)
 {
     Ieee80211AddbaResponse *addbaResponse = new Ieee80211AddbaResponse("AddbaResponse");
     addbaResponse->setReceiverAddress(frame->getTransmitterAddress());
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
     Tid tid = frame->getTid();
     addbaResponse->setTid(tid);
-    addbaResponse->setBlockAckPolicy(!frame->getBlockAckPolicy() && delayedBlockAckPolicySupported ? false : true);
-    addbaResponse->setBufferSize(frame->getBufferSize() <= maximumAllowedBufferSize ? frame->getBufferSize() : maximumAllowedBufferSize);
-    addbaResponse->setBlockAckTimeoutValue(blockAckTimeoutValue == 0 ? blockAckTimeoutValue : frame->getBlockAckTimeoutValue());
+    addbaResponse->setBlockAckPolicy(!frame->getBlockAckPolicy() && blockAckAgreementPolicy->delayedBlockAckPolicySupported() ? false : true);
+    addbaResponse->setBufferSize(frame->getBufferSize() <= blockAckAgreementPolicy->getMaximumAllowedBufferSize() ? frame->getBufferSize() : blockAckAgreementPolicy->getMaximumAllowedBufferSize());
+    addbaResponse->setBlockAckTimeoutValue(blockAckAgreementPolicy->getBlockAckTimeoutValue() == 0 ? blockAckAgreementPolicy->getBlockAckTimeoutValue() : frame->getBlockAckTimeoutValue());
     addbaResponse->setAMsduSupported(aMsduSupported);
-    addbaResponse->setDuration(rateSelection->computeResponseAckFrameMode(frame)->getDuration(LENGTH_ACK) + modeSet->getSifsTime());
     return addbaResponse;
 }
 
@@ -114,6 +112,22 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
+void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback)
+{
+    if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
+        auto agreement = addAgreement(addbaRequest);
+        blockAckAgreementPolicy->agreementEstablished(agreement);
+        auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
+        callback->processMgmtFrame(addbaResponse);
+    }
+}
+
+void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* delba, IRecipientBlockAckAgreementPolicy* blockAckAgreementPolicy)
+{
+    if (blockAckAgreementPolicy->isDelbaAccepted(delba))
+        terminateAgreement(delba->getReceiverAddress(), delba->getTid());
+}
+
 void RecipientBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
     Enter_Method("receiveModeSetChangeNotification");
@@ -122,4 +136,5 @@ void RecipientBlockAckAgreementHandler::receiveSignal(cComponent* source, simsig
 }
 
 } // namespace ieee80211
-} // namespace inet
+}// namespace inet
+

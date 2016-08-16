@@ -28,7 +28,7 @@ namespace ieee80211 {
 //
 // TODO: ADDBAFailureTimeout -- 6.3.29.2.2 Semantics of the service primitive
 //
-class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
+class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public IOriginatorBlockAckAgreementPolicy
 {
     protected:
         OriginatorQoSAckPolicy *ackPolicy = nullptr;
@@ -52,17 +52,17 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule
     public:
         ~OriginatorBlockAckAgreementPolicy();
 
-        virtual bool isAddbaReqNeeded(Ieee80211DataFrame *frame);
-        virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement);
-        virtual bool isDelbaAccepted(Ieee80211Delba *delba);
+        virtual bool isAddbaReqNeeded(Ieee80211DataFrame *frame) override;
+        virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement) override;
+        virtual bool isDelbaAccepted(Ieee80211Delba *delba) override;
 
-        virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement);
-        virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement);
+        virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement) override;
+        virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement) override;
 
-        virtual bool isMsduSupported() const { return aMsduSupported; }
-        virtual simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
-        virtual bool isDelayedAckPolicySupported() const { return delayedAckPolicySupported; }
-        virtual int getMaximumAllowedBufferSize() const { return maximumAllowedBufferSize; }
+        virtual bool isMsduSupported() const override { return aMsduSupported; }
+        virtual simtime_t getBlockAckTimeoutValue() const override { return blockAckTimeoutValue; }
+        virtual bool isDelayedAckPolicySupported() const override { return delayedAckPolicySupported; }
+        virtual int getMaximumAllowedBufferSize() const override { return maximumAllowedBufferSize; }
 };
 
 } /* namespace ieee80211 */

@@ -45,7 +45,7 @@ simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestTimeout() const
     return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
-Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported)
+Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber)
 {
     Ieee80211AddbaRequest *addbaRequest = new Ieee80211AddbaRequest("AddbaReq");
     addbaRequest->setReceiverAddress(receiverAddr);
@@ -56,9 +56,6 @@ Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MAC
     // The Block Ack Policy subfield is set to 1 for immediate Block Ack and 0 for delayed Block Ack.
     addbaRequest->setBlockAckPolicy(delayedBlockAckPolicySupported ? 0 : 1);
     addbaRequest->setStartingSequenceNumber(startingSequenceNumber);
-    // Within all management frames sent by the QoS STA, the Duration field contains a duration
-    // value as defined in 8.2.5.
-    // TODO: single protection mechanism addbaRequest->setDuration(rateSelection->getResponseControlFrameMode()->getDuration(LENGTH_ACK) + sifs);
     return addbaRequest;
 }
 
@@ -77,7 +74,6 @@ Ieee80211Delba* OriginatorBlockAckAgreementHandler::buildDelba(MACAddress receiv
     delba->setReasonCode(reasonCode);
     // The Initiator subfield indicates if the originator or the recipient of the data is sending this frame.
     delba->setInitiator(true);
-    // TODO: mgmt frame, single protection mechanism delba->setDuration(rateSelection->get()->getDuration(LENGTH_ACK) + sifs);
     return delba;
 }
 
@@ -92,11 +88,33 @@ void OriginatorBlockAckAgreementHandler::terminateAgreement(MACAddress originato
     }
 }
 
+void OriginatorBlockAckAgreementHandler::processTransmittedDataOrMgmtFrame(Ieee80211DataOrMgmtFrame* frame, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
+{
+}
+
+void OriginatorBlockAckAgreementHandler::processReceivedAddbaResp(Ieee80211AddbaResponse* addbaResp, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
+{
+    auto agreement = getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
+    if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement)) {
+        updateAgreement(agreement, addbaResp);
+        agreementEstablished(agreement);
+    }
+    else {
+        // TODO: send a new one?
+    }
+}
+
 void OriginatorBlockAckAgreementHandler::updateAgreement(OriginatorBlockAckAgreement* agreement, Ieee80211AddbaResponse* addbaResp)
 {
     agreement->setIsAddbaResponseReceived(true);
     agreement->setBufferSize(addbaResp->getBufferSize());
     agreement->setBlockAckTimeoutValue(addbaResp->getBlockAckTimeoutValue());
+}
+
+void OriginatorBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* delba, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy)
+{
+    if (blockAckAgreementPolicy->isDelbaAccepted(delba))
+        terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
 }
 
 void OriginatorBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
@@ -107,4 +125,6 @@ void OriginatorBlockAckAgreementHandler::receiveSignal(cComponent* source, simsi
 }
 
 } // namespace ieee80211
-} // namespace inet
+}// namespace inet
+
+

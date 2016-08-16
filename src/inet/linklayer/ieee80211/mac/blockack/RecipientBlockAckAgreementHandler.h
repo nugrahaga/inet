@@ -29,10 +29,12 @@ namespace ieee80211 {
 
 class RecipientBlockAckAgreement;
 
-//
-// 9.21.3 Data and acknowledgment transfer using immediate Block Ack policy and delayed
-// Block Ack policy
-//
+/*
+ * This class implements 9.21.3 Data and acknowledgment transfer using
+ * immediate Block Ack policy and delayed Block Ack policy
+ *
+ * TODO: RecipientBlockAckAgreementProcedure ?
+ */
 class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule, public cListener
 {
     protected:
@@ -42,20 +44,22 @@ class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule, public 
         std::map<std::pair<MACAddress, Tid>, RecipientBlockAckAgreement *> blockAckAgreements;
 
     protected:
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
-
-    public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
-        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
-        virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);
-
+    protected:
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
         virtual RecipientBlockAckAgreement* addAgreement(Ieee80211AddbaRequest *addbaReq);
         virtual void updateAgreement(Ieee80211AddbaResponse *frame);
 
+        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
+        virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
+
+    public:
+        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
+        virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
         virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
 };
 

@@ -162,6 +162,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // IProcedureCallback
         virtual void transmitControlResponseFrame(Ieee80211Frame *frame, simtime_t ifs) override;
+        virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) override;
 
     public:
         // ICoordinationFunction

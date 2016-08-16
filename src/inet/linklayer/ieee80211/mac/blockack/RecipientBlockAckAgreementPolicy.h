@@ -19,11 +19,12 @@
 #define __INET_RECIPIENTBLOCKACKAGREEMENTPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckAgreementPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
+class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule, public IRecipientBlockAckAgreementPolicy
 {
     protected:
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
@@ -45,16 +46,16 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule
     public:
         ~RecipientBlockAckAgreementPolicy();
 
-        virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq);
-        virtual bool isDelbaAccepted(Ieee80211Delba* delba);
-        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame);
+        virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq) override;
+        virtual bool isDelbaAccepted(Ieee80211Delba* delba) override;
+        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame) override;
 
-        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement);
+        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement) override;
 
-        simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
-        bool aMsduSupported() const { return isAMsduSupported; }
-        bool delayedBlockAckPolicySupported() const { return isDelayedBlockAckPolicySupported; }
-        int getMaximumAllowedBufferSize() const { return maximumAllowedBufferSize; }
+        virtual simtime_t getBlockAckTimeoutValue() const override { return blockAckTimeoutValue; }
+        virtual bool aMsduSupported() const override { return isAMsduSupported; }
+        virtual bool delayedBlockAckPolicySupported() const override { return isDelayedBlockAckPolicySupported; }
+        virtual int getMaximumAllowedBufferSize() const override { return maximumAllowedBufferSize; }
 };
 
 } /* namespace ieee80211 */
