@@ -55,6 +55,12 @@ s TxopProcedure::getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac)
     }
 }
 
+TxopProcedure::ProtectionMechanism TxopProcedure::selectProtectionMechanism(AccessCategory ac) const
+{
+    return ProtectionMechanism::SINGLE_PROTECTION;
+}
+
+
 simtime_t TxopProcedure::getStart() const
 {
     return start;
@@ -73,6 +79,9 @@ void TxopProcedure::startTxop(AccessCategory ac)
         auto referenceMode = modeSet->getSlowestMandatoryMode();
         limit = getTxopLimit(referenceMode, ac).get();
     }
+    // The STA selects between single and multiple protection when it transmits the first frame of a TXOP.
+    // All subsequent frames transmitted by the STA in the same TXOP use the same class of duration settings.
+    protectionMechanism = selectProtectionMechanism(ac);
     start = simTime();
 }
 
@@ -80,6 +89,7 @@ void TxopProcedure::startTxop(AccessCategory ac)
 void TxopProcedure::stopTxop()
 {
     start = -1;
+    protectionMechanism = ProtectionMechanism::UNDEFINED_PROTECTION;
 }
 
 simtime_t TxopProcedure::getRemaining() const
@@ -91,19 +101,19 @@ simtime_t TxopProcedure::getRemaining() const
 }
 
 // FIXME: implement!
-bool TxopProcedure::isFinalFragment(Ieee80211Frame* frame)
+bool TxopProcedure::isFinalFragment(Ieee80211Frame* frame) const
 {
     return false;
 }
 
 // FIXME: implement!
-bool TxopProcedure::isTxopInitiator(Ieee80211Frame* frame)
+bool TxopProcedure::isTxopInitiator(Ieee80211Frame* frame) const
 {
     return false;
 }
 
 // FIXME: implement!
-bool TxopProcedure::isTxopTerminator(Ieee80211Frame* frame)
+bool TxopProcedure::isTxopTerminator(Ieee80211Frame* frame) const
 {
     return false;
 }
@@ -116,5 +126,4 @@ void TxopProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObj
 }
 
 } // namespace ieee80211
-} // namespace inet
-
+}// namespace inet

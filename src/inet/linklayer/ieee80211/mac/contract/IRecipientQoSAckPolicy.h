@@ -15,31 +15,27 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __INET_QOSCTSPOLICY_H
-#define __INET_QOSCTSPOLICY_H
+#ifndef __INET_IRECIPIENTQOSACKPOLICY_H
+#define __INET_IRECIPIENTQOSACKPOLICY_H
 
-#include "inet/linklayer/ieee80211/mac/recipient/CtsPolicy.h"
-#include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
-
-using namespace inet::physicallayer;
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API QoSCtsPolicy : public CtsPolicy
+class INET_API IRecipientQoSAckPolicy
 {
-    protected:
-        IQoSRateSelection *rateSelection = nullptr;
-
-    protected:
-        virtual void initialize(int stage) override;
-        virtual simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const override;
-
     public:
-        virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const;
+        virtual ~IRecipientQoSAckPolicy() { }
+
+        virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const = 0;
+        virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq) const = 0;
+
+        virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const = 0;
+        virtual simtime_t computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq *basicBlockAckReq) const = 0;
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // ifndef __INET_QOSCTSPOLICY_H
+#endif // ifndef __INET_IRECIPIENTQOSACKPOLICY_H

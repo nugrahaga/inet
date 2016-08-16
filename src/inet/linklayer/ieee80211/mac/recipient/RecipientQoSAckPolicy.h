@@ -19,6 +19,8 @@
 #define __INET_RECIPIENTQOSACKPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 #include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
@@ -32,7 +34,7 @@ namespace ieee80211 {
 // The cases when an ACK frame can be generated are shown in the frame exchange sequences listed in
 // Annex G.
 //
-class INET_API RecipientQoSAckPolicy : public cSimpleModule, public cListener
+class INET_API RecipientQoSAckPolicy : public cSimpleModule, public cListener, public IRecipientAckPolicy, public IRecipientQoSAckPolicy
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -47,10 +49,10 @@ class INET_API RecipientQoSAckPolicy : public cSimpleModule, public cListener
         simtime_t computeAckDuration(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
 
     public:
-        virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const;
+        virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const override;
         virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq) const;
 
-        virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const;
+        virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const override;
         virtual simtime_t computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq *basicBlockAckReq) const;
 };
 

@@ -34,9 +34,14 @@ simtime_t RecipientAckPolicy::computeAckDuration(Ieee80211DataOrMgmtFrame* dataO
     return rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(dataOrMgmtFrame->getBitLength());
 }
 
-
+//
+// The cases when an ACK frame can be generated are shown in the frame exchange sequences listed in
+// Annex G. On receipt of a management frame of subtype Action NoAck, a STA shall not send an ACK frame
+// in response.
+//
 bool RecipientAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 {
+    // TODO: add mgmt NoAck check
     return !dataOrMgmtFrame->getTransmitterAddress().isMulticast();
 }
 

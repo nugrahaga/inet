@@ -28,7 +28,7 @@ using namespace inet::physicallayer;
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RecipientAckPolicy : public cSimpleModule, public cListener
+class INET_API RecipientAckPolicy : public cSimpleModule, public cListener, public IRecipientAckPolicy
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -42,9 +42,9 @@ class INET_API RecipientAckPolicy : public cSimpleModule, public cListener
         simtime_t computeAckDuration(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
 
     public:
-        virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const;
+        virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const override;
 
-        virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const;
+        virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const override;
 };
 
 } /* namespace ieee80211 */

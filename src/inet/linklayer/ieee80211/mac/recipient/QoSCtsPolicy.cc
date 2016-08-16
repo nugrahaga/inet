@@ -24,6 +24,20 @@ namespace ieee80211 {
 
 Define_Module(QoSCtsPolicy);
 
+void CtsPolicy::initialize(int stage)
+{
+    if (stage == INITSTAGE_LOCAL) {
+        rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
+        rateSelection = check_and_cast<IQoSRateSelection*>(par("rateSelectionModule"));
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+    }
+}
+
+simtime_t QoSCtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
+{
+    return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
+}
+
 //
 // For a CTS frame that is not part of a dual CTS sequence transmitted in response to an RTS frame, the
 // Duration/ID field is set to the value obtained from the Duration/ID field of the RTS frame that elicited the

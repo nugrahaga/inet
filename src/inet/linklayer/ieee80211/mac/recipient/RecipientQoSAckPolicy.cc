@@ -39,15 +39,33 @@ simtime_t RecipientQoSAckPolicy::computeAckDuration(Ieee80211DataOrMgmtFrame* da
     return rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(dataOrMgmtFrame->getBitLength());
 }
 
-
+//
+// The cases when an ACK frame can be generated are shown in the frame exchange sequences listed in
+// Annex G. On receipt of a management frame of subtype Action NoAck, a STA shall not send an ACK frame
+// in response.
+//
 bool RecipientQoSAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 {
+    // TODO: add mgmt frame NoAck check
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
         if (dataFrame->getAckPolicy() != NORMAL_ACK)
             return false;
     return !dataOrMgmtFrame->getTransmitterAddress().isMulticast();
 }
 
+//
+// If the immediate Block Ack policy is used, the recipient shall respond to a
+// Basic BlockAckReq frame with a Basic BlockAck frame.
+// TODO:
+// If the delayed Block Ack policy is used, the recipient shall respond to a Basic BlockAckReq frame with an
+// ACK frame. The recipient shall then send its Basic BlockAck response in a subsequently obtained TXOP.
+// Once the contents of the Basic BlockAck frame have been prepared, the recipient shall send this frame in the
+// earliest possible TXOP using the highest priority AC. The originator shall respond with an ACK frame upon
+// receipt of the Basic BlockAck frame. If delayed Block Ack policy is used and if the HC is the recipient, then
+// the HC may respond with a +CF-Ack frame if the Basic BlockAckReq frame is the final frame of the polled
+// TXOP’s frame exchange. If delayed Block Ack policy is used and if the HC is the originator, then the HC may
+// respond with a +CF-Ack frame if the Basic BlockAck frame is the final frame of the TXOP’s frame exchange.
+//
 bool RecipientQoSAckPolicy::isBlockAckNeeded(Ieee80211BlockAckReq* blockAckReq) const
 {
     if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq>(blockAckReq)) {
@@ -55,6 +73,8 @@ bool RecipientQoSAckPolicy::isBlockAckNeeded(Ieee80211BlockAckReq* blockAckReq) 
         MACAddress originatorAddr = basicBlockAckReq->getTransmitterAddress();
         RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr);
         return agreement != nullptr;
+        // TODO: The Basic BlockAckReq frame shall be discarded if all MSDUs referenced by this
+        // frame have been discarded from the transmit buffer due to expiry of their lifetime limit.
     }
     else
         throw cRuntimeError("Unsupported BlockAckReq");

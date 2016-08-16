@@ -166,16 +166,8 @@ void Hcf::frameSequenceFinished()
 
 void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
-    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
-        if (recipientAckPolicy->isAckNeeded(dataOrMgmtFrame)) {
-            recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
-            auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
-            ack->setDuration(recipientAckPolicy->computeAckDurationField(dataOrMgmtFrame));
-            setFrameMode(ack, rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame));
-            tx->transmitFrame(ack, sifs, this);
-            recipientAckProcedure->processTransmittedAck(ack);
-        }
-    }
+    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame))
+        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame, recipientAckPolicy, this);
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         if (dataFrame->getType() == ST_DATA_WITH_QOS)
             recipientBlockAckAgreementPolicy->qosFrameReceived(dataFrame);
@@ -193,26 +185,10 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 
 void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
 {
-    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame)) {
-        ctsProcedure->processReceivedRts(rtsFrame);
-        if (ctsPolicy->isCtsNeeded(rtsFrame)) {
-            auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
-            ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
-            setFrameMode(ctsFrame, rateSelection->computeResponseCtsFrameMode(rtsFrame));
-            tx->transmitFrame(ctsFrame, sifs, this);
-            ctsProcedure->processTransmittedCts(ctsFrame);
-        }
-    }
-    else if (auto blockAckRequest = dynamic_cast<Ieee80211BasicBlockAckReq*>(frame)) {
-        recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest);
-        if (recipientAckPolicy->isBlockAckNeeded(blockAckRequest)) {
-            auto blockAck = recipientBlockAckProcedure->buildBlockAck(blockAckRequest);
-            blockAck->setDuration(recipientAckPolicy->computeBasicBlockAckDurationField(blockAckRequest));
-            setFrameMode(blockAck, rateSelection->computeResponseBlockAckFrameMode(blockAckRequest));
-            tx->transmitFrame(blockAck, sifs, this);
-            recipientBlockAckProcedure->processTransmittedBlockAck(blockAck);
-        }
-    }
+    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame))
+        ctsProcedure->processReceivedRts(rtsFrame, ctsPolicy, this);
+    else if (auto blockAckRequest = dynamic_cast<Ieee80211BasicBlockAckReq*>(frame))
+        recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest, recipientAckPolicy, this);
     else
         throw cRuntimeError("Unknown control frame");
 }
@@ -495,22 +471,29 @@ void Hcf::sendUp(const std::vector<Ieee80211Frame*>& completeFrames)
     }
 }
 
-bool Hcf::isReceptionInProgress()
-{
-    return rx->isReceptionInProgress();
-}
-
 void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
     auto channelOwner = edca->getChannelOwner();
     if (channelOwner) {
         AccessCategory ac = channelOwner->getAccessCategory();
-        setFrameMode(frame, rateSelection->computeMode(frame, edcaTxops[ac]));
-        frame->setDuration(singleProtectionMechanism->computeDurationField(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
+        auto txop = edcaTxops[ac];
+        setFrameMode(frame, rateSelection->computeMode(frame, txop));
+        if (txop->getProtectionMechanism() == TxopProcedure::ProtectionMechanism::SINGLE_PROTECTION)
+            frame->setDuration(singleProtectionMechanism->computeDurationField(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
+        else if (txop->getProtectionMechanism() == TxopProcedure::ProtectionMechanism::DOUBLE_PROTECTION)
+            throw cRuntimeError("Double protection is unsupported");
+        else
+            throw cRuntimeError("Undefined protection mechanism");
         tx->transmitFrame(frame, ifs, this);
     }
     else
         throw cRuntimeError("Hcca is unimplemented");
+}
+
+void Hcf::transmitControlResponseFrame(Ieee80211Frame* frame, simtime_t ifs)
+{
+    // FIXME: set mode
+    tx->transmitFrame(frame, ifs, this);
 }
 
 void Hcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
@@ -519,6 +502,12 @@ void Hcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
     Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
     ctrl->setMode(mode);
     frame->setControlInfo(ctrl);
+}
+
+
+bool Hcf::isReceptionInProgress()
+{
+    return rx->isReceptionInProgress();
 }
 
 Hcf::~Hcf()
@@ -536,3 +525,4 @@ Hcf::~Hcf()
 
 } // namespace ieee80211
 } // namespace inet
+

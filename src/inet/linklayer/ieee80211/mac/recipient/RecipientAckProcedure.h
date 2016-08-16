@@ -24,22 +24,24 @@
 namespace inet {
 namespace ieee80211 {
 
-//
-// 9.3.2.8 ACK procedure
-//
-// After a successful reception of a frame requiring acknowledgment, transmission of the ACK frame
-// shall commence after a SIFS period, without regard to the busy/idle state of the medium. (See Figure 9-9.)
-//
-class INET_API RecipientAckProcedure
+/*
+ * This class implements 9.3.2.8 ACK procedure
+ */
+class INET_API RecipientAckProcedure : public cSimpleModule, public cListener
 {
     protected:
         int numReceivedAckableFrame = 0;
         int numSentAck = 0;
 
-    public:
-        virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
-        virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
         virtual Ieee80211ACKFrame* buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
+
+    public:
+        virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame, IRecipientAckPolicy *ackPolicy, IProcedureCallback *callback);
+        virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
 };
 
 } /* namespace ieee80211 */

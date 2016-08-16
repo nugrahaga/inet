@@ -19,35 +19,36 @@
 #define __INET_RECIPIENTBLOCKACKPROCEDURE_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
-#include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
+
+using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-//
-// 9.3.2.9 BlockAck procedure
-//
-// Upon successful reception of a frame of a type that requires an immediate BlockAck response, the receiving
-// STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
-// The rules that specify the contents of this BlockAck frame are defined in 9.21.
-//
-class INET_API RecipientBlockAckProcedure : public cSimpleModule
+/*
+ * This class implements 9.3.2.9 BlockAck procedure
+ */
+class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListener
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
+        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
         int numReceivedBlockAckReq = 0;
         int numSentBlockAck = 0;
-
-        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize() override;
-        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
+
+        virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);
 
     public:
-        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq);
+        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback);
         virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck);
-        virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);
 };
 
 } /* namespace ieee80211 */

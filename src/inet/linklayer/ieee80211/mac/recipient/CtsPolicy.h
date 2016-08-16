@@ -28,7 +28,7 @@ using namespace inet::physicallayer;
 namespace inet {
 namespace ieee80211 {
 
-class INET_API CtsPolicy : public cSimpleModule, public cListener
+class INET_API CtsPolicy : public cSimpleModule, public cListener, public ICtsPolicy
 {
     protected:
         IRx *rx = nullptr;
@@ -40,11 +40,11 @@ class INET_API CtsPolicy : public cSimpleModule, public cListener
         virtual void initialize(int stage) override;
         virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
-        simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
+        virtual simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
 
     public:
-        virtual bool isCtsNeeded(Ieee80211RTSFrame *rtsFrame) const;
-        virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const;
+        virtual bool isCtsNeeded(Ieee80211RTSFrame *rtsFrame) const override;
+        virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const override;
 };
 
 } /* namespace ieee80211 */

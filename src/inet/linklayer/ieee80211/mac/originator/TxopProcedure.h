@@ -30,17 +30,28 @@ using namespace physicallayer;
 
 class INET_API TxopProcedure : public cSimpleModule, public cListener
 {
+    public:
+        // [...] transmitted under EDCA by a STA that initiates a TXOP, there are
+        // two classes of duration settings: single protection and multiple protection.
+        enum class ProtectionMechanism {
+            SINGLE_PROTECTION,
+            DOUBLE_PROTECTION,
+            UNDEFINED_PROTECTION
+        };
+
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
         simtime_t start = -1;
         simtime_t limit = -1;
+        ProtectionMechanism protectionMechanism = ProtectionMechanism::UNDEFINED_PROTECTION;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
         virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
-        s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
+        virtual s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
+        virtual ProtectionMechanism selectProtectionMechanism(AccessCategory ac) const;
 
     public:
         virtual void startTxop(AccessCategory ac);
@@ -50,9 +61,11 @@ class INET_API TxopProcedure : public cSimpleModule, public cListener
         virtual simtime_t getLimit() const;
         virtual simtime_t getRemaining() const;
 
-        virtual bool isFinalFragment(Ieee80211Frame *frame);
-        virtual bool isTxopInitiator(Ieee80211Frame *frame);
-        virtual bool isTxopTerminator(Ieee80211Frame *frame);
+        virtual bool isFinalFragment(Ieee80211Frame *frame) const;
+        virtual bool isTxopInitiator(Ieee80211Frame *frame) const;
+        virtual bool isTxopTerminator(Ieee80211Frame *frame) const;
+
+        virtual ProtectionMechanism getProtectionMechanism() const { return protectionMechanism; }
 };
 
 } /* namespace ieee80211 */

@@ -28,6 +28,7 @@ void CtsPolicy::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
+        rateSelection = check_and_cast<IRateSelection*>(par("rateSelectionModule"));
         getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
     }
 }
@@ -37,6 +38,7 @@ simtime_t CtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
     return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
 }
 
+//
 // The Duration field in the CTS frame shall be the duration field from the received RTS frame, adjusted by
 // subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
 // determined by the rules in 9.7.

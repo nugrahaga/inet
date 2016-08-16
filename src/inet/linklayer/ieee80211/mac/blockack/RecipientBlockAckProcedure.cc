@@ -30,9 +30,20 @@ void RecipientBlockAckProcedure::initialize()
     agreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getModuleByPath(par("blockAckAgreementHandlerModule")));
 }
 
-void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq)
+//
+// Upon successful reception of a frame of a type that requires an immediate BlockAck response, the receiving
+// STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
+// The rules that specify the contents of this BlockAck frame are defined in 9.21.
+//
+void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback)
 {
     numReceivedBlockAckReq++;
+    if (ackPolicy->isBlockAckNeeded(blockAckRequest)) {
+        auto blockAck = buildBlockAck(blockAckRequest);
+        blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(blockAckRequest));
+        callback->transmitControlResponseFrame(blockAck, modeSet->getSifs(), this);
+        processTransmittedBlockAck(blockAck); // FIXME: too early
+    }
 }
 
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
@@ -72,6 +83,14 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
     else
         throw cRuntimeError("Unsupported Block Ack Request");
 }
+
+void RecipientBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+}
+
 
 } /* namespace ieee80211 */
 } /* namespace inet */

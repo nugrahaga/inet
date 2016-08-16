@@ -124,6 +124,7 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee802
             return ackFrameDuration + sifs;
         }
         else {
+            ASSERT(pendingFrame != nullptr);
             simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
             return ackFrameDuration + sifs + pendingFrameDuration + sifs + ackFrameDuration + sifs;
         }
@@ -132,6 +133,7 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee802
         if (txop->isFinalFragment(dataOrMgmtFrame))
             return 0;
         else {
+            ASSERT(pendingFrame != nullptr);
             simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
             // TODO: We assume that the response frame is always an ACK frame.
             simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);

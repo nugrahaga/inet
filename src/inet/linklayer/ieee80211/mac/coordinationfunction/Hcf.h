@@ -28,6 +28,7 @@
 #include "inet/linklayer/ieee80211/mac/channelaccess/Hcca.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/ITx.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceHandler.h"
 #include "inet/linklayer/ieee80211/mac/lifetime/EdcaTransmitLifetimeHandler.h"
@@ -54,7 +55,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Hybrid Coordination Function.
  */
-class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule
+class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public cSimpleModule
 {
     protected:
         Ieee80211Mac *mac = nullptr;
@@ -158,6 +159,9 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // ITx::ICallback
         virtual void transmissionComplete() override;
+
+        // IProcedureCallback
+        virtual void transmitControlResponseFrame(Ieee80211Frame *frame, simtime_t ifs) override;
 
     public:
         // ICoordinationFunction

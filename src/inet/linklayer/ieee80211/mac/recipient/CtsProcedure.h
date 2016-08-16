@@ -20,22 +20,30 @@
 
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRx.h"
+#include "inet/linklayer/ieee80211/mac/contract/ICtsPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API CtsProcedure
+/*
+ * This class implements 9.3.2.6 CTS procedure
+ */
+class INET_API CtsProcedure : public cSimpleModule, public cListener
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
         int numReceivedRts = 0;
         int numSentCts = 0;
 
-    public:
-        Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame *rtsFrame);
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
-        void processReceivedRts(Ieee80211RTSFrame *rtsFrame);
+    public:
+        void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback);
         void processTransmittedCts(Ieee80211CTSFrame *ctsFrame);
 };
 
