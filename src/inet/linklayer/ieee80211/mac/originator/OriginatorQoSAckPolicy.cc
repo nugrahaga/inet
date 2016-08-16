@@ -27,6 +27,8 @@ void OriginatorQoSAckPolicy::initialize()
 {
     maxBlockAckPolicyFrameLength = par("maxBlockAckPolicyFrameLength");
     blockAckReqTreshold = par("blockAckReqTreshold");
+    blockAckTimeout = par("blockAckTimeout");
+    ackTimeout = par("ackTimeout");
 }
 
 std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames)
@@ -62,7 +64,7 @@ bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211
 //    return true;
 }
 
-bool OriginatorQoSAckPolicy::isBaReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure)
+bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure)
 {
     // FIXME
     simtime_t remainingTxop = txopProcedure->getRemaining();
@@ -74,7 +76,7 @@ bool OriginatorQoSAckPolicy::isBaReqNeeded(InProgressFrames* inProgressFrames, T
     return false;
 }
 
-std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBaReqParameters(InProgressFrames *inProgressFrames)
+std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlockAckReqParameters(InProgressFrames *inProgressFrames)
 {
     auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
     for (auto outstandingFrames : outstandingFramesPerReceiver) {
@@ -117,6 +119,34 @@ bool OriginatorQoSAckPolicy::checkAgreementPolicy(Ieee80211DataFrame* frame, Ori
     bool aMsduOk = agreement->getIsAMsduSupported() || !frame->getAMsduPresent();
     // TODO: bool baPolicy = agreement->getIsDelayedBlockAckPolicySupported() || !frame->getAckPolicy();
     return !bufferFull && aMsduOk && (frame->getSequenceNumber() >= agreement->getStartingSequenceNumber()); // TODO: && baPolicy
+}
+
+//
+// After transmitting an MPDU that requires an ACK frame as a response (see Annex G), the STA shall wait for an
+// ACKTimeout interval, with a value of aSIFSTime + aSlotTime + aPHY-RX-START-Delay, starting at the
+// PHY-TXEND.confirm primitive. If a PHY-RXSTART.indication primitive does not occur during the
+// ACKTimeout interval, the STA concludes that the transmission of the MPDU has failed, and this STA shall
+// invoke its backoff procedure upon expiration of the ACKTimeout interval.
+//
+simtime_t OriginatorQoSAckPolicy::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame) const
+{
+    if (ackTimeout == -1)
+        return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
+    return ackTimeout;
+}
+
+simtime_t OriginatorQoSAckPolicy::getBlockAckTimeout(Ieee80211BlockAckReq* blockAckReq) const
+{
+    if (blockAckTimeout == -1)
+        return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
+    return blockAckTimeout;
+}
+
+void OriginatorQoSAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

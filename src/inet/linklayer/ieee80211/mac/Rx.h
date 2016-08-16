@@ -58,7 +58,6 @@ class INET_API Rx : public cSimpleModule, public IRx
         Rx();
         ~Rx();
 
-        virtual void setAddress(const MACAddress& address) override { this->address = address; }
         virtual bool isReceptionInProgress() const override;
         virtual bool isMediumFree() const override { return mediumFree; }
         virtual void receptionStateChanged(IRadio::ReceptionState newReceptionState) override;

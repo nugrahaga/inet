@@ -32,7 +32,9 @@
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/recipient/CtsProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/CtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientMacDataService.h"
 
 namespace inet {
@@ -43,7 +45,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Distributed Coordination Function.
  */
-class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule
+class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule, public cListener
 {
     protected:
         Ieee80211Mac *mac = nullptr;

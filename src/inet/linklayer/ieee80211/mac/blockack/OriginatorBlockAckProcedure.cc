@@ -20,9 +20,9 @@
 namespace inet {
 namespace ieee80211 {
 
-OriginatorBlockAckProcedure::OriginatorBlockAckProcedure(IQoSRateSelection* rateSelection) :
-    rateSelection(rateSelection)
+void OriginatorBlockAckProcedure::initialize(int stage)
 {
+
 }
 
 Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const
@@ -51,5 +51,14 @@ simtime_t OriginatorBlockAckProcedure::getTimeout(Ieee80211BlockAckReq* blockAck
     return mode->getSifsTime() + mode->getSlotTime() + mode->getPhyRxStartDelay();
 }
 
+void OriginatorBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+{
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+}
+
+
 } /* namespace ieee80211 */
 } /* namespace inet */
+

@@ -31,7 +31,7 @@ namespace ieee80211 {
 // STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
 // The rules that specify the contents of this BlockAck frame are defined in 9.21.
 //
-class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListener
+class INET_API RecipientBlockAckProcedure : public cSimpleModule
 {
     protected:
         int numReceivedBlockAckReq = 0;
@@ -40,11 +40,11 @@ class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListen
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
 
     protected:
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize() override;
+        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
 
     public:
-        RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler *agreementHandler, IQoSRateSelection *rateSelection);
-
         virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq);
         virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck);
         virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);

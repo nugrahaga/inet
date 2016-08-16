@@ -15,27 +15,35 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __INET_QOSCTSPOLICY_H
-#define __INET_QOSCTSPOLICY_H
+#ifndef __INET_ORIGINATORACKPOLICY_H
+#define __INET_ORIGINATORACKPOLICY_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IRx.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-#include "inet/linklayer/ieee80211/mac/recipient/CtsPolicy.h"
+#include "inet/common/INETDefs.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 #include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
 
 using namespace inet::physicallayer;
 
+
 namespace inet {
 namespace ieee80211 {
 
-class INET_API QoSCtsPolicy : public CtsPolicy
+class INET_API OriginatorAckPolicy : public cSimpleModule, public cListener
 {
+    protected:
+        Ieee80211ModeSet *modeSet = nullptr;
+        simtime_t ackTimeout = -1;
+
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize() override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+
     public:
-        virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const;
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // ifndef __INET_QOSCTSPOLICY_H
+#endif // __INET_ORIGINATORACKPOLICY_H

@@ -40,14 +40,14 @@ class INET_API SingleProtectionMechanism
         simtime_t sifs = -1;
 
     protected:
-        virtual simtime_t computeRtsDurationPerId(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
-        virtual simtime_t computeCtsDurationPerId(Ieee80211CTSFrame* ctsFrame);
-        virtual simtime_t computeBlockAckReqDurationPerId(Ieee80211BlockAckReq* blockAckReq);
-        virtual simtime_t computeBlockAckDurationPerId(Ieee80211BlockAck* blockAck);
-        virtual simtime_t computeDataOrMgmtFrameDurationPerId(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        virtual simtime_t computeRtsDurationField(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        virtual simtime_t computeCtsDurationField(Ieee80211CTSFrame* ctsFrame);
+        virtual simtime_t computeBlockAckReqDurationField(Ieee80211BlockAckReq* blockAckReq);
+        virtual simtime_t computeBlockAckDurationField(Ieee80211BlockAck* blockAck);
+        virtual simtime_t computeDataOrMgmtFrameDurationField(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
 
     public:
-        virtual simtime_t computeDurationPerId(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        virtual simtime_t computeDurationField(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
 };
 
 } /* namespace ieee80211 */

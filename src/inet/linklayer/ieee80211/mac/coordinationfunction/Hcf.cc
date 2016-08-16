@@ -506,7 +506,7 @@ void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
     if (channelOwner) {
         AccessCategory ac = channelOwner->getAccessCategory();
         setFrameMode(frame, rateSelection->computeMode(frame, edcaTxops[ac]));
-        frame->setDuration(singleProtectionMechanism->computeDurationPerId(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
+        frame->setDuration(singleProtectionMechanism->computeDurationField(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
         tx->transmitFrame(frame, ifs, this);
     }
     else

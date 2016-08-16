@@ -39,14 +39,12 @@ Ieee80211DataOrMgmtFrame* RecipientMacDataService::defragment(Ieee80211DataOrMgm
 
 std::vector<Ieee80211Frame*> RecipientMacDataService::dataOrMgmtFrameReceived(Ieee80211DataOrMgmtFrame* frame)
 {
-    // TODO: A-MPDU Deaggregation, MPDU Header+CRC Validation, Address1 Filtering, Duplicate Removal, MPDU Decryption
     if (duplicateRemoval && duplicateRemoval->isDuplicate(frame))
         return std::vector<Ieee80211Frame*>();
     Ieee80211DataOrMgmtFrame *defragmentedFrame = nullptr;
     if (basicReassembly) { // FIXME: defragmentation
         defragmentedFrame = defragment(frame);
     }
-    // TODO: MSDU Integrity, Replay Detection, A-MSDU Deagg., RX MSDU Rate Limiting
     return defragmentedFrame != nullptr ? std::vector<Ieee80211Frame*>({defragmentedFrame}) : std::vector<Ieee80211Frame*>();
 }
 

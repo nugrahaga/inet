@@ -22,15 +22,24 @@
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
+
+using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorQoSAckPolicy : public cSimpleModule
+class INET_API OriginatorQoSAckPolicy : public cSimpleModule, public cListener
 {
     protected:
+        Ieee80211ModeSet *modeSet = nullptr;
+
         int maxBlockAckPolicyFrameLength = -1;
         int blockAckReqTreshold = -1;
+
+        simtime_t blockAckTimeout = -1;
+        simtime_t ackTimeout = -1;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -44,8 +53,11 @@ class INET_API OriginatorQoSAckPolicy : public cSimpleModule
     public:
         virtual AckPolicy getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame);
-        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBaReqParameters(InProgressFrames *inProgressFrames);
-        virtual bool isBaReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure);
+        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames);
+        virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure);
+
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
+        virtual simtime_t getBlockAckTimeout(Ieee80211BlockAckReq *blockAckReq) const;
 };
 
 } /* namespace ieee80211 */

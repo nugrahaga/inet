@@ -34,13 +34,12 @@ class INET_API OriginatorBlockAckAgreementHandler : public cSimpleModule, public
         std::map<std::pair<MACAddress, Tid>, OriginatorBlockAckAgreement *> blockAckAgreements;
 
     protected:
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
-
-    public:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
 
+    public:
         virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
 
         virtual Ieee80211AddbaRequest *buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, bool aMsduSupported, simtime_t blockAckTimeoutValue, int maximumAllowedBufferSize, bool delayedBlockAckPolicySupported);

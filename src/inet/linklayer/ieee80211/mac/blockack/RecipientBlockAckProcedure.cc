@@ -25,12 +25,10 @@ namespace ieee80211 {
 
 Define_Module(RecipientBlockAckProcedure);
 
-RecipientBlockAckProcedure::RecipientBlockAckProcedure(RecipientBlockAckAgreementHandler* agreementHandler, IQoSRateSelection *rateSelection) :
-        rateSelection(rateSelection),
-        agreementHandler(agreementHandler)
+void RecipientBlockAckProcedure::initialize()
 {
+    agreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getModuleByPath(par("blockAckAgreementHandlerModule")));
 }
-
 
 void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq)
 {

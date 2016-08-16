@@ -22,4 +22,6 @@ simple OriginatorQoSAckPolicy
     parameters:
         int blockAckReqTreshold = default(5);
         int maxBlockAckPolicyFrameLength @unit("B") = default(1000B);
+        double blockAckTimeout @unit("s") = default(-1s);
+        double ackTimeout @unit("s") = default(-1s);
 }

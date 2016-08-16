@@ -15,11 +15,15 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "inet/common/NotifierConsts.h"
-#include "OriginatorAckProcedure.h"
+#include "OriginatorAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
+
+void OriginatorAckPolicy::initialize()
+{
+    ackTimeout = par("ackTimeout");
+}
 
 //
 // After transmitting an MPDU that requires an ACK frame as a response (see Annex G), the STA shall wait for an
@@ -28,17 +32,20 @@ namespace ieee80211 {
 // ACKTimeout interval, the STA concludes that the transmission of the MPDU has failed, and this STA shall
 // invoke its backoff procedure upon expiration of the ACKTimeout interval.
 //
-simtime_t OriginatorAckProcedure::getTimeout() const
+simtime_t OriginatorAckPolicy::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame) const
 {
-    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
+    if (ackTimeout == -1)
+        return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
+    return ackTimeout;
 }
 
-
-void OriginatorAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
+void OriginatorAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
+    Enter_Method("receiveModeSetChangeNotification");
     if (signalID == NF_MODESET_CHANGED)
         modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
