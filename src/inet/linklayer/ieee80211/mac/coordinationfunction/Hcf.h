@@ -54,6 +54,7 @@ class Ieee80211Mac;
 
 /**
  * Implements IEEE 802.11 Hybrid Coordination Function.
+ * FIXME: rateControl
  */
 class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public cSimpleModule
 {
