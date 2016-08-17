@@ -47,6 +47,7 @@ void RateSelection::initialize(int stage)
         double responseAckFrameBitrate = par("responseAckFrameBitrate");
         responseAckFrameMode = (responseAckFrameBitrate == -1) ? nullptr : modeSet->getMode(bps(responseAckFrameBitrate));
         double responseCtsFrameBitrate = par("responseCtsFrameBitrate");
+        responseCtsFrameMode = (responseCtsFrameBitrate == -1) ? nullptr : modeSet->getMode(bps(responseCtsFrameBitrate));
         fastestMandatoryMode = modeSet->getFastestMandatoryMode();
     }
 }
@@ -70,13 +71,12 @@ const IIeee80211Mode* RateSelection::getMode(Ieee80211Frame* frame)
 const IIeee80211Mode* RateSelection::computeResponseAckFrameMode(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
 {
     // TODO: BSSBasicRateSet
-    return getMode(dataOrMgmtFrame);
-}
+    return responseAckFrameMode ? responseAckFrameMode : getMode(dataOrMgmtFrame);}
 
 const IIeee80211Mode* RateSelection::computeResponseCtsFrameMode(Ieee80211RTSFrame *rtsFrame)
 {
     // TODO: BSSBasicRateSet
-    return getMode(rtsFrame);
+    return responseCtsFrameMode ? responseCtsFrameMode : getMode(rtsFrame);
 }
 
 const IIeee80211Mode* RateSelection::computeDataOrMgmtFrameMode(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame)

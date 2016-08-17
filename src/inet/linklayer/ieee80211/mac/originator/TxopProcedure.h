@@ -21,14 +21,12 @@
 #include "inet/common/INETDefs.h"
 #include "inet/linklayer/ieee80211/mac/common/AccessCategory.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
 namespace ieee80211 {
 
-using namespace physicallayer;
-
-class INET_API TxopProcedure : public cSimpleModule, public cListener
+class INET_API TxopProcedure : public ModeSetListener
 {
     public:
         // [...] transmitted under EDCA by a STA that initiates a TXOP, there are
@@ -48,7 +46,6 @@ class INET_API TxopProcedure : public cSimpleModule, public cListener
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
         virtual s getTxopLimit(const IIeee80211Mode *mode, AccessCategory ac);
         virtual ProtectionMechanism selectProtectionMechanism(AccessCategory ac) const;

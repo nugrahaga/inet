@@ -39,22 +39,28 @@ void Edcaf::initialize(int stage)
         collisionController = check_and_cast<IEdcaCollisionController *>(getModuleByPath(par("collisionControllerModule")));
         auto rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         rx->registerContention(contention);
-        slotTime = modeSet->getSlotTime();
-        sifs = modeSet->getSifsTime();
-        int aifsn = par("aifsn");
-        simtime_t aifs = sifs + fallback(getAifsNumber(ac), aifsn) * slotTime;
-        ifs = aifs;
-        eifs = sifs + aifs + modeSet->getSlowestMandatoryMode()->getDuration(LENGTH_ACK);
-        ASSERT(ifs > sifs);
-        cwMin = par("cwMin");
-        cwMax = par("cwMax");
-        if (cwMin == -1)
-            cwMin = getCwMin(ac, modeSet->getCwMin());
-        if (cwMax == -1)
-            cwMax = getCwMax(ac, modeSet->getCwMax(), modeSet->getCwMin());
-        cw = cwMin;
+        calculateTimingParameters();
     }
 }
+
+void Edcaf::calculateTimingParameters()
+{
+    slotTime = modeSet->getSlotTime();
+    sifs = modeSet->getSifsTime();
+    int aifsn = par("aifsn");
+    simtime_t aifs = sifs + fallback(getAifsNumber(ac), aifsn) * slotTime;
+    ifs = aifs;
+    eifs = sifs + aifs + modeSet->getSlowestMandatoryMode()->getDuration(LENGTH_ACK);
+    ASSERT(ifs > sifs);
+    cwMin = par("cwMin");
+    cwMax = par("cwMax");
+    if (cwMin == -1)
+        cwMin = getCwMin(ac, modeSet->getCwMin());
+    if (cwMax == -1)
+        cwMax = getCwMax(ac, modeSet->getCwMax(), modeSet->getCwMin());
+    cw = cwMin;
+}
+
 
 void Edcaf::incrementCw()
 {
@@ -162,10 +168,12 @@ int Edcaf::getCwMin(AccessCategory ac, int aCwMin)
 void Edcaf::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
     Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
+    if (signalID == NF_MODESET_CHANGED) {
         modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+        calculateTimingParameters();
+    }
 }
 
 
 } // namespace ieee80211
-} // namespace inet
+}// namespace inet

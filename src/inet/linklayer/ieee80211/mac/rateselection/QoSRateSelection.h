@@ -20,6 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateControl.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -37,7 +38,7 @@ namespace ieee80211 {
  *      9.7.6.4 Rate selection for control frames that are not control response frames
  *      9.7.6.5 Rate selection for control response frames
  */
-class INET_API QoSRateSelection : public IQoSRateSelection, public cSimpleModule, public cListener
+class INET_API QoSRateSelection : public IQoSRateSelection, public ModeSetListener
 {
     protected:
         IRateControl *dataOrMgmtRateControl = nullptr;
@@ -60,7 +61,6 @@ class INET_API QoSRateSelection : public IQoSRateSelection, public cSimpleModule
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
 
         virtual const IIeee80211Mode *getMode(Ieee80211Frame *frame);
         virtual const IIeee80211Mode *computeControlFrameMode(Ieee80211Frame *frame, TxopProcedure *txopProcedure);

@@ -26,6 +26,7 @@ Define_Module(QoSRateSelection);
 
 void QoSRateSelection::initialize(int stage)
 {
+    ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
     }
@@ -46,6 +47,7 @@ void QoSRateSelection::initialize(int stage)
         double responseBlockAckFrameBitrate = par("responseBlockAckFrameBitrate");
         responseBlockAckFrameMode = (responseBlockAckFrameBitrate == -1) ? nullptr : modeSet->getMode(bps(responseBlockAckFrameBitrate));
         double responseCtsFrameBitrate = par("responseCtsFrameBitrate");
+        responseCtsFrameMode = (responseCtsFrameBitrate == -1) ? nullptr : modeSet->getMode(bps(responseCtsFrameBitrate));
         fastestMandatoryMode = modeSet->getFastestMandatoryMode();
     }
 }
@@ -77,13 +79,13 @@ bool QoSRateSelection::isControlResponseFrame(Ieee80211Frame* frame, TxopProcedu
 const IIeee80211Mode* QoSRateSelection::computeResponseAckFrameMode(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
 {
     // TODO: BSSBasicRateSet
-    return getMode(dataOrMgmtFrame);
+    return responseAckFrameMode ? responseAckFrameMode : getMode(dataOrMgmtFrame);
 }
 
 const IIeee80211Mode* QoSRateSelection::computeResponseCtsFrameMode(Ieee80211RTSFrame *rtsFrame)
 {
     // TODO: BSSBasicRateSet
-    return getMode(rtsFrame);
+    return responseCtsFrameMode ? responseCtsFrameMode : getMode(rtsFrame);
 }
 
 //
@@ -95,7 +97,7 @@ const IIeee80211Mode* QoSRateSelection::computeResponseCtsFrameMode(Ieee80211RTS
 const IIeee80211Mode* QoSRateSelection::computeResponseBlockAckFrameMode(Ieee80211BlockAckReq *blockAckReq)
 {
     if (dynamic_cast<Ieee80211BasicBlockAckReq *>(blockAckReq))
-        return getMode(blockAckReq);
+        return responseBlockAckFrameMode ? responseBlockAckFrameMode : getMode(blockAckReq);
     else
         throw cRuntimeError("Unknown BlockAckReq frame type");
 }
@@ -215,13 +217,6 @@ const IIeee80211Mode* QoSRateSelection::computeMode(Ieee80211Frame* frame, TxopP
         return computeDataOrMgmtFrameMode(dataOrMgmtFrame);
     else
         return computeControlFrameMode(frame, txopProcedure);
-}
-
-void QoSRateSelection::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 void QoSRateSelection::frameTransmitted(Ieee80211Frame* frame)

@@ -22,11 +22,12 @@
 #include "inet/linklayer/ieee80211/mac/contract/IContention.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecoveryProcedure.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public cSimpleModule, public cListener
+class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, public IRecoveryProcedure::ICwCalculator, public ModeSetListener
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -49,7 +50,9 @@ class INET_API Dcaf : public IChannelAccess, public IContention::ICallback, publ
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
-        void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        virtual void calculateTimingParameters();
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+
     public:
         // IChannelAccess::ICallback
         virtual void requestChannel(IChannelAccess::ICallback* callback) override;
