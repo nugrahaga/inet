@@ -13,19 +13,21 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "RtsProcedure.h"
+#ifndef INET_LINKLAYER_IEEE80211_MAC_CONTRACT_IORIGINATORQOSACKPOLICY_H_
+#define INET_LINKLAYER_IEEE80211_MAC_CONTRACT_IORIGINATORQOSACKPOLICY_H_
 
 namespace inet {
 namespace ieee80211 {
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
-{
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
-}
+class IOriginatorQoSAckPolicy {
+public:
+    IOriginatorQoSAckPolicy();
+    virtual ~IOriginatorQoSAckPolicy();
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif /* INET_LINKLAYER_IEEE80211_MAC_CONTRACT_IORIGINATORQOSACKPOLICY_H_ */

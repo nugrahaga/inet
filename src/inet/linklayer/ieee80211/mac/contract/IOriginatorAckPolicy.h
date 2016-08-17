@@ -13,19 +13,24 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "RtsProcedure.h"
+#ifndef __INET_IORIGINATORACKPOLICY_H
+#define __INET_IORIGINATORACKPOLICY_H
+
+#include "inet/linklayer/ieee80211/mac/"
 
 namespace inet {
 namespace ieee80211 {
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
+class IOriginatorAckPolicy
 {
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
-}
+    public:
+        virtual ~IOriginatorAckPolicy() { }
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const = 0;
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif /* INET_LINKLAYER_IEEE80211_MAC_CONTRACT_IORIGINATORACKPOLICY_H_ */

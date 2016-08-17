@@ -15,17 +15,25 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "RtsProcedure.h"
+#ifndef __INET_ICTSPROCEDURE_H
+#define __INET_ICTSPROCEDURE_H
+
+#include "inet/linklayer/ieee80211/mac/contract/ICtsPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
+class INET_API ICtsProcedure
 {
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
-}
+    public:
+        virtual ~ICtsProcedure() { }
+        virtual void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback) = 0;
+        virtual void processTransmittedCts(Ieee80211CTSFrame *ctsFrame) = 0;
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif // ifndef __INET_ICTSPROCEDURE_H

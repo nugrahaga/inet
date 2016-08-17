@@ -29,22 +29,24 @@ void Dcf::initialize(int stage)
 {
     if (stage == INITSTAGE_LINK_LAYER_2) {
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
-        originatorDataService = check_and_cast<OriginatorMacDataService *>(getSubmodule(("originatorMacDataService")));
-        recipientDataService = check_and_cast<RecipientMacDataService*>(getSubmodule("recipientMacDataService"));
-        frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        recoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
-        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
-        rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
-        dcfChannelAccess = check_and_cast<Dcaf *>(getSubmodule("channelAccess"));
-        // TODO: sifs
         tx = check_and_cast<ITx *>(getModuleByPath(par("txModule")));
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
+        dcfChannelAccess = check_and_cast<IChannelAccess *>(getSubmodule("channelAccess"));
+        originatorDataService = check_and_cast<IOriginatorMacDataService *>(getSubmodule(("originatorMacDataService")));
+        recipientDataService = check_and_cast<IRecipientMacDataService*>(getSubmodule("recipientMacDataService"));
+        frameSequenceHandler = check_and_cast<IFrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
+        recoveryProcedure = check_and_cast<IRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
+        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
         pendingQueue = new PendingQueue(par("maxQueueSize"), nullptr);
+        rtsProcedure = new RtsProcedure();
+        rtsPolicy = check_and_cast<IRtsPolicy *>(getSubmodule("rtsPolicyModule"));
+        recipientAckProcedure = new RecipientAckProcedure();
+        recipientAckPolicy = check_and_cast<RecipientAckPolicy *>(getSubmodule("recipientAckPolicyModule"));
         ackHandler = new AckHandler();
-        //recipientAckProcedure = new RecipientAckProcedure(rateSelection);
-        inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
-        //ctsProcedure = new CtsProcedure(rx, rateSelection);
+        ctsProcedure = new CtsProcedure();
+        ctsPolicy = check_and_cast<ICtsPolicy *>(getSubmodule("ctsPolicyModule"));
         stationRetryCounters = new StationRetryCounters();
+        inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
     }
 }
 
@@ -77,7 +79,7 @@ void Dcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211F
     else
         throw cRuntimeError("Unknown received frame type");
     setFrameMode(responseFrame, responseMode);
-    tx->transmitFrame(responseFrame, -1, this); // FIXME
+    tx->transmitFrame(responseFrame, modeSet->getSifsTime(), this);
 }
 
 void Dcf::processMgmtFrame(Ieee80211ManagementFrame* mgmtFrame)
@@ -156,7 +158,9 @@ void Dcf::transmissionComplete(Ieee80211Frame *frame)
 {
     if (frameSequenceHandler->isSequenceRunning())
         frameSequenceHandler->transmissionComplete();
-    else ;
+    else
+        recipientProcessTransmittedControlResponseFrame(frame);
+    delete frame;
 }
 
 bool Dcf::hasFrameToTransmit()
@@ -212,7 +216,8 @@ void Dcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
 }
 
 void Dcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
- {
+{
+    ASSERT(mode != nullptr);
     ASSERT(frame->getControlInfo() == nullptr);
     Ieee80211TransmissionRequest *ctrl = new Ieee80211TransmissionRequest();
     ctrl->setMode(mode);
@@ -222,10 +227,12 @@ void Dcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
 Dcf::~Dcf()
 {
     delete pendingQueue;
-    delete ackHandler;
-    delete recipientAckProcedure;
     delete inProgressFrames;
-    delete ctsProcedure;
+    delete rtsProcedure;
+    delete recipientAckProcedure;
+    delete ackHandler;
+    delete rtsProcedure;
+    delete stationRetryCounters;
 }
 
 } // namespace ieee80211

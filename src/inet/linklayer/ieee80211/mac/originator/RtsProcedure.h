@@ -18,19 +18,15 @@
 #ifndef __INET_RTSPROCEDURE_H
 #define __INET_RTSPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRtsProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RtsProcedure : public cSimpleModule
+class INET_API RtsProcedure : public IRtsProcedure
 {
-    protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-
     public:
-        virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
+        virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const override;
 };
 
 } /* namespace ieee80211 */

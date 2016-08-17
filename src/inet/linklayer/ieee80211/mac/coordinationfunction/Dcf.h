@@ -22,6 +22,7 @@
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequenceHandler.h"
 #include "inet/linklayer/ieee80211/mac/contract/ITx.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "inet/linklayer/ieee80211/mac/lifetime/DcfReceiveLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/lifetime/DcfTransmitLifetimeHandler.h"
@@ -44,7 +45,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Distributed Coordination Function.
  */
-class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public cSimpleModule, public cListener
+class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public ModeSetListener
 {
     protected:
         Ieee80211Mac *mac = nullptr;
@@ -57,22 +58,25 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         IRateSelection *rateSelection = nullptr;
 
         // Channel access method
-        Dcaf *dcfChannelAccess = nullptr;
+        IChannelAccess *dcfChannelAccess = nullptr;
 
         // MAC Data Service
-        OriginatorMacDataService *originatorDataService = nullptr;
-        RecipientMacDataService *recipientDataService = nullptr;
+        IOriginatorMacDataService *originatorDataService = nullptr;
+        IRecipientMacDataService *recipientDataService = nullptr;
 
         // MAC Procedures
         AckHandler *ackHandler = nullptr;
-        RecipientAckProcedure *recipientAckProcedure = nullptr;
-        RecipientAckPolicy *recipientAckPolicy = nullptr;
-        DcfTransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
+        IRecipientAckProcedure *recipientAckProcedure = nullptr;
+        IRecipientAckPolicy *recipientAckPolicy = nullptr;
+        IRtsProcedure *rtsProcedure = nullptr;
+        IRtsPolicy *rtsPolicy = nullptr;
+        ICtsProcedure *ctsProcedure = nullptr;
+        ICtsPolicy *ctsPolicy = nullptr;
+        IRecoveryProcedure *recoveryProcedure = nullptr;
+
+        // TODO: Unimplemented
+        ITransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
-        RtsProcedure *rtsProcedure = nullptr;
-        CtsProcedure *ctsProcedure = nullptr;
-        CtsPolicy *ctsPolicy = nullptr;
-        NonQoSRecoveryProcedure *recoveryProcedure = nullptr;
 
         // Queue
         PendingQueue *pendingQueue = nullptr;
@@ -84,9 +88,6 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // Station counters
         StationRetryCounters *stationRetryCounters = nullptr;
 
-        const IIeee80211Mode *referenceMode = nullptr;
-
-        simtime_t sifs = -1;
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;

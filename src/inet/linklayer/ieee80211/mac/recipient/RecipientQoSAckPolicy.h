@@ -20,17 +20,11 @@
 
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientQoSAckPolicy.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-//
-// The cases when an ACK frame can be generated are shown in the frame exchange sequences listed in
-// Annex G.
-//
 class INET_API RecipientQoSAckPolicy : public ModeSetListener, public IRecipientAckPolicy, public IRecipientQoSAckPolicy
 {
     protected:

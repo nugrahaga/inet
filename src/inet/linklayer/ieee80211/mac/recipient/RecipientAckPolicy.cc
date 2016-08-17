@@ -22,10 +22,13 @@
 namespace inet {
 namespace ieee80211 {
 
+Define_Module(RecipientAckPolicy);
+
 void RecipientAckPolicy::initialize(int stage)
 {
     ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
+        rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
     }
 }
 

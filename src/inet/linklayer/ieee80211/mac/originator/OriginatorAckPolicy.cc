@@ -38,9 +38,7 @@ void OriginatorAckPolicy::initialize(int stage)
 //
 simtime_t OriginatorAckPolicy::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame) const
 {
-    if (ackTimeout == -1)
-        return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
-    return ackTimeout;
+    return ackTimeout == -1 ? modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay() : ackTimeout;
 }
 
 } /* namespace ieee80211 */

@@ -23,10 +23,12 @@
 namespace inet {
 namespace ieee80211 {
 
+Define_Module(RecipientQoSAckPolicy);
+
 void RecipientQoSAckPolicy::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+        rateSelection = check_and_cast<IQoSRateSelection*>(getModuleByPath(par("rateSelectionModule")));
     }
 }
 

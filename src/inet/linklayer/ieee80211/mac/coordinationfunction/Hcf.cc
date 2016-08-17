@@ -463,7 +463,7 @@ void Hcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211F
     else
         throw cRuntimeError("Unknown received frame type");
     setFrameMode(responseFrame, responseMode);
-    tx->transmitFrame(responseFrame, -1, this); // FIXME
+    tx->transmitFrame(responseFrame, modeSet->getSifsTime(), this);
 }
 
 void Hcf::recipientProcessTransmittedControlResponseFrame(Ieee80211Frame* frame)

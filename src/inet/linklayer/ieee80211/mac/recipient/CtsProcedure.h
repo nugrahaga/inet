@@ -18,11 +18,7 @@
 #ifndef __INET_CTSPROCEDURE_H
 #define __INET_CTSPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRx.h"
-#include "inet/linklayer/ieee80211/mac/contract/ICtsPolicy.h"
-#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/ICtsProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -30,7 +26,7 @@ namespace ieee80211 {
 /*
  * This class implements 9.3.2.6 CTS procedure
  */
-class INET_API CtsProcedure
+class INET_API CtsProcedure : public ICtsProcedure
 {
     protected:
         int numReceivedRts = 0;
@@ -40,11 +36,11 @@ class INET_API CtsProcedure
         Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame* rtsFrame);
 
     public:
-        void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback);
-        void processTransmittedCts(Ieee80211CTSFrame *ctsFrame);
+        virtual void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback) override;
+        virtual void processTransmittedCts(Ieee80211CTSFrame *ctsFrame) override;
 };
 
 } /* namespace ieee80211 */
 } /* namespace inet */
 
-#endif // __INET_CTSPROCEDURE_H
+#endif // ifndef __INET_CTSPROCEDURE_H
