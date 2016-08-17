@@ -28,13 +28,13 @@ void CtsFs::startSequence(FrameSequenceContext *context, int firstStep)
 
 IFrameSequenceStep *CtsFs::prepareStep(FrameSequenceContext *context)
 {
-    // TODO:
+    // TODO: Implement
     return nullptr;
 }
 
 bool CtsFs::completeStep(FrameSequenceContext *context)
 {
-    // TODO:
+    // TODO: Implement
     return false;
 }
 
@@ -54,13 +54,8 @@ IFrameSequenceStep *DataFs::prepareStep(FrameSequenceContext *context)
     switch (step) {
         case 0: {
             auto frame = check_and_cast<Ieee80211DataFrame *>(context->getInProgressFrames()->getFrameToTransmit());
-            frame->setType(ST_DATA_WITH_QOS); // TODO: hack for test
-            frame->setAckPolicy(ackPolicy);
-            // TODO: coordination function
-//            if (ackPolicy == BLOCK_ACK)
-//                frame->setDuration(context->getMode()->getSifsTime());
-//            else
-//                frame->setDuration(context->getMode()->getSifsTime() + context->getAckProcedure()->getAckDuration());
+            frame->setType(ST_DATA_WITH_QOS); // FIXME: KLUDGE!
+            frame->setAckPolicy(ackPolicy); // FIXME: KLUDGE!
             return new TransmitStep(frame, context->getIfs());
         }
         case 1:
@@ -202,7 +197,6 @@ IFrameSequenceStep *FragFrameAckFs::prepareStep(FrameSequenceContext *context)
     switch (step) {
         case 0: {
             auto frame = context->getInProgressFrames()->getFrameToTransmit();
-            // TODO: coordination func. frame->setDuration(context->getMode()->getSifsTime() + context->getAckProcedure()->getAckDuration());
             return new TransmitStep(frame, context->getIfs());
         }
         case 1:
@@ -241,7 +235,6 @@ IFrameSequenceStep *LastFrameAckFs::prepareStep(FrameSequenceContext *context)
     switch (step) {
         case 0: {
             auto frame = context->getInProgressFrames()->getFrameToTransmit();
-            // TODO: coord..frame->setDuration(context->getMode()->getSifsTime() + context->getAckProcedure()->getAckDuration());
             return new TransmitStep(frame, context->getIfs());
         }
         case 1:
@@ -285,7 +278,7 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
         case 1: {
             ITransmitStep *txStep = check_and_cast<ITransmitStep *>(context->getLastStep());
             auto blockAckReq = check_and_cast<Ieee80211BlockAckReq*>(txStep->getFrameToTransmit());
-            return new ReceiveStep(context->getBlockAckProcedure()->getTimeout(blockAckReq));
+            return new ReceiveStep(context->getQoSContext()->ackPolicy->getBlockAckTimeout(blockAckReq));
         }
         case 2:
             return nullptr;

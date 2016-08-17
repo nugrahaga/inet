@@ -23,8 +23,10 @@
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRtsPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IQoSRtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
@@ -33,21 +35,37 @@
 namespace inet {
 namespace ieee80211 {
 
+class INET_API QoSContext
+{
+    public:
+        RtsProcedure *rtsProcedure = nullptr;
+        IQoSRtsPolicy *rtsPolicy = nullptr;
+        OriginatorQoSAckPolicy *ackPolicy = nullptr; // TODO: interface
+        OriginatorBlockAckProcedure *blockAckProcedure = nullptr; // TODO: interface
+        OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
+        TxopProcedure *txopProcedure = nullptr;
+};
+
+class INET_API NonQoSContext
+{
+    public:
+        RtsProcedure *rtsProcedure = nullptr;  // TODO: interface
+        IRtsPolicy *rtsPolicy = nullptr;
+        OriginatorAckPolicy *ackPolicy = nullptr; // TODO: interface
+};
+
 class INET_API FrameSequenceContext
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
-        OriginatorAckProcedure *ackProcedure = nullptr;
-        RtsProcedure *rtsProcedure = nullptr;
-        TxopProcedure *txopProcedure = nullptr;
-        OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
-        OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
-        OriginatorQoSAckPolicy *originatorAckPolicy = nullptr;
         std::vector<IFrameSequenceStep *> steps;
 
+        NonQoSContext *nonQoSContext = nullptr;
+        QoSContext *qosContext = nullptr;
+
     public:
-        FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, OriginatorAckProcedure *ackProcedure, RtsProcedure *rtsProcedure, TxopProcedure *txopProcedure, OriginatorBlockAckProcedure *blockAckProcedure, OriginatorBlockAckAgreementHandler *agreementHandler, OriginatorQoSAckPolicy *ackPolicy);
+        FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, NonQoSContext *nonQosContext, QoSContext *qosContext);
         virtual ~FrameSequenceContext();
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
@@ -56,15 +74,11 @@ class INET_API FrameSequenceContext
         virtual IFrameSequenceStep *getLastStep() const { return steps.size() > 0 ? steps.back() : nullptr; }
         virtual IFrameSequenceStep *getStepBeforeLast() const { return steps.size() > 1 ? steps[steps.size() - 2] : nullptr; }
 
-        OriginatorAckProcedure* getAckProcedure() { return ackProcedure; }
-        InProgressFrames* getInProgressFrames() { return inProgressFrames; }
-        RtsProcedure* getRtsProcedure() { return rtsProcedure; }
-        TxopProcedure* getTxopProcedure() { return txopProcedure; }
-        OriginatorBlockAckProcedure* getBlockAckProcedure() { return blockAckProcedure; }
-        OriginatorBlockAckAgreementHandler *getBlockAckAgreementHandler() { return blockAckAgreementHandler; }
-        OriginatorQoSAckPolicy *getAckPolicyProcedure() { return originatorAckPolicy; }
-        Ieee80211ModeSet *getModeSet() { return modeSet; }
-        simtime_t getIfs();
+        virtual InProgressFrames* getInProgressFrames() const { return inProgressFrames; }
+        virtual simtime_t getIfs() const { return getNumSteps() == 0 ? 0 : modeSet->getSifsTime(); }
+
+        virtual NonQoSContext *getNonQoSContext() const { return nonQoSContext; }
+        virtual QoSContext *getQoSContext() const { return qosContext; }
 };
 
 } // namespace ieee80211

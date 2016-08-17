@@ -29,14 +29,14 @@ TxOpFs::TxOpFs() :
     //   [ RTS CTS ] (Management | ( Data + QAP )) + individual ACK |
     //   [ RTS CTS ] (BlockAckReq BlockAck ) |
     //   ht-txop-sequence;
-    AlternativesFs({new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isDataRtsCtsNeeded)),
+    AlternativesFs({new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isRtsCtsNeeded)),
                                       new DataFs(BLOCK_ACK)}),
-                    new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isDataRtsCtsNeeded)),
+                    new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isRtsCtsNeeded)),
                                       new DataFs(NORMAL_ACK),
                                       new AckFs()}),
                     new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isBlockAckReqRtsCtsNeeded)),
                                       new BlockAckReqBlockAckFs()}),
-                    new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isMgmtRtsCtsNeeded)),
+                    new SequentialFs({new OptionalFs(new RtsCtsFs(), OPTIONALFS_PREDICATE(isRtsCtsNeeded)),
                                       new AlternativesFs({new ManagementFs(),
                                                           /* TODO: DATA + QAP*/},
                                                          ALTERNATIVESFS_SELECTOR(selectMgmtOrDataQap))})},
@@ -51,36 +51,34 @@ int TxOpFs::selectMgmtOrDataQap(AlternativesFs *frameSequence, FrameSequenceCont
 
 int TxOpFs::selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceContext *context)
 {
-    Ieee80211Frame *frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
+    auto frameToTransmit = context->getInProgressFrames()->getFrameToTransmit();
+    if (context->getQoSContext()->ackPolicy->isBlockAckReqNeeded(context->getInProgressFrames(), context->getQoSContext()->txopProcedure))
+        return 2;
     if (dynamic_cast<Ieee80211ManagementFrame*>(frameToTransmit))
         return 3;
-    else if (dynamic_cast<Ieee80211BlockAckReq*>(frameToTransmit))
-        return 2;
     else {
-        Ieee80211DataFrame *dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
-        auto agreement = context->getBlockAckAgreementHandler()->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
-        if (agreement == nullptr)
-            return 1;
-        else if (context->getAckPolicyProcedure()->getAckPolicy(dataFrameToTransmit, agreement) == AckPolicy::BLOCK_ACK)
+        auto dataFrameToTransmit = check_and_cast<Ieee80211DataFrame*>(frameToTransmit);
+        auto agreement = context->getQoSContext()->blockAckAgreementHandler->getAgreement(dataFrameToTransmit->getReceiverAddress(), dataFrameToTransmit->getTid());
+        auto ackPolicy = context->getQoSContext()->ackPolicy->computeAckPolicy(dataFrameToTransmit, agreement);
+        if (ackPolicy == AckPolicy::BLOCK_ACK)
             return 0;
-        else
+        else if (ackPolicy == AckPolicy::NORMAL_ACK)
             return 1;
+        else
+            throw cRuntimeError("Unknown AckPolicy");
     }
 }
 
-bool TxOpFs::isMgmtRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
+bool TxOpFs::isRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
 {
-    return context->getInProgressFrames()->getFrameToTransmit()->getByteLength() > context->getRtsProcedure()->getRtsThreshold();
-}
-
-bool TxOpFs::isDataRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
-{
-    return context->getInProgressFrames()->getFrameToTransmit()->getByteLength() > context->getRtsProcedure()->getRtsThreshold();
+    auto protectedFrame = context->getInProgressFrames()->getFrameToTransmit();
+    auto txop = context->getQoSContext()->txopProcedure;
+    return context->getQoSContext()->rtsPolicy->isRtsNeeded(protectedFrame, txop);
 }
 
 bool TxOpFs::isBlockAckReqRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
 {
-    return false;
+    return false; // FIXME: IQoSRtsPolicy should handle this case
 }
 
 } // namespace ieee80211

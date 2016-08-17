@@ -25,6 +25,7 @@ Define_Module(OriginatorBlockAckAgreementPolicy);
 
 void OriginatorBlockAckAgreementPolicy::initialize()
 {
+    ModeSetListener::initialize(INITSTAGE_LOCAL);
     ackPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getModuleByPath(par("originatorQoSAckPolicyModule")));
     agreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler*>(getModuleByPath(par("originatorBlockAckAgreementHandlerModule")));
     delayedAckPolicySupported = par("delayedAckPolicySupported");
@@ -115,13 +116,6 @@ OriginatorBlockAckAgreementPolicy::~OriginatorBlockAckAgreementPolicy()
 void OriginatorBlockAckAgreementPolicy::agreementEstablished(OriginatorBlockAckAgreement* agreement)
 {
     scheduleInactivityTimer(agreement);
-}
-
-void OriginatorBlockAckAgreementPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

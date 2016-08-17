@@ -39,14 +39,13 @@ void Hcf::initialize(int stage)
         recipientBlockAckAgreementPolicy = check_and_cast<RecipientBlockAckAgreementPolicy*>(getSubmodule("recipientBlockAckAgreementPolicy"));
         rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
-        rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
+        rateSelection = check_and_cast<IQoSRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
         originatorDataService = check_and_cast<OriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
         recipientDataService = check_and_cast<RecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
-        originatorAckProcedure = new OriginatorAckProcedure();
         originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
-        recipientAckProcedure = new RecipientAckProcedure(rateSelection);
-        ctsProcedure = new CtsProcedure(rx, rateSelection);
+        recipientAckProcedure = nullptr;
+        //ctsProcedure = new CtsProcedure(rx, rateSelection);
 //        originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
 //        recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
@@ -108,7 +107,7 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(modeSet, edcaInProgressFrames[ac], originatorAckProcedure, rtsProcedure, edcaTxops[ac], originatorBlockAckProcedure, originatorBlockAckAgreementHandler, originatorQoSAckPolicy);
+    return new FrameSequenceContext(modeSet, edcaInProgressFrames[ac], nullptr, nullptr); // FIXME
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)
@@ -452,7 +451,7 @@ void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
         throw cRuntimeError("Hcca is unimplemented");
 }
 
-void Hcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame, simtime_t ifs)
+void Hcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame)
 {
     const IIeee80211Mode *responseMode = nullptr;
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame*>(receivedFrame))
@@ -464,7 +463,7 @@ void Hcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211F
     else
         throw cRuntimeError("Unknown received frame type");
     setFrameMode(responseFrame, responseMode);
-    tx->transmitFrame(responseFrame, ifs, this);
+    tx->transmitFrame(responseFrame, -1, this); // FIXME
 }
 
 void Hcf::recipientProcessTransmittedControlResponseFrame(Ieee80211Frame* frame)
@@ -502,7 +501,6 @@ bool Hcf::isReceptionInProgress()
 
 Hcf::~Hcf()
 {
-    delete originatorAckProcedure;
     delete recipientAckProcedure;
     delete ctsProcedure;
     for (auto inProgressFrames : edcaInProgressFrames)

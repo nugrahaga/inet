@@ -30,7 +30,7 @@ class INET_API RtsProcedure : public cSimpleModule
         virtual void initialize(int stage) override;
 
     public:
-        virtual Ieee80211RTSFrame *buildRtsFrame(s) const;
+        virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
 };
 
 } /* namespace ieee80211 */

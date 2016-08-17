@@ -47,9 +47,7 @@ class INET_API IRx
     public:
         virtual ~IRx() {}
 
-        // from UpperMac
-        virtual void setAddress(const MACAddress& address) = 0;
-        virtual bool isReceptionInProgress() const = 0; // needed on ACK timeout
+        virtual bool isReceptionInProgress() const = 0;
 
         // from Contention
         virtual bool isMediumFree() const = 0;

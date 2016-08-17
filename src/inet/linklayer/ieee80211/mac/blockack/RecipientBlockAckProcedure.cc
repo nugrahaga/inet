@@ -38,12 +38,16 @@ void RecipientBlockAckProcedure::initialize()
 void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback)
 {
     numReceivedBlockAckReq++;
-    if (ackPolicy->isBlockAckNeeded(blockAckRequest)) {
-        auto blockAck = buildBlockAck(blockAckRequest);
-        blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(blockAckRequest));
-        callback->transmitControlResponseFrame(blockAck, blockAckReq, modeSet->getSifs(), this);
-        processTransmittedBlockAck(blockAck); // FIXME: too early
+    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
+        if (ackPolicy->isBlockAckNeeded(basicBlockAckReq)) {
+            auto blockAck = buildBlockAck(basicBlockAckReq);
+            blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(basicBlockAckReq));
+            callback->transmitControlResponseFrame(blockAck, basicBlockAckReq);
+            processTransmittedBlockAck(blockAck); // FIXME: too early
+        }
     }
+    else
+        throw cRuntimeError("Unsupported BlockAckReq");
 }
 
 void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
@@ -81,13 +85,6 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
     }
     else
         throw cRuntimeError("Unsupported Block Ack Request");
-}
-
-void RecipientBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 

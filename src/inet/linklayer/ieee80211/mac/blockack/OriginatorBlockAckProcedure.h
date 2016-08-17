@@ -20,30 +20,15 @@
 
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-
-using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorBlockAckProcedure : public cSimpleModule, public cListener
+class INET_API OriginatorBlockAckProcedure
 {
-    protected:
-        Ieee80211ModeSet *modeSet = nullptr;
-
-    protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
-
     public:
         virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
         virtual Ieee80211BlockAckReq *buildBasicBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
-
-        simtime_t getBlockAckReqTimeout(Ieee80211BlockAckReq* blockAckReq) const;
 };
 
 } /* namespace ieee80211 */

@@ -59,8 +59,8 @@ bool HcfFs::isSelfCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *con
 
 bool HcfFs::hasMoreTxOps(RepeatingFs *frameSequence, FrameSequenceContext *context)
 {
-    // TODO: if txOp time limit isn't yet reached and there are frames to the same recipient????
-    return context->getInProgressFrames()->hasInProgressFrames() && context->getTxopProcedure() && (context->getTxopProcedure()->getRemaining() > 0 || frameSequence->getCount() == 0);
+    bool hasFrameToTransmit = context->getInProgressFrames()->hasInProgressFrames();
+    return hasFrameToTransmit && (context->getQoSContext()->txopProcedure->getRemaining() > 0 || frameSequence->getCount() == 0);
 }
 
 } // namespace ieee80211

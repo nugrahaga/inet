@@ -20,15 +20,15 @@
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public cListener, public IOriginatorBlockAckAgreementPolicy
+class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, public IOriginatorBlockAckAgreementPolicy
 {
     protected:
-        Ieee80211ModeSet *modeSet = nullptr;
         OriginatorQoSAckPolicy *ackPolicy = nullptr;
         OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
         std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
@@ -44,7 +44,6 @@ class INET_API OriginatorBlockAckAgreementPolicy : public cSimpleModule, public 
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize() override;
         virtual void handleMessage(cMessage* msg) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
 
         virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);
         virtual std::pair<MACAddress, Tid> findAgreement(cMessage *inactivityTimer);

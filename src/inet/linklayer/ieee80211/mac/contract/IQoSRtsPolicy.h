@@ -28,7 +28,7 @@ class INET_API IQoSRtsPolicy
     public:
         virtual ~IQoSRtsPolicy() { }
 
-        virtual bool isRtsNeeded(Ieee80211DataOrMgmtFrame *protectedFrame, TxopProcedure *txop) const = 0;
+        virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame, TxopProcedure *txop) const = 0;
         virtual simtime_t getCtsTimeout() const = 0;
 };
 

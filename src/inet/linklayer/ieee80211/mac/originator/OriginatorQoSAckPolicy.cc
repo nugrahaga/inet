@@ -95,9 +95,10 @@ std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlock
     return std::make_tuple(MACAddress::UNSPECIFIED_ADDRESS, -1, -1);
 }
 
-AckPolicy OriginatorQoSAckPolicy::getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+AckPolicy OriginatorQoSAckPolicy::computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
 {
-    ASSERT(agreement);
+    if (agreement == nullptr)
+        return AckPolicy::NORMAL_ACK;
     if (agreement->getIsAddbaResponseReceived() && isBlockAckPolicyEligibleFrame(frame)) {
         if (checkAgreementPolicy(frame, agreement))
             return AckPolicy::BLOCK_ACK;

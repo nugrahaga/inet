@@ -24,26 +24,11 @@
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(OriginatorBlockAckAgreementHandler);
-
-void OriginatorBlockAckAgreementHandler::initialize(int stage)
-{
-    if (stage == INITSTAGE_LAST) {
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
-    }
-}
-
 void OriginatorBlockAckAgreementHandler::createAgreement(Ieee80211AddbaRequest *addbaRequest)
 {
     OriginatorBlockAckAgreement *blockAckAgreement = new OriginatorBlockAckAgreement(addbaRequest->getReceiverAddress(), addbaRequest->getTid(), addbaRequest->getStartingSequenceNumber(), addbaRequest->getBufferSize(), addbaRequest->getAMsduSupported(), addbaRequest->getBlockAckPolicy() == 0);
     auto agreementId = std::make_pair(addbaRequest->getReceiverAddress(), addbaRequest->getTid());
     blockAckAgreements[agreementId] = blockAckAgreement;
-}
-
-simtime_t OriginatorBlockAckAgreementHandler::getAddbaRequestTimeout() const
-{
-    // FIXME: policy
-    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }
 
 Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy)
@@ -89,7 +74,7 @@ void OriginatorBlockAckAgreementHandler::terminateAgreement(MACAddress originato
     }
 }
 
-void OriginatorBlockAckAgreementHandler::processTransmittedDataFrame(Ieee80211DataFrame* frame, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
+void OriginatorBlockAckAgreementHandler::processTransmittedDataFrame(Ieee80211DataFrame* dataFrame, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
 {
     auto agreement = getAgreement(dataFrame->getReceiverAddress(), dataFrame->getTid());
     if (blockAckAgreementPolicy->isAddbaReqNeeded(dataFrame) && agreement == nullptr) {
@@ -103,7 +88,7 @@ void OriginatorBlockAckAgreementHandler::processReceivedAddbaResp(Ieee80211Addba
     auto agreement = getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement)) {
         updateAgreement(agreement, addbaResp);
-        agreementEstablished(agreement);
+        blockAckAgreementPolicy->agreementEstablished(agreement);
     }
     else {
         // TODO: send a new one?
@@ -124,9 +109,13 @@ void OriginatorBlockAckAgreementHandler::processTransmittedAddbaReq(Ieee80211Add
 
 void OriginatorBlockAckAgreementHandler::processReceivedBlockAck(Ieee80211BlockAck* blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy)
 {
-    auto agreement = getAgreement(blockAck->getTransmitterAddress(), blockAck->getTidInfo());
-    if (agreement)
-        blockAckAgreementPolicy->blockAckReceived(agreement);
+    if (auto basicBlockAck = dynamic_cast<Ieee80211BasicBlockAck*>(blockAck)) {
+        auto agreement = getAgreement(basicBlockAck->getTransmitterAddress(), basicBlockAck->getTidInfo());
+        if (agreement)
+            blockAckAgreementPolicy->blockAckReceived(agreement);
+    }
+    else
+        throw cRuntimeError("Unsupported BlockAck");
 }
 
 void OriginatorBlockAckAgreementHandler::processTransmittedDelba(Ieee80211Delba* delba)
@@ -138,13 +127,6 @@ void OriginatorBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* de
 {
     if (blockAckAgreementPolicy->isDelbaAccepted(delba))
         terminateAgreement(delba->getTransmitterAddress(), delba->getTid());
-}
-
-void OriginatorBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } // namespace ieee80211

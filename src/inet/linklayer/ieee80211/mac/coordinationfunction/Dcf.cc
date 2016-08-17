@@ -41,10 +41,9 @@ void Dcf::initialize(int stage)
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         pendingQueue = new PendingQueue(par("maxQueueSize"), nullptr);
         ackHandler = new AckHandler();
-        originatorAckProcedure = new OriginatorAckProcedure();
-        recipientAckProcedure = new RecipientAckProcedure(rateSelection);
+        //recipientAckProcedure = new RecipientAckProcedure(rateSelection);
         inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
-        ctsProcedure = new CtsProcedure(rx, rateSelection);
+        //ctsProcedure = new CtsProcedure(rx, rateSelection);
         stationRetryCounters = new StationRetryCounters();
     }
 }
@@ -66,6 +65,34 @@ void Dcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
         EV_INFO << "Frame " << frame->getName() << " has been dropped because the PendingQueue is full." << endl;
         delete frame;
     }
+}
+
+void Dcf::transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame)
+{
+    const IIeee80211Mode *responseMode = nullptr;
+    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame*>(receivedFrame))
+        responseMode = rateSelection->computeResponseCtsFrameMode(rtsFrame);
+    else if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(receivedFrame))
+        responseMode = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame);
+    else
+        throw cRuntimeError("Unknown received frame type");
+    setFrameMode(responseFrame, responseMode);
+    tx->transmitFrame(responseFrame, -1, this); // FIXME
+}
+
+void Dcf::processMgmtFrame(Ieee80211ManagementFrame* mgmtFrame)
+{
+    throw cRuntimeError("Unknown management frame");
+}
+
+void Dcf::recipientProcessTransmittedControlResponseFrame(Ieee80211Frame* frame)
+{
+    if (auto ctsFrame = dynamic_cast<Ieee80211CTSFrame*>(frame))
+        ctsProcedure->processTransmittedCts(ctsFrame);
+    else if (auto ackFrame = dynamic_cast<Ieee80211ACKFrame*>(frame))
+        recipientAckProcedure->processTransmittedAck(ackFrame);
+    else
+        throw cRuntimeError("Unknown control response frame");
 }
 
 void Dcf::processLowerFrame(Ieee80211Frame* frame)
@@ -96,18 +123,10 @@ bool Dcf::isReceptionInProgress()
 
 void Dcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
-    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)) {
-        if (recipientAckPolicy->isAckNeeded(dataOrMgmtFrame)) {
-            recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame);
-            auto ack = recipientAckProcedure->buildAck(dataOrMgmtFrame);
-            ack->setDuration(recipientAckPolicy->computeAckDurationField(dataOrMgmtFrame));
-            tx->transmitFrame(ack, sifs, this);
-            recipientAckProcedure->processTransmittedAck(ack); // TODO: too early
-        }
-    }
-    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
+    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame))
+        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame, recipientAckPolicy, this);
+    if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
         sendUp(recipientDataService->dataFrameReceived(dataFrame));
-    }
     else { // TODO: else if (auto ctrlFrame = dynamic_cast<Ieee80211ControlFrame*>(frame))
         sendUp(recipientDataService->controlFrameReceived(frame));
         recipientProcessControlFrame(frame);
@@ -122,26 +141,18 @@ void Dcf::sendUp(const std::vector<Ieee80211Frame*>& completeFrames)
 
 void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
 {
-    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame)) {
-        ctsProcedure->processReceivedRts(rtsFrame);
-        if (ctsPolicy->isCtsNeeded(rtsFrame)) {
-            auto ctsFrame = ctsProcedure->buildCts(rtsFrame);
-            ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
-            setMode(ctsFrame, rateSelection->computeResponseCtsFrameMode(rtsFrame));
-            tx->transmitFrame(ctsFrame, sifs, this);
-            ctsProcedure->processTransmittedCts(ctsFrame);
-        }
-    }
+    if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame))
+        ctsProcedure->processReceivedRts(rtsFrame, ctsPolicy, this);
     else
         throw cRuntimeError("Unknown control frame");
 }
 
 FrameSequenceContext* Dcf::buildContext()
 {
-    return new FrameSequenceContext(modeSet, inProgressFrames, originatorAckProcedure, rtsProcedure, nullptr, nullptr, nullptr, nullptr);
+    return new FrameSequenceContext(modeSet, inProgressFrames, nullptr, nullptr);
 }
 
-void Dcf::transmissionComplete()
+void Dcf::transmissionComplete(Ieee80211Frame *frame)
 {
     if (frameSequenceHandler->isSequenceRunning())
         frameSequenceHandler->transmissionComplete();
@@ -212,7 +223,6 @@ Dcf::~Dcf()
 {
     delete pendingQueue;
     delete ackHandler;
-    delete originatorAckProcedure;
     delete recipientAckProcedure;
     delete inProgressFrames;
     delete ctsProcedure;

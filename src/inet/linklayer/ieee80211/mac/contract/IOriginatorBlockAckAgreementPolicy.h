@@ -23,6 +23,8 @@
 namespace inet {
 namespace ieee80211 {
 
+class OriginatorBlockAckAgreement;
+
 class INET_API IOriginatorBlockAckAgreementPolicy
 {
     public:

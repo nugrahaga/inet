@@ -21,10 +21,6 @@
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientQoSAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-
-using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
@@ -35,7 +31,6 @@ namespace ieee80211 {
 class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListener
 {
     protected:
-        Ieee80211ModeSet *modeSet = nullptr;
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
         int numReceivedBlockAckReq = 0;
         int numSentBlockAck = 0;

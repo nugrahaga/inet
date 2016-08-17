@@ -27,7 +27,6 @@
 #include "inet/linklayer/ieee80211/mac/lifetime/DcfTransmitLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/NonQoSRecoveryProcedure.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
@@ -45,7 +44,7 @@ class Ieee80211Mac;
 /**
  * Implements IEEE 802.11 Distributed Coordination Function.
  */
-class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public cSimpleModule, public cListener
+class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public cSimpleModule, public cListener
 {
     protected:
         Ieee80211Mac *mac = nullptr;
@@ -68,7 +67,6 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         AckHandler *ackHandler = nullptr;
         RecipientAckProcedure *recipientAckProcedure = nullptr;
         RecipientAckPolicy *recipientAckPolicy = nullptr;
-        OriginatorAckProcedure *originatorAckProcedure = nullptr;
         DcfTransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
@@ -93,16 +91,13 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
-        void sendUp(const std::vector<Ieee80211Frame*>& completeFrames);
+        virtual void sendUp(const std::vector<Ieee80211Frame*>& completeFrames);
         virtual bool hasFrameToTransmit();
-        FrameSequenceContext *buildContext();
+        virtual FrameSequenceContext *buildContext();
 
         virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
         virtual void recipientProcessControlFrame(Ieee80211Frame *frame);
-        virtual void originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame *protectedFrame) override;
-        virtual void originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame) override;
-        virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
-        virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
+        virtual void recipientProcessTransmittedControlResponseFrame(Ieee80211Frame *frame);
 
         void setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const;
 
@@ -112,11 +107,19 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // IFrameSequenceHandler::ICallback
         virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;
+        virtual void originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame *protectedFrame) override;
+        virtual void originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame) override;
+        virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
+        virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
         virtual bool isReceptionInProgress() override;
         virtual void frameSequenceFinished() override;
 
         // ITx::ICallback
         virtual void transmissionComplete(Ieee80211Frame *frame) override;
+
+        // IProcedureCallback
+       virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame) override;
+       virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) override;
 
     public:
         virtual ~Dcf();

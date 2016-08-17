@@ -35,7 +35,7 @@ class INET_API QoSRtsPolicy : public ModeSetListener, public IQoSRtsPolicy
         virtual void initialize(int stage) override;
 
     public:
-        virtual bool isRtsNeeded(Ieee80211DataOrMgmtFrame *protectedFrame, TxopProcedure *txopProcedure) const override;
+        virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame, TxopProcedure *txopProcedure) const override;
         virtual simtime_t getCtsTimeout() const override;
 };
 

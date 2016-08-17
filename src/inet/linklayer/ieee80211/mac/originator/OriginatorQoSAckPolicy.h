@@ -51,7 +51,7 @@ class INET_API OriginatorQoSAckPolicy : public cSimpleModule, public cListener
         virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber);
 
     public:
-        virtual AckPolicy getAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
+        virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame);
         virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames);
         virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure);

@@ -21,7 +21,9 @@
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/linklayer/ieee80211/mac/blockackreordering/BlockAckReordering.h"
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckAgreementPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
@@ -35,29 +37,22 @@ class RecipientBlockAckAgreement;
  *
  * TODO: RecipientBlockAckAgreementProcedure ?
  */
-class INET_API RecipientBlockAckAgreementHandler : public cSimpleModule, public cListener
+class INET_API RecipientBlockAckAgreementHandler
 {
     protected:
-        IRateSelection *rateSelection = nullptr;
         Ieee80211ModeSet *modeSet = nullptr;
 
         std::map<std::pair<MACAddress, Tid>, RecipientBlockAckAgreement *> blockAckAgreements;
 
     protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *msg) override { throw cRuntimeError("This module does not handle msgs"); }
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
-
-    protected:
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
         virtual RecipientBlockAckAgreement* addAgreement(Ieee80211AddbaRequest *addbaReq);
         virtual void updateAgreement(Ieee80211AddbaResponse *frame);
-        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
         virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
-        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
 
     public:
+        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
+        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode); // FIXME
         virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp);
         virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
         virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);

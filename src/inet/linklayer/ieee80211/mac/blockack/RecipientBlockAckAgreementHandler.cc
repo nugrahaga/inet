@@ -23,15 +23,6 @@
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RecipientBlockAckAgreementHandler);
-
-void RecipientBlockAckAgreementHandler::initialize(int stage)
-{
-    if (stage == INITSTAGE_LAST) {
-        rateSelection = dynamic_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
-    }
-}
-
 //
 // An originator that intends to use the Block Ack mechanism for the transmission of QoS data frames to an
 // intended recipient should first check whether the intended recipient STA is capable of participating in Block
@@ -78,7 +69,7 @@ Ieee80211AddbaResponse* RecipientBlockAckAgreementHandler::buildAddbaResponse(Ie
     addbaResponse->setBlockAckPolicy(!frame->getBlockAckPolicy() && blockAckAgreementPolicy->delayedBlockAckPolicySupported() ? false : true);
     addbaResponse->setBufferSize(frame->getBufferSize() <= blockAckAgreementPolicy->getMaximumAllowedBufferSize() ? frame->getBufferSize() : blockAckAgreementPolicy->getMaximumAllowedBufferSize());
     addbaResponse->setBlockAckTimeoutValue(blockAckAgreementPolicy->getBlockAckTimeoutValue() == 0 ? blockAckAgreementPolicy->getBlockAckTimeoutValue() : frame->getBlockAckTimeoutValue());
-    addbaResponse->setAMsduSupported(aMsduSupported);
+    addbaResponse->setAMsduSupported(blockAckAgreementPolicy->aMsduSupported());
     return addbaResponse;
 }
 
@@ -122,7 +113,7 @@ void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211Add
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
         auto agreement = addAgreement(addbaRequest);
         blockAckAgreementPolicy->agreementEstablished(agreement);
-        auto addbaResponse = recipientBlockAckAgreementHandler->buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
+        auto addbaResponse = buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
         callback->processMgmtFrame(addbaResponse);
     }
 }
@@ -138,12 +129,6 @@ void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* del
         terminateAgreement(delba->getReceiverAddress(), delba->getTid());
 }
 
-void RecipientBlockAckAgreementHandler::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
-}
 
 } // namespace ieee80211
 }// namespace inet

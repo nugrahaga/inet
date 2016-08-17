@@ -20,11 +20,6 @@
 namespace inet {
 namespace ieee80211 {
 
-void OriginatorBlockAckProcedure::initialize(int stage)
-{
-
-}
-
 Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const
 {
     throw cRuntimeError("Unsupported feature");
@@ -44,19 +39,5 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildBasicBlockAckReqFrame(co
     return blockAckReq;
 }
 
-simtime_t OriginatorBlockAckProcedure::getBlockAckReqTimeout(Ieee80211BlockAckReq* blockAckReq) const
-{
-    return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
-}
-
-void OriginatorBlockAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
-}
-
-
 } /* namespace ieee80211 */
 } /* namespace inet */
-

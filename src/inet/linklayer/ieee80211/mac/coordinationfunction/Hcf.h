@@ -34,7 +34,6 @@
 #include "inet/linklayer/ieee80211/mac/lifetime/EdcaTransmitLifetimeHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/AckHandler.h"
 #include "inet/linklayer/ieee80211/mac/originator/NonQoSRecoveryProcedure.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/originator/QoSRecoveryProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
@@ -80,7 +79,6 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // MAC Procedures
         RecipientAckProcedure *recipientAckProcedure = nullptr;
         RecipientQoSAckPolicy *recipientAckPolicy = nullptr;
-        OriginatorAckProcedure *originatorAckProcedure = nullptr;
         RtsProcedure *rtsProcedure = nullptr;
         CtsProcedure *ctsProcedure = nullptr;
         QoSCtsPolicy *ctsPolicy = nullptr;
@@ -166,7 +164,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void transmissionComplete(Ieee80211Frame *frame) override;
 
         // IProcedureCallback
-        virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame, simtime_t ifs) override;
+        virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame) override;
         virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) override;
 
     public:

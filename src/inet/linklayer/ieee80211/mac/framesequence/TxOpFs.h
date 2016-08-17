@@ -30,8 +30,7 @@ class INET_API TxOpFs : public AlternativesFs {
         TxOpFs();
 
         virtual int selectTxOpSequence(AlternativesFs *frameSequence, FrameSequenceContext *context);
-        virtual bool isDataRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context);
-        virtual bool isMgmtRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context);
+        virtual bool isRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context);
         virtual bool isBlockAckReqRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context);
         virtual int selectMgmtOrDataQap(AlternativesFs *frameSequence, FrameSequenceContext *context);
 };
