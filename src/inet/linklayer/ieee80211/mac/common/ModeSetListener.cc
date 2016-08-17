@@ -13,25 +13,28 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "RtsProcedure.h"
+#include "ModeSetListener.h"
+#include "inet/common/NotifierConsts.h"
+#include "inet/common/ModuleAccess.h"
 
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RtsProcedure);
-
-void RtsProcedure::initialize(int stage)
+void ModeSetListener::initialize(int stage)
 {
+    if (stage == INITSTAGE_LOCAL)
+        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
 }
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
+void ModeSetListener::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
+    Enter_Method("receiveModeSetChangeNotification");
+    if (signalID == NF_MODESET_CHANGED)
+        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+

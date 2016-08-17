@@ -44,7 +44,7 @@ Ieee80211BlockAckReq* OriginatorBlockAckProcedure::buildBasicBlockAckReqFrame(co
     return blockAckReq;
 }
 
-simtime_t OriginatorBlockAckProcedure::getTimeout(Ieee80211BlockAckReq* blockAckReq) const
+simtime_t OriginatorBlockAckProcedure::getBlockAckReqTimeout(Ieee80211BlockAckReq* blockAckReq) const
 {
     return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
 }

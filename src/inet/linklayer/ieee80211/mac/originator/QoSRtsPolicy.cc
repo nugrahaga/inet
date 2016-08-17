@@ -15,14 +15,14 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RtsPolicy.h"
+#include "QoSRtsPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RtsPolicy);
+Define_Module(QoSRtsPolicy);
 
-void RtsPolicy::initialize(int stage)
+void QoSRtsPolicy::initialize(int stage)
 {
     ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
@@ -42,8 +42,10 @@ void RtsPolicy::initialize(int stage)
 // be set on a per-STA basis. This mechanism allows STAs to be configured to initiate RTS/CTS either always,
 // never, or only on frames longer than a specified length.
 //
-bool RtsPolicy::isRtsNeeded(Ieee80211DataOrMgmtFrame* protectedFrame) const
+bool QoSRtsPolicy::isRtsNeeded(Ieee80211Frame* protectedFrame, TxopProcedure *txopProcedure) const
 {
+    if (dynamic_cast<Ieee80211BlockAckReq*>(protectedFrame))
+        return false;
     return protectedFrame->getByteLength() >= rtsThreshold && !protectedFrame->getReceiverAddress().isMulticast();
 }
 
@@ -54,7 +56,7 @@ bool RtsPolicy::isRtsNeeded(Ieee80211DataOrMgmtFrame* protectedFrame) const
 // the transmission of the RTS has failed, and this STA shall invoke its backoff procedure upon expiration of the
 // CTSTimeout interval.
 //
-simtime_t RtsPolicy::getCtsTimeout() const
+simtime_t QoSRtsPolicy::getCtsTimeout() const
 {
     return ctsTimeout == -1 ? modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay() : ctsTimeout;
 }

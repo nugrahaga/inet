@@ -13,25 +13,30 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "RtsProcedure.h"
+#ifndef __INET_MODESETLISTENER_H
+#define __INET_MODESETLISTENER_H
+
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+
+using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RtsProcedure);
-
-void RtsProcedure::initialize(int stage)
+class INET_API ModeSetListener : public cSimpleModule, public cListener
 {
-}
+    protected:
+        Ieee80211ModeSet *modeSet = nullptr;
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
-{
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
-}
+    protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+        virtual void initialize(int stage) override;
+        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif // ifndef __INET_MODESETLISTENER_H

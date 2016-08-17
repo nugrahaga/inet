@@ -18,37 +18,19 @@
 #ifndef __INET_RTSPROCEDURE_H
 #define __INET_RTSPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RtsProcedure : public cSimpleModule, public cListener
+class INET_API RtsProcedure : public cSimpleModule
 {
-    protected:
-        Ieee80211ModeSet *modeSet = nullptr;
-
-        simtime_t sifs = -1;
-        simtime_t slotTime = -1;
-        simtime_t phyRxStartDelay = -1;
-
-        int rtsThreshold = -1;
-
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
-
-        Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame, const IIeee80211Mode *dataFrameMode) const;
-        Ieee80211RTSFrame *buildRtsFrame(const MACAddress& receiverAddress, simtime_t duration) const;
-        bool isBroadcastOrMulticast(Ieee80211Frame *frame) const;
 
     public:
-        virtual Ieee80211RTSFrame *buildRtsFrame(Ieee80211DataOrMgmtFrame *dataFrame) const;
-        simtime_t getTimeout() const;
-
-        virtual int getRtsThreshold() { return rtsThreshold; }
+        virtual Ieee80211RTSFrame *buildRtsFrame(s) const;
 };
 
 } /* namespace ieee80211 */

@@ -13,25 +13,26 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#include "RtsProcedure.h"
+#ifndef __INET_IQOSRTSPOLICY_H
+#define __INET_IQOSRTSPOLICY_H
+
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RtsProcedure);
-
-void RtsProcedure::initialize(int stage)
+class INET_API IQoSRtsPolicy
 {
-}
+    public:
+        virtual ~IQoSRtsPolicy() { }
 
-Ieee80211RTSFrame *RtsProcedure::buildRtsFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
-{
-    Ieee80211RTSFrame *rtsFrame = new Ieee80211RTSFrame("RTS");
-    rtsFrame->setReceiverAddress(dataOrMgmtFrame->getReceiverAddress());
-    return rtsFrame;
-}
+        virtual bool isRtsNeeded(Ieee80211DataOrMgmtFrame *protectedFrame, TxopProcedure *txop) const = 0;
+        virtual simtime_t getCtsTimeout() const = 0;
+};
 
 } /* namespace ieee80211 */
 } /* namespace inet */
+
+#endif // ifndef __INET_IQOSRTSPOLICY_H
