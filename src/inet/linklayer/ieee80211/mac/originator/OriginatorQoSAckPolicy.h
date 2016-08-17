@@ -21,20 +21,15 @@
 #include  "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-
-using namespace inet::physicallayer;
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorQoSAckPolicy : public cSimpleModule, public cListener
+class INET_API OriginatorQoSAckPolicy : public ModeSetListener
 {
     protected:
-        Ieee80211ModeSet *modeSet = nullptr;
-
         int maxBlockAckPolicyFrameLength = -1;
         int blockAckReqTreshold = -1;
 
@@ -43,7 +38,7 @@ class INET_API OriginatorQoSAckPolicy : public cSimpleModule, public cListener
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize() override;
+        virtual void initialize(int stage) override;
 
         virtual bool checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
         std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames);

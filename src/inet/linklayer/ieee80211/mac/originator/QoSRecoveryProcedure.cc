@@ -15,7 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
+#include "inet/linklayer/ieee80211/mac/contract/IQoSRtsPolicy.h"
 #include "QoSRecoveryProcedure.h"
 
 namespace inet {
@@ -37,9 +37,9 @@ Define_Module(QoSRecoveryProcedure);
 void QoSRecoveryProcedure::initialize(int stage)
 {
     if (stage == INITSTAGE_LAST) {
-        auto rtsProcedure = check_and_cast<RtsProcedure *>(getModuleByPath(par("rtsProcedureModule")));
+        auto rtsPolicy = check_and_cast<IQoSRtsPolicy *>(getModuleByPath(par("rtsPolicyModule")));
         cwCalculator = check_and_cast<ICwCalculator *>(getModuleByPath(par("cwCalculatorModule")));
-        rtsThreshold = rtsProcedure->getRtsThreshold();
+        rtsThreshold = rtsPolicy->getRtsThreshold();
         shortRetryLimit = par("shortRetryLimit");
         longRetryLimit = par("longRetryLimit");
     }

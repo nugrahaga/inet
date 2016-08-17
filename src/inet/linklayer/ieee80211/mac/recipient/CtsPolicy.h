@@ -19,28 +19,25 @@
 #define __INET_CTSPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IRx.h"
+#include "inet/linklayer/ieee80211/mac/contract/ICtsPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-
-using namespace inet::physicallayer;
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API CtsPolicy : public cSimpleModule, public cListener, public ICtsPolicy
+class INET_API CtsPolicy : public ModeSetListener, public ICtsPolicy
 {
     protected:
-        IRx *rx = nullptr;
         IRateSelection *rateSelection = nullptr;
-        Ieee80211ModeSet *modeSet = nullptr;
+        IRx *rx = nullptr;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
-        virtual simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
+        virtual simtime_t computeCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
 
     public:
         virtual bool isCtsNeeded(Ieee80211RTSFrame *rtsFrame) const override;

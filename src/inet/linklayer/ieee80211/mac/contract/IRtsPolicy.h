@@ -29,7 +29,8 @@ class INET_API IRtsPolicy
         virtual ~IRtsPolicy() { }
 
         virtual bool isRtsNeeded(Ieee80211DataOrMgmtFrame *protectedFrame) const = 0;
-        virtual simtime_t getCtsTimeout() const = 0;
+        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const = 0;
+        virtual int getRtsThreshold() const = 0;
 };
 
 } /* namespace ieee80211 */

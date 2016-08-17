@@ -19,6 +19,7 @@
 #define __INET_IQOSRTSPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -29,7 +30,8 @@ class INET_API IQoSRtsPolicy
         virtual ~IQoSRtsPolicy() { }
 
         virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame, TxopProcedure *txop) const = 0;
-        virtual simtime_t getCtsTimeout() const = 0;
+        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const = 0;
+        virtual int getRtsThreshold() const = 0;
 };
 
 } /* namespace ieee80211 */

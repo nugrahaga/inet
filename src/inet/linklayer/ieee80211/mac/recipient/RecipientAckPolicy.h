@@ -19,7 +19,9 @@
 #define __INET_RECIPIENTACKPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 #include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
 
@@ -28,7 +30,7 @@ using namespace inet::physicallayer;
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RecipientAckPolicy : public cSimpleModule, public cListener, public IRecipientAckPolicy
+class INET_API RecipientAckPolicy : public ModeSetListener, public IRecipientAckPolicy
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -37,7 +39,6 @@ class INET_API RecipientAckPolicy : public cSimpleModule, public cListener, publ
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
         simtime_t computeAckDuration(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
 

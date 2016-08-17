@@ -24,8 +24,8 @@ namespace ieee80211 {
 
 void RecipientAckPolicy::initialize(int stage)
 {
+    ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
     }
 }
 
@@ -42,7 +42,7 @@ simtime_t RecipientAckPolicy::computeAckDuration(Ieee80211DataOrMgmtFrame* dataO
 bool RecipientAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 {
     // TODO: add mgmt NoAck check
-    return !dataOrMgmtFrame->getTransmitterAddress().isMulticast();
+    return !frame->getTransmitterAddress().isMulticast();
 }
 
 //
@@ -59,14 +59,7 @@ bool RecipientAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 //
 simtime_t RecipientAckPolicy::computeAckDurationField(Ieee80211DataOrMgmtFrame* frame) const
 {
-    return frame->getMoreFragments() ? ceil(frame->getDuration() - modeSet->getSifsTime() - getAckDuration(frame)) : 0;
-}
-
-void RecipientAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+    return frame->getMoreFragments() ? ceil(frame->getDuration() - modeSet->getSifsTime() - computeAckDuration(frame)) : 0;
 }
 
 } /* namespace ieee80211 */

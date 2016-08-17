@@ -36,7 +36,8 @@ class INET_API RtsPolicy : public ModeSetListener, public IRtsPolicy
 
     public:
         virtual bool isRtsNeeded(Ieee80211DataOrMgmtFrame *protectedFrame) const override;
-        virtual simtime_t getCtsTimeout() const override;
+        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const override;
+        virtual int getRtsThreshold() const override { return rtsThreshold; }
 };
 
 } /* namespace ieee80211 */

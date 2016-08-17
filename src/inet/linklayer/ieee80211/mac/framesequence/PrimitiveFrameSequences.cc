@@ -90,7 +90,7 @@ IFrameSequenceStep *ManagementFs::prepareStep(FrameSequenceContext *context)
             return new TransmitStep(mgmtFrame, context->getIfs());
         }
         case 1: {
-            return new ReceiveStep(context->getAckProcedure()->getTimeout());
+            return new ReceiveStep(context->getAckTimeout(context->getInProgressFrames()->getFrameToTransmit()));
         }
         case 2:
             return nullptr;
@@ -161,8 +161,11 @@ IFrameSequenceStep *RtsCtsFs::prepareStep(FrameSequenceContext *context)
             auto rtsFrame = context->getRtsProcedure()->buildRtsFrame(dataOrMgmtFrame);
             return new RtsTransmitStep(dataOrMgmtFrame, rtsFrame, context->getIfs());
         }
-        case 1:
-            return new ReceiveStep(context->getRtsProcedure()->getTimeout());
+        case 1: {
+            auto txStep = check_and_cast<RtsTransmitStep *>(context->getLastStep());
+            auto rtsFrame = check_and_cast<Ieee80211RTSFrame*>(txStep->getFrameToTransmit());
+            return new ReceiveStep(context->getCtsTimeout(rtsFrame));
+        }
         case 2:
             return nullptr;
         default:
@@ -199,8 +202,11 @@ IFrameSequenceStep *FragFrameAckFs::prepareStep(FrameSequenceContext *context)
             auto frame = context->getInProgressFrames()->getFrameToTransmit();
             return new TransmitStep(frame, context->getIfs());
         }
-        case 1:
-            return new ReceiveStep(context->getAckProcedure()->getTimeout());
+        case 1: {
+            auto txStep = check_and_cast<TransmitStep *>(context->getLastStep());
+            auto dataOrMgmtFrame = check_and_cast<Ieee80211DataOrMgmtFrame*>(txStep->getFrameToTransmit());
+            return new ReceiveStep(context->getAckTimeout(dataOrMgmtFrame));
+        }
         case 2:
             return nullptr;
         default:
@@ -237,8 +243,11 @@ IFrameSequenceStep *LastFrameAckFs::prepareStep(FrameSequenceContext *context)
             auto frame = context->getInProgressFrames()->getFrameToTransmit();
             return new TransmitStep(frame, context->getIfs());
         }
-        case 1:
-            return new ReceiveStep(context->getAckProcedure()->getTimeout());
+        case 1: {
+            auto txStep = check_and_cast<TransmitStep *>(context->getLastStep());
+            auto dataOrMgmtFrame = check_and_cast<Ieee80211DataOrMgmtFrame*>(txStep->getFrameToTransmit());
+            return new ReceiveStep(context->getAckTimeout(dataOrMgmtFrame));
+        }
         case 2:
             return nullptr;
         default:
@@ -276,7 +285,7 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
             return new TransmitStep(blockAckReq, context->getIfs());
         }
         case 1: {
-            ITransmitStep *txStep = check_and_cast<ITransmitStep *>(context->getLastStep());
+            auto txStep = check_and_cast<ITransmitStep *>(context->getLastStep());
             auto blockAckReq = check_and_cast<Ieee80211BlockAckReq*>(txStep->getFrameToTransmit());
             return new ReceiveStep(context->getQoSContext()->ackPolicy->getBlockAckTimeout(blockAckReq));
         }

@@ -23,13 +23,15 @@
 namespace inet {
 namespace ieee80211 {
 
+class RecipientBlockAckAgreement;
+
 class INET_API IRecipientQoSAckPolicy
 {
     public:
         virtual ~IRecipientQoSAckPolicy() { }
 
         virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const = 0;
-        virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq) const = 0;
+        virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq, RecipientBlockAckAgreement *agreement) const = 0;
 
         virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const = 0;
         virtual simtime_t computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq *basicBlockAckReq) const = 0;

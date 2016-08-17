@@ -74,7 +74,7 @@ Ieee80211DataOrMgmtFrame* InProgressFrames::getPendingFrameFor(Ieee80211Frame *f
     else {
         for (auto frame : inProgressFrames) {
             AckHandler::Status ackStatus = ackHandler->getAckStatus(frame);
-            if (isEligibleStatusToTransmit(frame) && frameToTransmit != frame)
+            if (isEligibleStatusToTransmit(ackStatus) && frameToTransmit != frame)
                 return frame;
         }
         auto frames = dataService->extractFramesToTransmit(pendingQueue);

@@ -39,7 +39,8 @@ void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq
 {
     numReceivedBlockAckReq++;
     if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        if (ackPolicy->isBlockAckNeeded(basicBlockAckReq)) {
+        auto agreement = agreementHandler->getAgreement(basicBlockAckReq->getTidInfo(), basicBlockAckReq->getTransmitterAddress());
+        if (ackPolicy->isBlockAckNeeded(basicBlockAckReq, agreement)) {
             auto blockAck = buildBlockAck(basicBlockAckReq);
             blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(basicBlockAckReq));
             callback->transmitControlResponseFrame(blockAck, basicBlockAckReq);

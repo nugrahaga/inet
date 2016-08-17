@@ -30,17 +30,14 @@ namespace ieee80211 {
 /*
  * This class implements 9.3.2.6 CTS procedure
  */
-class INET_API CtsProcedure : public cSimpleModule, public cListener
+class INET_API CtsProcedure
 {
     protected:
-        Ieee80211ModeSet *modeSet = nullptr;
         int numReceivedRts = 0;
         int numSentCts = 0;
 
     protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame* rtsFrame);
 
     public:
         void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback);

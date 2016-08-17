@@ -38,7 +38,6 @@ namespace ieee80211 {
 class INET_API QoSContext
 {
     public:
-        RtsProcedure *rtsProcedure = nullptr;
         IQoSRtsPolicy *rtsPolicy = nullptr;
         OriginatorQoSAckPolicy *ackPolicy = nullptr; // TODO: interface
         OriginatorBlockAckProcedure *blockAckProcedure = nullptr; // TODO: interface
@@ -49,7 +48,6 @@ class INET_API QoSContext
 class INET_API NonQoSContext
 {
     public:
-        RtsProcedure *rtsProcedure = nullptr;  // TODO: interface
         IRtsPolicy *rtsPolicy = nullptr;
         OriginatorAckPolicy *ackPolicy = nullptr; // TODO: interface
 };
@@ -75,10 +73,14 @@ class INET_API FrameSequenceContext
         virtual IFrameSequenceStep *getStepBeforeLast() const { return steps.size() > 1 ? steps[steps.size() - 2] : nullptr; }
 
         virtual InProgressFrames* getInProgressFrames() const { return inProgressFrames; }
-        virtual simtime_t getIfs() const { return getNumSteps() == 0 ? 0 : modeSet->getSifsTime(); }
+        virtual RtsProcedure* getRtsProcedure() const { return nullptr; } // FIXME:
 
         virtual NonQoSContext *getNonQoSContext() const { return nonQoSContext; }
         virtual QoSContext *getQoSContext() const { return qosContext; }
+
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtframe) const;
+        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const;
+        virtual simtime_t getIfs() const { return getNumSteps() == 0 ? 0 : modeSet->getSifsTime(); }
 };
 
 } // namespace ieee80211

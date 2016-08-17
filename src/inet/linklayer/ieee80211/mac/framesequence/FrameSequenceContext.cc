@@ -28,6 +28,17 @@ FrameSequenceContext::FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgress
 {
 }
 
+simtime_t FrameSequenceContext::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgmtframe) const
+{
+    return qosContext ? qosContext->ackPolicy->getAckTimeout(dataOrMgmtframe) : nonQoSContext->ackPolicy->getAckTimeout(dataOrMgmtframe);
+}
+
+simtime_t FrameSequenceContext::getCtsTimeout(Ieee80211RTSFrame* rtsFrame) const
+{
+    return qosContext ? qosContext->rtsPolicy->getCtsTimeout(rtsFrame) : nonQoSContext->rtsPolicy->getCtsTimeout(rtsFrame);
+
+}
+
 FrameSequenceContext::~FrameSequenceContext()
 {
     for (auto step : steps)

@@ -27,14 +27,14 @@ namespace ieee80211 {
 // frame, plus one ACK or BlockAck frame if required, plus any NDPs required, plus explicit
 // feedback if required, plus applicable IFS durations.
 //
-simtime_t SingleProtectionMechanism::computeRtsDurationField(Ieee80211RTSFrame* rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
+simtime_t SingleProtectionMechanism::computeRtsDurationField(Ieee80211RTSFrame* rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy)
 {
     // TODO: We assume that the RTS frame is not part of a dual clear-to-send
     simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
     simtime_t ctsFrameDuration = rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
     simtime_t durationId = ctsFrameDuration + sifs + pendingFrameDuration + sifs;
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(pendingFrame)) {
-        if (RecipientAckProcedure::isAckNeeded(dataOrMgmtFrame)) {
+        if (ackPolicy->isAckNeeded(dataOrMgmtFrame)) {
             simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
             durationId += ackFrameDuration + sifs;
         }
@@ -102,7 +102,7 @@ simtime_t SingleProtectionMechanism::computeBlockAckDurationField(Ieee80211Block
 //  ii) Otherwise, the estimated time required for the transmission of the following frame and its
 //      response frame, if required (including appropriate IFS values)
 //
-simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
+simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy)
 {
     bool mgmtFrame = false;
     bool mgmtFrameWithNoAck = false;
@@ -135,7 +135,7 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee802
         else {
             ASSERT(pendingFrame != nullptr);
             simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame, txop)->getDuration(pendingFrame->getBitLength());
-            // TODO: We assume that the response frame is always an ACK frame.
+            // FIXME: We assume that the response frame is always an ACK frame. isAckNeeded()
             simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataOrMgmtFrame)->getDuration(LENGTH_ACK);
             return pendingFrameDuration + sifs + ackFrameDuration + sifs;
         }
@@ -143,10 +143,10 @@ simtime_t SingleProtectionMechanism::computeDataOrMgmtFrameDurationField(Ieee802
     throw cRuntimeError("Unknown frame");
 }
 
-simtime_t SingleProtectionMechanism::computeDurationField(Ieee80211Frame* frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop)
+simtime_t SingleProtectionMechanism::computeDurationField(Ieee80211Frame* frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy)
 {
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame*>(frame))
-        return computeRtsDurationField(rtsFrame, pendingFrame, txop);
+        return computeRtsDurationField(rtsFrame, pendingFrame, txop, ackPolicy);
     else if (auto ctsFrame = dynamic_cast<Ieee80211CTSFrame*>(frame))
         return computeCtsDurationField(ctsFrame);
     else if (auto blockAckReq = dynamic_cast<Ieee80211BlockAckReq*>(frame))
@@ -154,7 +154,7 @@ simtime_t SingleProtectionMechanism::computeDurationField(Ieee80211Frame* frame,
     else if (auto blockAck = dynamic_cast<Ieee80211BlockAck*>(frame))
         return computeBlockAckDurationField(blockAck);
     else if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame*>(frame))
-        return computeDataOrMgmtFrameDurationField(dataOrMgmtFrame, pendingFrame, txop);
+        return computeDataOrMgmtFrameDurationField(dataOrMgmtFrame, pendingFrame, txop, ackPolicy);
     else
         throw cRuntimeError("Unknown frame type");
 }

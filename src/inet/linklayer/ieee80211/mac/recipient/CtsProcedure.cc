@@ -22,13 +22,6 @@
 namespace inet {
 namespace ieee80211 {
 
-void CtsProcedure::initialize(int stage)
-{
-    if (stage == INITSTAGE_LOCAL) {
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
-    }
-}
-
 void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback)
 {
     numReceivedRts++;
@@ -37,8 +30,7 @@ void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame, ICtsPolicy *c
     if (ctsPolicy->isCtsNeeded(rtsFrame)) {
         auto ctsFrame = buildCts(rtsFrame);
         ctsFrame->setDuration(ctsPolicy->computeCtsDurationField(rtsFrame));
-        callback->transmitControlResponseFrame(ctsFrame, rtsFrame, modeSet->getSifsTime());
-        processTransmittedCts(ctsFrame); // FIXME: too early
+        callback->transmitControlResponseFrame(ctsFrame, rtsFrame);
     }
     // If the NAV at the STA receiving the RTS indicates the medium is not idle,
     // that STA shall not respond to the RTS frame.
@@ -58,13 +50,6 @@ Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
 void CtsProcedure::processTransmittedCts(Ieee80211CTSFrame* ctsFrame)
 {
     numSentCts++;
-}
-
-void CtsProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

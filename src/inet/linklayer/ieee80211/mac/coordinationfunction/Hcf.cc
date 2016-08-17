@@ -440,7 +440,7 @@ void Hcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
         auto txop = edcaTxops[ac];
         setFrameMode(frame, rateSelection->computeMode(frame, txop));
         if (txop->getProtectionMechanism() == TxopProcedure::ProtectionMechanism::SINGLE_PROTECTION)
-            frame->setDuration(singleProtectionMechanism->computeDurationField(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac]));
+            frame->setDuration(singleProtectionMechanism->computeDurationField(frame, edcaInProgressFrames[ac]->getPendingFrameFor(frame), edcaTxops[ac], recipientAckPolicy));
         else if (txop->getProtectionMechanism() == TxopProcedure::ProtectionMechanism::DOUBLE_PROTECTION)
             throw cRuntimeError("Double protection is unsupported");
         else

@@ -18,7 +18,7 @@
 #ifndef __INET_QOSRTSPOLICY_H
 #define __INET_QOSRTSPOLICY_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IRtsPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IQoSRtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
@@ -36,7 +36,8 @@ class INET_API QoSRtsPolicy : public ModeSetListener, public IQoSRtsPolicy
 
     public:
         virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame, TxopProcedure *txopProcedure) const override;
-        virtual simtime_t getCtsTimeout() const override;
+        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const override;
+        virtual int getRtsThreshold() const { return rtsThreshold; }
 };
 
 } /* namespace ieee80211 */

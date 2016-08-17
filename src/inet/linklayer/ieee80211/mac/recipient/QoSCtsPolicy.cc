@@ -24,16 +24,16 @@ namespace ieee80211 {
 
 Define_Module(QoSCtsPolicy);
 
-void CtsPolicy::initialize(int stage)
+void QoSCtsPolicy::initialize(int stage)
 {
+    ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
-        rateSelection = check_and_cast<IQoSRateSelection*>(par("rateSelectionModule"));
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+        rateSelection = check_and_cast<IQoSRateSelection*>(getModuleByPath(par("rateSelectionModule")));
     }
 }
 
-simtime_t QoSCtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
+simtime_t QoSCtsPolicy::computeCtsDuration(Ieee80211RTSFrame *rtsFrame) const
 {
     return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
 }
@@ -44,9 +44,19 @@ simtime_t QoSCtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
 // response minus the time, in microseconds, between the end of the PPDU carrying the RTS frame and the end
 // of the PPDU carrying the CTS frame.
 //
-simtime_t QoSCtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* frame) const
+simtime_t QoSCtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* rtsFrame) const
 {
-    return rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration(rtsFrame);
+    return rtsFrame->getDuration() - modeSet->getSifsTime() - computeCtsDuration(rtsFrame);
+}
+
+//
+// A STA that is addressed by an RTS frame shall transmit a CTS frame after
+// a SIFS period if the NAV at the STA receiving the RTS frame indicates that
+// the medium is idle.
+//
+bool QoSCtsPolicy::isCtsNeeded(Ieee80211RTSFrame* rtsFrame) const
+{
+   return rx->isMediumFree();
 }
 
 } /* namespace ieee80211 */

@@ -20,23 +20,26 @@
 
 #include "inet/linklayer/ieee80211/mac/recipient/CtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
-
-using namespace inet::physicallayer;
+#include "inet/linklayer/ieee80211/mac/contract/IRx.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API QoSCtsPolicy : public CtsPolicy
+class INET_API QoSCtsPolicy : public ModeSetListener, public ICtsPolicy
 {
     protected:
+        IRx *rx = nullptr;
         IQoSRateSelection *rateSelection = nullptr;
 
     protected:
+        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual simtime_t getCtsDuration(Ieee80211RTSFrame *rtsFrame) const override;
+        virtual simtime_t computeCtsDuration(Ieee80211RTSFrame *rtsFrame) const;
 
     public:
         virtual simtime_t computeCtsDurationField(Ieee80211RTSFrame *frame) const;
+        virtual bool isCtsNeeded(Ieee80211RTSFrame* rtsFrame) const;
+
 };
 
 } /* namespace ieee80211 */

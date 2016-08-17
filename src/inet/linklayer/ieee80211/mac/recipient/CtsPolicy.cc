@@ -28,12 +28,11 @@ void CtsPolicy::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
-        rateSelection = check_and_cast<IRateSelection*>(par("rateSelectionModule"));
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+        rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelection")));
     }
 }
 
-simtime_t CtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
+simtime_t CtsPolicy::computeCtsDuration(Ieee80211RTSFrame *rtsFrame) const
 {
     return rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
 }
@@ -43,9 +42,9 @@ simtime_t CtsPolicy::getCtsDuration(Ieee80211RTSFrame *rtsFrame) const
 // subtraction of aSIFSTime and the number of microseconds required to transmit the CTS frame at a data rate
 // determined by the rules in 9.7.
 //
-simtime_t CtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* frame) const
+simtime_t CtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* rtsFrame) const
 {
-    return rtsFrame->getDuration() - modeSet->getSifsTime() - getCtsDuration(rtsFrame);
+    return rtsFrame->getDuration() - modeSet->getSifsTime() - computeCtsDuration(rtsFrame);
 }
 
 //
@@ -56,13 +55,6 @@ simtime_t CtsPolicy::computeCtsDurationField(Ieee80211RTSFrame* frame) const
 bool CtsPolicy::isCtsNeeded(Ieee80211RTSFrame* rtsFrame) const
 {
    return rx->isMediumFree();
-}
-
-void CtsPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

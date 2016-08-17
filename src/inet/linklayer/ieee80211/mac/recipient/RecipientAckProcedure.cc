@@ -21,19 +21,15 @@
 namespace inet {
 namespace ieee80211 {
 
-void RecipientAckProcedure::initialize(int stage) {
-}
-
 void RecipientAckProcedure::processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame, IRecipientAckPolicy *ackPolicy, IProcedureCallback *callback)
 {
     numReceivedAckableFrame++;
     // After a successful reception of a frame requiring acknowledgment, transmission of the ACK frame
     // shall commence after a SIFS period, without regard to the busy/idle state of the medium. (See Figure 9-9.)
     if (ackPolicy->isAckNeeded(dataOrMgmtFrame)) {
-        auto ackFrame = recipientAckProcedure->buildAck(dataOrMgmtFrame);
+        auto ackFrame = buildAck(dataOrMgmtFrame);
         ackFrame->setDuration(ackPolicy->computeAckDurationField(dataOrMgmtFrame));
-        callback->transmitControlResponseFrame(ackFrame, dataOrMgmtFrame, modeSet->getSifs());
-        processTransmittedAck(ackFrame); // FIXME: too early
+        callback->transmitControlResponseFrame(ackFrame, dataOrMgmtFrame);
     }
 }
 
@@ -47,13 +43,6 @@ Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dat
     Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
     ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());
     return ack;
-}
-
-void RecipientAckProcedure::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

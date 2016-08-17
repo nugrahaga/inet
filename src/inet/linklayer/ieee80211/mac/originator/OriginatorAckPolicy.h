@@ -19,16 +19,13 @@
 #define __INET_ORIGINATORACKPOLICY_H
 
 #include "inet/common/INETDefs.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-
-using namespace inet::physicallayer;
-
+#include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
+#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorAckPolicy : public cSimpleModule, public cListener
+class INET_API OriginatorAckPolicy : public ModeSetListener
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -36,8 +33,7 @@ class INET_API OriginatorAckPolicy : public cSimpleModule, public cListener
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize() override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
+        virtual void initialize(int stage) override;
 
     public:
         virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;

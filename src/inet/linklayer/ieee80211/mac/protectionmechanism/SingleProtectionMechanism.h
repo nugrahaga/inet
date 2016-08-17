@@ -19,6 +19,7 @@
 #define __INET_SINGLEPROTECTIONMECHANISM_H
 
 #include "inet/linklayer/ieee80211/mac/rateselection/QoSRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/recipient/RecipientQoSAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -35,19 +36,20 @@ namespace ieee80211 {
 class INET_API SingleProtectionMechanism
 {
     protected:
+        // TODO: This may give wrong response modes when communicating with a Non-QoS STA.
         QoSRateSelection *rateSelection = nullptr;
-
-        simtime_t sifs = -1;
+        simtime_t sifs = -1; // FIXME: uninitialized
 
     protected:
-        virtual simtime_t computeRtsDurationField(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        virtual simtime_t computeRtsDurationField(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy);
         virtual simtime_t computeCtsDurationField(Ieee80211CTSFrame* ctsFrame);
         virtual simtime_t computeBlockAckReqDurationField(Ieee80211BlockAckReq* blockAckReq);
         virtual simtime_t computeBlockAckDurationField(Ieee80211BlockAck* blockAck);
-        virtual simtime_t computeDataOrMgmtFrameDurationField(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        virtual simtime_t computeDataOrMgmtFrameDurationField(Ieee80211DataOrMgmtFrame* dataOrMgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy);
 
     public:
-        virtual simtime_t computeDurationField(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop);
+        // TODO: QoSAckPolicy may give wrong answers when communicating with a Non-QoS STA.
+        virtual simtime_t computeDurationField(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame, TxopProcedure *txop, IRecipientQoSAckPolicy *ackPolicy);
 };
 
 } /* namespace ieee80211 */

@@ -17,6 +17,7 @@
 
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/NotifierConsts.h"
+#include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
 #include "RecipientQoSAckPolicy.h"
 
 namespace inet {
@@ -50,7 +51,7 @@ bool RecipientQoSAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
         if (dataFrame->getAckPolicy() != NORMAL_ACK)
             return false;
-    return !dataOrMgmtFrame->getTransmitterAddress().isMulticast();
+    return !frame->getTransmitterAddress().isMulticast();
 }
 
 //
@@ -66,12 +67,9 @@ bool RecipientQoSAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 // TXOP’s frame exchange. If delayed Block Ack policy is used and if the HC is the originator, then the HC may
 // respond with a +CF-Ack frame if the Basic BlockAck frame is the final frame of the TXOP’s frame exchange.
 //
-bool RecipientQoSAckPolicy::isBlockAckNeeded(Ieee80211BlockAckReq* blockAckReq) const
+bool RecipientQoSAckPolicy::isBlockAckNeeded(Ieee80211BlockAckReq* blockAckReq, RecipientBlockAckAgreement *agreement) const
 {
-    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq>(blockAckReq)) {
-        Tid tid = basicBlockAckReq->getTidInfo();
-        MACAddress originatorAddr = basicBlockAckReq->getTransmitterAddress();
-        RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr);
+    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
         return agreement != nullptr;
         // TODO: The Basic BlockAckReq frame shall be discarded if all MSDUs referenced by this
         // frame have been discarded from the transmit buffer due to expiry of their lifetime limit.
@@ -100,14 +98,7 @@ simtime_t RecipientQoSAckPolicy::computeAckDurationField(Ieee80211DataOrMgmtFram
 //
 simtime_t RecipientQoSAckPolicy::computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq* basicBlockAckReq) const
 {
-    return blockAckReq->getDuration() - modeSet->getSifsTime() - computeBasicBlockAckDuration(basicBlockAckReq);
-}
-
-void RecipientQoSAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
+    return basicBlockAckReq->getDuration() - modeSet->getSifsTime() - computeBasicBlockAckDuration(basicBlockAckReq);
 }
 
 } /* namespace ieee80211 */

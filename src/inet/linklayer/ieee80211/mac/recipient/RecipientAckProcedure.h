@@ -18,7 +18,8 @@
 #ifndef __INET_RECIPIENTACKPROCEDURE_H
 #define __INET_RECIPIENTACKPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
@@ -27,16 +28,13 @@ namespace ieee80211 {
 /*
  * This class implements 9.3.2.8 ACK procedure
  */
-class INET_API RecipientAckProcedure : public cSimpleModule, public cListener
+class INET_API RecipientAckProcedure
 {
     protected:
         int numReceivedAckableFrame = 0;
         int numSentAck = 0;
 
     protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
         virtual Ieee80211ACKFrame* buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
 
     public:

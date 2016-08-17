@@ -54,7 +54,7 @@ bool RtsPolicy::isRtsNeeded(Ieee80211DataOrMgmtFrame* protectedFrame) const
 // the transmission of the RTS has failed, and this STA shall invoke its backoff procedure upon expiration of the
 // CTSTimeout interval.
 //
-simtime_t RtsPolicy::getCtsTimeout() const
+simtime_t RtsPolicy::getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const
 {
     return ctsTimeout == -1 ? modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay() : ctsTimeout;
 }

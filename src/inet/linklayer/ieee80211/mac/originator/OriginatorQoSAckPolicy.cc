@@ -23,12 +23,15 @@ namespace ieee80211 {
 
 Define_Module(OriginatorQoSAckPolicy);
 
-void OriginatorQoSAckPolicy::initialize()
+void OriginatorQoSAckPolicy::initialize(int stage)
 {
-    maxBlockAckPolicyFrameLength = par("maxBlockAckPolicyFrameLength");
-    blockAckReqTreshold = par("blockAckReqTreshold");
-    blockAckTimeout = par("blockAckTimeout");
-    ackTimeout = par("ackTimeout");
+    ModeSetListener::initialize(stage);
+    if (stage == INITSTAGE_LOCAL) {
+        maxBlockAckPolicyFrameLength = par("maxBlockAckPolicyFrameLength");
+        blockAckReqTreshold = par("blockAckReqTreshold");
+        blockAckTimeout = par("blockAckTimeout");
+        ackTimeout = par("ackTimeout");
+    }
 }
 
 std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames)
@@ -141,13 +144,6 @@ simtime_t OriginatorQoSAckPolicy::getBlockAckTimeout(Ieee80211BlockAckReq* block
     if (blockAckTimeout == -1)
         return modeSet->getSifsTime() + modeSet->getSlotTime() + modeSet->getPhyRxStartDelay();
     return blockAckTimeout;
-}
-
-void OriginatorQoSAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
 }
 
 } /* namespace ieee80211 */

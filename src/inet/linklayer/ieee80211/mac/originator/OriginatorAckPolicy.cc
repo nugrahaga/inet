@@ -20,9 +20,13 @@
 namespace inet {
 namespace ieee80211 {
 
-void OriginatorAckPolicy::initialize()
+Define_Module(OriginatorAckPolicy);
+
+void OriginatorAckPolicy::initialize(int stage)
 {
-    ackTimeout = par("ackTimeout");
+    ModeSetListener::initialize(stage);
+    if (stage == INITSTAGE_LOCAL)
+        ackTimeout = par("ackTimeout");
 }
 
 //
@@ -39,13 +43,5 @@ simtime_t OriginatorAckPolicy::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgm
     return ackTimeout;
 }
 
-void OriginatorAckPolicy::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
-{
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED)
-        modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
-}
-
 } /* namespace ieee80211 */
 } /* namespace inet */
-
