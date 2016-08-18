@@ -44,14 +44,14 @@ class INET_API OriginatorBlockAckAgreementHandler
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
 
     public:
-        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid);
-        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode); // FIXME:
-        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy);
-        virtual void processTransmittedAddbaReq(Ieee80211AddbaRequest *addbaReq);
-        virtual void processTransmittedDataFrame(Ieee80211DataFrame *dataFrame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
-        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
-        virtual void processReceivedDelba(Ieee80211Delba *delba, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy);
-        virtual void processTransmittedDelba(Ieee80211Delba *delba);
+        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid) override;
+        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode) override; // FIXME:
+        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) override;
+        virtual void processTransmittedAddbaReq(Ieee80211AddbaRequest *addbaReq) override;
+        virtual void processTransmittedDataFrame(Ieee80211DataFrame *dataFrame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) override;
+        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) override;
+        virtual void processReceivedDelba(Ieee80211Delba *delba, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) override;
+        virtual void processTransmittedDelba(Ieee80211Delba *delba) override;
 };
 
 } // namespace ieee80211

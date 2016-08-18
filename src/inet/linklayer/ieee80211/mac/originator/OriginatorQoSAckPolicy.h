@@ -27,7 +27,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorQoSAckPolicy : public ModeSetListener
+class INET_API OriginatorQoSAckPolicy : public ModeSetListener, public IOriginatorQoSAckPolicy
 {
     protected:
         int maxBlockAckPolicyFrameLength = -1;

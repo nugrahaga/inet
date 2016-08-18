@@ -25,8 +25,8 @@
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRtsPolicy.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/originator/RtsProcedure.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
@@ -39,8 +39,8 @@ class INET_API QoSContext
 {
     public:
         IQoSRtsPolicy *rtsPolicy = nullptr;
-        OriginatorQoSAckPolicy *ackPolicy = nullptr; // TODO: interface
-        OriginatorBlockAckProcedure *blockAckProcedure = nullptr; // TODO: interface
+        IOriginatorQoSAckPolicy *ackPolicy = nullptr;
+        OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
         OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
         TxopProcedure *txopProcedure = nullptr;
 };
@@ -49,7 +49,7 @@ class INET_API NonQoSContext
 {
     public:
         IRtsPolicy *rtsPolicy = nullptr;
-        OriginatorAckPolicy *ackPolicy = nullptr; // TODO: interface
+        IOriginatorAckPolicy *ackPolicy = nullptr;
 };
 
 class INET_API FrameSequenceContext

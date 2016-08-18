@@ -18,9 +18,7 @@
 #ifndef __INET_ORIGINATORACKPOLICY_H
 #define __INET_ORIGINATORACKPOLICY_H
 
-#include "inet/common/INETDefs.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 
 namespace inet {
 namespace ieee80211 {

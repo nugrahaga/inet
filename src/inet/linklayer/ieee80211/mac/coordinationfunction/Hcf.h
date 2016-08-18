@@ -74,30 +74,30 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         Hcca *hcca = nullptr;
 
         // MAC Data Service
-        OriginatorQoSMacDataService *originatorDataService = nullptr;
-        RecipientQoSMacDataService *recipientDataService = nullptr;
+        IOriginatorMacDataService *originatorDataService = nullptr;
+        IRecipientMacDataService *recipientDataService = nullptr;
 
         // MAC Procedures
-        RecipientAckProcedure *recipientAckProcedure = nullptr;
-        RecipientQoSAckPolicy *recipientAckPolicy = nullptr;
-        RtsProcedure *rtsProcedure = nullptr;
-        CtsProcedure *ctsProcedure = nullptr;
-        QoSCtsPolicy *ctsPolicy = nullptr;
-        OriginatorBlockAckProcedure *originatorBlockAckProcedure = nullptr;
-        RecipientBlockAckProcedure *recipientBlockAckProcedure = nullptr;
+        IRecipientAckProcedure *recipientAckProcedure = nullptr;
+        IRecipientQoSAckPolicy *recipientAckPolicy = nullptr;
+        IRtsProcedure *rtsProcedure = nullptr;
+        ICtsProcedure *ctsProcedure = nullptr;
+        ICtsPolicy *ctsPolicy = nullptr;
+        IOriginatorBlockAckProcedure *originatorBlockAckProcedure = nullptr;
+        IRecipientBlockAckProcedure *recipientBlockAckProcedure = nullptr;
         EdcaTransmitLifetimeHandler *lifetimeHandler = nullptr;
-        std::vector<QoSRecoveryProcedure *> edcaDataRecoveryProcedures;
-        NonQoSRecoveryProcedure *edcaMgmtAndNonQoSRecoveryProcedure = nullptr;
+        std::vector<IRecoveryProcedure *> edcaDataRecoveryProcedures;
+        IRecoveryProcedure *edcaMgmtAndNonQoSRecoveryProcedure = nullptr;
 
         // Block Ack Agreement Handlers
-        OriginatorBlockAckAgreementHandler *originatorBlockAckAgreementHandler = nullptr;
-        OriginatorBlockAckAgreementPolicy *originatorBlockAckAgreementPolicy = nullptr;
-        RecipientBlockAckAgreementHandler *recipientBlockAckAgreementHandler = nullptr;
-        RecipientBlockAckAgreementPolicy *recipientBlockAckAgreementPolicy = nullptr;
+        IOriginatorBlockAckAgreementHandler *originatorBlockAckAgreementHandler = nullptr;
+        IOriginatorBlockAckAgreementPolicy *originatorBlockAckAgreementPolicy = nullptr;
+        IRecipientBlockAckAgreementHandler *recipientBlockAckAgreementHandler = nullptr;
+        IRecipientBlockAckAgreementPolicy *recipientBlockAckAgreementPolicy = nullptr;
 
         // Ack handler
         std::vector<AckHandler *> edcaAckHandlers;
-        OriginatorQoSAckPolicy *originatorQoSAckPolicy = nullptr;
+        IOriginatorQoSAckPolicy *originatorQoSAckPolicy = nullptr;
         AckHandler *hccaAckHandler = nullptr;
 
         // Tx Opportunity

@@ -24,7 +24,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API OriginatorBlockAckProcedure
+class INET_API OriginatorBlockAckProcedure : public IOriginatorBlockAckProcedure
 {
     public:
         virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;

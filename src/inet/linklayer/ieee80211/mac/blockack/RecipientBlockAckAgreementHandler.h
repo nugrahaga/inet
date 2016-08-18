@@ -37,7 +37,7 @@ class RecipientBlockAckAgreement;
  *
  * TODO: RecipientBlockAckAgreementProcedure ?
  */
-class INET_API RecipientBlockAckAgreementHandler
+class INET_API RecipientBlockAckAgreementHandler : public IRecipientBlockAckAgreementHandler
 {
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
@@ -51,12 +51,12 @@ class INET_API RecipientBlockAckAgreementHandler
         virtual Ieee80211AddbaResponse* buildAddbaResponse(Ieee80211AddbaRequest *frame, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
 
     public:
-        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr);
-        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode); // FIXME
-        virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp);
-        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback);
-        virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy);
-        virtual void processTransmittedDelba(Ieee80211Delba *delba);
+        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr) override;
+        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode) override;
+        virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp) override;
+        virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) override;
+        virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy) override;
+        virtual void processTransmittedDelba(Ieee80211Delba *delba) override;
 };
 
 } // namespace ieee80211

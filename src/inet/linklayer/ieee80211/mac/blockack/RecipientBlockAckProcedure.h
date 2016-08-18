@@ -28,7 +28,7 @@ namespace ieee80211 {
 /*
  * This class implements 9.3.2.9 BlockAck procedure
  */
-class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListener
+class INET_API RecipientBlockAckProcedure : public cSimpleModule, public IRecipientBlockAckProcedure
 {
     protected:
         RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
@@ -42,8 +42,8 @@ class INET_API RecipientBlockAckProcedure : public cSimpleModule, public cListen
         virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);
 
     public:
-        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback);
-        virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck);
+        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback) override;
+        virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck) override;
 };
 
 } /* namespace ieee80211 */

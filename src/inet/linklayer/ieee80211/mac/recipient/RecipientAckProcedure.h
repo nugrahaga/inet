@@ -36,8 +36,8 @@ class INET_API RecipientAckProcedure : public IRecipientAckProcedure
         virtual Ieee80211ACKFrame* buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame);
 
     public:
-        virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame, IRecipientAckPolicy *ackPolicy, IProcedureCallback *callback);
-        virtual void processTransmittedAck(Ieee80211ACKFrame *ack);
+        virtual void processReceivedFrame(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame, IRecipientAckPolicy *ackPolicy, IProcedureCallback *callback) override;
+        virtual void processTransmittedAck(Ieee80211ACKFrame *ack) override;
 };
 
 } /* namespace ieee80211 */
