@@ -19,6 +19,7 @@
 #define __INET_ORIGINATORACKPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -34,7 +35,7 @@ class INET_API OriginatorAckPolicy : public ModeSetListener, public IOriginatorA
         virtual void initialize(int stage) override;
 
     public:
-        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const override;
 };
 
 } /* namespace ieee80211 */

@@ -18,11 +18,9 @@
 #ifndef __INET_ORIGINATORQOSACKPOLICY_H
 #define __INET_ORIGINATORQOSACKPOLICY_H
 
-#include  "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorQoSAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -40,19 +38,19 @@ class INET_API OriginatorQoSAckPolicy : public ModeSetListener, public IOriginat
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
 
-        virtual bool checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
-        std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames);
-        virtual int computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames);
-        virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber);
+        virtual bool checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const;
+        virtual std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames) const;
+        virtual int computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames) const;
+        virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber) const;
 
     public:
-        virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement);
-        virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame);
-        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames);
-        virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure);
+        virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const override;
+        virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const;
+        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames) const;
+        virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure) const override;
 
-        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const;
-        virtual simtime_t getBlockAckTimeout(Ieee80211BlockAckReq *blockAckReq) const;
+        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const override;
+        virtual simtime_t getBlockAckTimeout(Ieee80211BlockAckReq *blockAckReq) const override;
 };
 
 } /* namespace ieee80211 */

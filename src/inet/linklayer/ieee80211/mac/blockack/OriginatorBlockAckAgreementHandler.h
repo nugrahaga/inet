@@ -18,12 +18,7 @@
 #ifndef __INET_ORIGINATORBLOCKACKAGREEMENTHANDLER_H
 #define __INET_ORIGINATORBLOCKACKAGREEMENTHANDLER_H
 
-#include "inet/linklayer/common/MACAddress.h"
-#include "inet/linklayer/ieee80211/mac/contract/IOriginatorBlockAckAgreementPolicy.h"
-#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
-#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
-#include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorBlockAckAgreementHandler.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -32,7 +27,7 @@ namespace ieee80211 {
  * This class implements...
  * TODO: OriginatorBlockAckAgreementProcedure?
  */
-class INET_API OriginatorBlockAckAgreementHandler
+class INET_API OriginatorBlockAckAgreementHandler : public IOriginatorBlockAckAgreementHandler
 {
     protected:
         std::map<std::pair<MACAddress, Tid>, OriginatorBlockAckAgreement *> blockAckAgreements;

@@ -18,8 +18,7 @@
 #ifndef __INET_ORIGINATORBLOCKACKPROCEDURE_H
 #define __INET_ORIGINATORBLOCKACKPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorBlockAckProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -27,8 +26,8 @@ namespace ieee80211 {
 class INET_API OriginatorBlockAckProcedure : public IOriginatorBlockAckProcedure
 {
     public:
-        virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
-        virtual Ieee80211BlockAckReq *buildBasicBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const;
+        virtual Ieee80211BlockAckReq *buildCompressedBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const override;
+        virtual Ieee80211BlockAckReq *buildBasicBlockAckReqFrame(const MACAddress& receiverAddress, Tid tid, int startingSequenceNumber) const override;
 };
 
 } /* namespace ieee80211 */

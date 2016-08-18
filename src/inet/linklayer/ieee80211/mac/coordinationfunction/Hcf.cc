@@ -164,7 +164,7 @@ void Hcf::frameSequenceFinished()
 void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
 {
     if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame))
-        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame, recipientAckPolicy, this);
+        recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame, check_and_cast<IRecipientAckPolicy*>(recipientAckPolicy), this);
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         if (dataFrame->getType() == ST_DATA_WITH_QOS)
             recipientBlockAckAgreementPolicy->qosFrameReceived(dataFrame);

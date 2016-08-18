@@ -20,6 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/contract/IQoSRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {

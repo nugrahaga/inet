@@ -34,7 +34,7 @@ void OriginatorQoSAckPolicy::initialize(int stage)
     }
 }
 
-std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames)
+std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames) const
 {
     auto outstandingFrames = inProgressFrames->getOutstandingFrames();
     std::map<MACAddress, std::vector<Ieee80211DataFrame*>> outstandingFramesPerReceiver;
@@ -44,7 +44,7 @@ std::map<MACAddress, std::vector<Ieee80211DataFrame*>> OriginatorQoSAckPolicy::g
 }
 
 
-int OriginatorQoSAckPolicy::computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames)
+int OriginatorQoSAckPolicy::computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames) const
 {
     ASSERT(outstandingFrames.size() > 0);
     int startingSequenceNumber = outstandingFrames[0]->getSequenceNumber();
@@ -56,7 +56,7 @@ int OriginatorQoSAckPolicy::computeStartingSequenceNumber(const std::vector<Ieee
     return startingSequenceNumber;
 }
 
-bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber)
+bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber) const
 {
     // The Compressed Bitmap subfield of the BA Control field or BAR Control field shall be set to 1 in all
     // BlockAck and BlockAckReq frames sent from one HT STA to another HT STA and shall be set to 0 otherwise.
@@ -67,7 +67,7 @@ bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211
 //    return true;
 }
 
-bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure)
+bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure) const
 {
     // FIXME
     simtime_t remainingTxop = txopProcedure->getRemaining();
@@ -79,7 +79,7 @@ bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFra
     return false;
 }
 
-std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlockAckReqParameters(InProgressFrames *inProgressFrames)
+std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlockAckReqParameters(InProgressFrames *inProgressFrames) const
 {
     auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
     for (auto outstandingFrames : outstandingFramesPerReceiver) {
@@ -98,7 +98,7 @@ std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlock
     return std::make_tuple(MACAddress::UNSPECIFIED_ADDRESS, -1, -1);
 }
 
-AckPolicy OriginatorQoSAckPolicy::computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+AckPolicy OriginatorQoSAckPolicy::computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const
 {
     if (agreement == nullptr)
         return AckPolicy::NORMAL_ACK;
@@ -112,12 +112,12 @@ AckPolicy OriginatorQoSAckPolicy::computeAckPolicy(Ieee80211DataFrame* frame, Or
         return AckPolicy::NORMAL_ACK;
 }
 
-bool OriginatorQoSAckPolicy::isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame)
+bool OriginatorQoSAckPolicy::isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const
 {
     return frame->getByteLength() < maxBlockAckPolicyFrameLength;
 }
 
-bool OriginatorQoSAckPolicy::checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement)
+bool OriginatorQoSAckPolicy::checkAgreementPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const
 {
     bool bufferFull = agreement->getBufferSize() == agreement->getNumSentBaPolicyFrames();
     bool aMsduOk = agreement->getIsAMsduSupported() || !frame->getAMsduPresent();

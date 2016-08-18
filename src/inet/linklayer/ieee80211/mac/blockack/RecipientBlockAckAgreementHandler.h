@@ -18,13 +18,9 @@
 #ifndef __INET_RECIPIENTBLOCKACKHANDLER_H
 #define __INET_RECIPIENTBLOCKACKHANDLER_H
 
-#include "inet/linklayer/common/MACAddress.h"
 #include "inet/linklayer/ieee80211/mac/blockackreordering/BlockAckReordering.h"
-#include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckAgreementPolicy.h"
-#include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckAgreementHandler.h"
 
 namespace inet {
 namespace ieee80211 {

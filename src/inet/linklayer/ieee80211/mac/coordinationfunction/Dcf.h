@@ -72,7 +72,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         IRtsPolicy *rtsPolicy = nullptr;
         ICtsProcedure *ctsProcedure = nullptr;
         ICtsPolicy *ctsPolicy = nullptr;
-        IRecoveryProcedure *recoveryProcedure = nullptr;
+        NonQoSRecoveryProcedure *recoveryProcedure = nullptr;
 
         // TODO: Unimplemented
         ITransmitLifetimeHandler *transmitLifetimeHandler = nullptr;

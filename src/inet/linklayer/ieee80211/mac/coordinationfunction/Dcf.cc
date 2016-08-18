@@ -35,7 +35,7 @@ void Dcf::initialize(int stage)
         originatorDataService = check_and_cast<IOriginatorMacDataService *>(getSubmodule(("originatorMacDataService")));
         recipientDataService = check_and_cast<IRecipientMacDataService*>(getSubmodule("recipientMacDataService"));
         frameSequenceHandler = check_and_cast<IFrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        recoveryProcedure = check_and_cast<IRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
+        recoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
         rateSelection = check_and_cast<IRateSelection*>(getModuleByPath(par("rateSelectionModule")));
         pendingQueue = new PendingQueue(par("maxQueueSize"), nullptr);
         rtsProcedure = new RtsProcedure();
