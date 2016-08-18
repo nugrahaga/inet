@@ -67,8 +67,8 @@ bool DcfFs::isSelfCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *con
 
 bool DcfFs::isRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
 {
-    //FIXME: return context->getInProgressFrames()->getFrameToTransmit()->getByteLength() > context->getRtsProcedure()->getRtsThreshold();
-    return false;
+    auto protectedFrame = context->getInProgressFrames()->getFrameToTransmit();
+    return context->getNonQoSContext()->rtsPolicy->isRtsNeeded(protectedFrame);
 }
 
 bool DcfFs::isCtsOrRtsCtsNeeded(OptionalFs *frameSequence, FrameSequenceContext *context)
