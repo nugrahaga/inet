@@ -38,8 +38,8 @@ void Hcf::initialize(int stage)
         recipientBlockAckAgreementPolicy = check_and_cast<IRecipientBlockAckAgreementPolicy*>(getSubmodule("recipientBlockAckAgreementPolicy"));
         rateSelection = check_and_cast<IQoSRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        originatorDataService = check_and_cast<IOriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
-        recipientDataService = check_and_cast<IRecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
+        originatorDataService = check_and_cast<IOriginatorMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
+        recipientDataService = check_and_cast<IRecipientMacDataService*>(getSubmodule("recipientQoSMacDataService"));
         originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
         recipientBlockAckAgreementHandler = new RecipientBlockAckAgreementHandler();
@@ -185,7 +185,7 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame))
         ctsProcedure->processReceivedRts(rtsFrame, ctsPolicy, this);
     else if (auto blockAckRequest = dynamic_cast<Ieee80211BasicBlockAckReq*>(frame))
-        recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest, recipientAckPolicy, this);
+        recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest, recipientAckPolicy, recipientBlockAckAgreementHandler, this);
     else
         throw cRuntimeError("Unknown control frame");
 }

@@ -30,15 +30,14 @@ namespace ieee80211 {
 class INET_API RecipientBlockAckProcedure : public IRecipientBlockAckProcedure
 {
     protected:
-        // FIXME: RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
         int numReceivedBlockAckReq = 0;
         int numSentBlockAck = 0;
 
     protected:
-        virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);
+        virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq, RecipientBlockAckAgreement *agreement);
 
     public:
-        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback) override;
+        virtual void processReceivedBlockAckReq(Ieee80211BlockAckReq *blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IRecipientBlockAckAgreementHandler* blockAckAgreementHandler, IProcedureCallback *callback) override;
         virtual void processTransmittedBlockAck(Ieee80211BlockAck *blockAck) override;
 };
 

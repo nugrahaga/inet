@@ -27,13 +27,13 @@ namespace ieee80211 {
 // STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
 // The rules that specify the contents of this BlockAck frame are defined in 9.21.
 //
-void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IProcedureCallback *callback)
+void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IRecipientBlockAckAgreementHandler* blockAckAgreementHandler, IProcedureCallback *callback)
 {
     numReceivedBlockAckReq++;
     if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        auto agreement = agreementHandler->getAgreement(basicBlockAckReq->getTidInfo(), basicBlockAckReq->getTransmitterAddress());
+        auto agreement = blockAckAgreementHandler->getAgreement(basicBlockAckReq->getTidInfo(), basicBlockAckReq->getTransmitterAddress());
         if (ackPolicy->isBlockAckNeeded(basicBlockAckReq, agreement)) {
-            auto blockAck = buildBlockAck(basicBlockAckReq);
+            auto blockAck = buildBlockAck(basicBlockAckReq, agreement);
             blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(basicBlockAckReq));
             callback->transmitControlResponseFrame(blockAck, basicBlockAckReq);
         }
@@ -53,12 +53,9 @@ void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* b
 // until the MPDU with the highest sequence number that has been received, and the STA shall set bits in the
 // Block Ack bitmap corresponding to all other MPDUs to 0.
 //
-Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckReq* blockAckReq)
+Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckReq* blockAckReq, RecipientBlockAckAgreement *agreement)
 {
     if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
-        Tid tid = basicBlockAckReq->getTidInfo();
-        MACAddress originatorAddr = basicBlockAckReq->getTransmitterAddress();
-        RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr); // FIXME
         ASSERT(agreement != nullptr);
         Ieee80211BasicBlockAck *blockAck = new Ieee80211BasicBlockAck("BasicBlockAck");
         int startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();
@@ -72,7 +69,7 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
         blockAck->setReceiverAddress(blockAckReq->getTransmitterAddress());
         blockAck->setCompressedBitmap(false);
         blockAck->setStartingSequenceNumber(basicBlockAckReq->getStartingSequenceNumber());
-        blockAck->setTidInfo(tid);
+        blockAck->setTidInfo(basicBlockAckReq->getTidInfo());
         return blockAck;
     }
     else
