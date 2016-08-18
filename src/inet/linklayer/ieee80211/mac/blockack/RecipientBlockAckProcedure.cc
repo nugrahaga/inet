@@ -22,13 +22,6 @@
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(RecipientBlockAckProcedure);
-
-void RecipientBlockAckProcedure::initialize()
-{
-    agreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getModuleByPath(par("blockAckAgreementHandlerModule")));
-}
-
 //
 // Upon successful reception of a frame of a type that requires an immediate BlockAck response, the receiving
 // STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
@@ -43,7 +36,6 @@ void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq
             auto blockAck = buildBlockAck(basicBlockAckReq);
             blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(basicBlockAckReq));
             callback->transmitControlResponseFrame(blockAck, basicBlockAckReq);
-            processTransmittedBlockAck(blockAck); // FIXME: too early
         }
     }
     else
@@ -66,7 +58,7 @@ Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckRe
     if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
         Tid tid = basicBlockAckReq->getTidInfo();
         MACAddress originatorAddr = basicBlockAckReq->getTransmitterAddress();
-        RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr);
+        RecipientBlockAckAgreement *agreement = agreementHandler->getAgreement(tid, originatorAddr); // FIXME
         ASSERT(agreement != nullptr);
         Ieee80211BasicBlockAck *blockAck = new Ieee80211BasicBlockAck("BasicBlockAck");
         int startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();

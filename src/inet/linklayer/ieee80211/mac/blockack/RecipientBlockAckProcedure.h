@@ -27,17 +27,14 @@ namespace ieee80211 {
 /*
  * This class implements 9.3.2.9 BlockAck procedure
  */
-class INET_API RecipientBlockAckProcedure : public cSimpleModule, public IRecipientBlockAckProcedure
+class INET_API RecipientBlockAckProcedure : public IRecipientBlockAckProcedure
 {
     protected:
-        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
+        // FIXME: RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
         int numReceivedBlockAckReq = 0;
         int numSentBlockAck = 0;
 
     protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize() override;
-
         virtual Ieee80211BlockAck* buildBlockAck(Ieee80211BlockAckReq *blockAckReq);
 
     public:

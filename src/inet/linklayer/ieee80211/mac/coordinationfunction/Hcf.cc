@@ -28,27 +28,27 @@ Define_Module(Hcf);
 void Hcf::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
+        mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
         numEdcafs = par("numEdcafs");
         edca = check_and_cast<Edca *>(getSubmodule("edca"));
         hcca = check_and_cast<Hcca *>(getSubmodule("hcca"));
         tx = check_and_cast<ITx *>(getModuleByPath(par("txModule")));
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
-        originatorBlockAckAgreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler *>(getSubmodule("originatorBlockAckAgreementHandler"));
-        originatorBlockAckAgreementPolicy = check_and_cast<OriginatorBlockAckAgreementPolicy*>(getSubmodule("originatorBlockAckAgreementPolicy"));
-        recipientBlockAckAgreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getSubmodule("recipientBlockAckAgreementHandler"));
-        recipientBlockAckAgreementPolicy = check_and_cast<RecipientBlockAckAgreementPolicy*>(getSubmodule("recipientBlockAckAgreementPolicy"));
-        rtsProcedure = check_and_cast<RtsProcedure*>(getSubmodule("rtsProcedure"));
-        mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
+        originatorBlockAckAgreementPolicy = check_and_cast<IOriginatorBlockAckAgreementPolicy*>(getSubmodule("originatorBlockAckAgreementPolicy"));
+        recipientBlockAckAgreementPolicy = check_and_cast<IRecipientBlockAckAgreementPolicy*>(getSubmodule("recipientBlockAckAgreementPolicy"));
         rateSelection = check_and_cast<IQoSRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
-        originatorDataService = check_and_cast<OriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
-        recipientDataService = check_and_cast<RecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
+        originatorDataService = check_and_cast<IOriginatorQoSMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
+        recipientDataService = check_and_cast<IRecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
         originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
-        recipientAckProcedure = nullptr;
-        //ctsProcedure = new CtsProcedure(rx, rateSelection);
-//        originatorBlockAckProcedure = new OriginatorBlockAckProcedure(rateSelection);
-//        recipientBlockAckProcedure = new RecipientBlockAckProcedure(recipientBlockAckAgreementHandler, rateSelection);
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
+        recipientBlockAckAgreementHandler = new RecipientBlockAckAgreementHandler();
+        originatorBlockAckAgreementHandler = new OriginatorBlockAckAgreementHandler();
+        rtsProcedure = new RtsProcedure();
+        recipientAckProcedure = new RecipientAckProcedure();
+        ctsProcedure = new CtsProcedure();
+        originatorBlockAckProcedure = new OriginatorBlockAckProcedure();
+        recipientBlockAckProcedure = new RecipientBlockAckProcedure();
         for (int ac = 0; ac < numEdcafs; ac++) {
             edcaPendingQueues.push_back(new PendingQueue(par("maxQueueSize"), nullptr));
             edcaDataRecoveryProcedures.push_back(check_and_cast<QoSRecoveryProcedure *>(getSubmodule("edcaDataRecoveryProcedures", ac)));
@@ -503,6 +503,11 @@ Hcf::~Hcf()
 {
     delete recipientAckProcedure;
     delete ctsProcedure;
+    delete rtsProcedure;
+    delete originatorBlockAckAgreementHandler;
+    delete recipientBlockAckAgreementHandler;
+    delete originatorBlockAckProcedure;
+    delete recipientBlockAckProcedure;
     for (auto inProgressFrames : edcaInProgressFrames)
         delete inProgressFrames;
     for (auto pendingQueue : edcaPendingQueues)
