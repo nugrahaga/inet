@@ -18,7 +18,6 @@
 #ifndef __INET_RECIPIENTBLOCKACKPROCEDURE_H
 #define __INET_RECIPIENTBLOCKACKPROCEDURE_H
 
-#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementHandler.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckProcedure.h"
 
 namespace inet {

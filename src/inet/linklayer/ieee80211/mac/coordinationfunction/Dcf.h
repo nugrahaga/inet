@@ -66,6 +66,7 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // MAC Procedures
         AckHandler *ackHandler = nullptr;
+        IOriginatorAckPolicy *originatorAckPolicy = nullptr;
         IRecipientAckProcedure *recipientAckProcedure = nullptr;
         IRecipientAckPolicy *recipientAckPolicy = nullptr;
         IRtsProcedure *rtsProcedure = nullptr;

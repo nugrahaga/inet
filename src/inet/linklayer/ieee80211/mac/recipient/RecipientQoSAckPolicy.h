@@ -41,10 +41,10 @@ class INET_API RecipientQoSAckPolicy : public ModeSetListener, public IRecipient
 
     public:
         virtual bool isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const override;
-        virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq, RecipientBlockAckAgreement *agreement) const;
+        virtual bool isBlockAckNeeded(Ieee80211BlockAckReq *blockAckReq, RecipientBlockAckAgreement *agreement) const override;
 
         virtual simtime_t computeAckDurationField(Ieee80211DataOrMgmtFrame *frame) const override;
-        virtual simtime_t computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq *basicBlockAckReq) const;
+        virtual simtime_t computeBasicBlockAckDurationField(Ieee80211BasicBlockAckReq *basicBlockAckReq) const override;
 };
 
 } /* namespace ieee80211 */

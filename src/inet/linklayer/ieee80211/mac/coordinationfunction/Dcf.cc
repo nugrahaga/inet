@@ -151,7 +151,8 @@ void Dcf::recipientProcessControlFrame(Ieee80211Frame* frame)
 
 FrameSequenceContext* Dcf::buildContext()
 {
-    return new FrameSequenceContext(modeSet, inProgressFrames, nullptr, nullptr);
+    auto nonQoSContext = new NonQoSContext(rtsPolicy, originatorAckPolicy);
+    return new FrameSequenceContext(modeSet, inProgressFrames, rtsProcedure, nonQoSContext, nullptr);
 }
 
 void Dcf::transmissionComplete(Ieee80211Frame *frame)

@@ -80,7 +80,9 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // MAC Procedures
         IRecipientAckProcedure *recipientAckProcedure = nullptr;
         IRecipientQoSAckPolicy *recipientAckPolicy = nullptr;
+        IOriginatorQoSAckPolicy *originatorAckPolicy = nullptr;
         IRtsProcedure *rtsProcedure = nullptr;
+        IQoSRtsPolicy *rtsPolicy = nullptr;
         ICtsProcedure *ctsProcedure = nullptr;
         ICtsPolicy *ctsPolicy = nullptr;
         IOriginatorBlockAckProcedure *originatorBlockAckProcedure = nullptr;

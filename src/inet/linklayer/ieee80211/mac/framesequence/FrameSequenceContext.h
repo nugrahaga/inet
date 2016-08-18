@@ -38,16 +38,29 @@ namespace ieee80211 {
 class INET_API QoSContext
 {
     public:
+        QoSContext(IQoSRtsPolicy *rtsPolicy, IOriginatorQoSAckPolicy *ackPolicy, IOriginatorBlockAckProcedure *blockAckProcedure, IOriginatorBlockAckAgreementHandler *blockAckAgreementHandler, TxopProcedure *txopProcedure) :
+            rtsPolicy(rtsPolicy),
+            ackPolicy(ackPolicy),
+            blockAckProcedure(blockAckProcedure),
+            blockAckAgreementHandler(blockAckAgreementHandler),
+            txopProcedure(txopProcedure)
+        { }
+
         IQoSRtsPolicy *rtsPolicy = nullptr;
         IOriginatorQoSAckPolicy *ackPolicy = nullptr;
-        OriginatorBlockAckProcedure *blockAckProcedure = nullptr;
-        OriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
+        IOriginatorBlockAckProcedure *blockAckProcedure = nullptr;
+        IOriginatorBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
         TxopProcedure *txopProcedure = nullptr;
 };
 
 class INET_API NonQoSContext
 {
     public:
+        NonQoSContext(IRtsPolicy *rtsPolicy, IOriginatorAckPolicy *ackPolicy) :
+            rtsPolicy(rtsPolicy),
+            ackPolicy(ackPolicy)
+        { }
+
         IRtsPolicy *rtsPolicy = nullptr;
         IOriginatorAckPolicy *ackPolicy = nullptr;
 };
@@ -57,13 +70,14 @@ class INET_API FrameSequenceContext
     protected:
         Ieee80211ModeSet *modeSet = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
+        IRtsProcedure *rtsProcedure = nullptr;
         std::vector<IFrameSequenceStep *> steps;
 
         NonQoSContext *nonQoSContext = nullptr;
         QoSContext *qosContext = nullptr;
 
     public:
-        FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, NonQoSContext *nonQosContext, QoSContext *qosContext);
+        FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, NonQoSContext *nonQosContext, QoSContext *qosContext);
         virtual ~FrameSequenceContext();
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
@@ -73,7 +87,7 @@ class INET_API FrameSequenceContext
         virtual IFrameSequenceStep *getStepBeforeLast() const { return steps.size() > 1 ? steps[steps.size() - 2] : nullptr; }
 
         virtual InProgressFrames* getInProgressFrames() const { return inProgressFrames; }
-        virtual RtsProcedure* getRtsProcedure() const { return nullptr; } // FIXME:
+        virtual IRtsProcedure* getRtsProcedure() const { return rtsProcedure; }
 
         virtual NonQoSContext *getNonQoSContext() const { return nonQoSContext; }
         virtual QoSContext *getQoSContext() const { return qosContext; }

@@ -107,7 +107,8 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
 
 FrameSequenceContext* Hcf::buildContext(AccessCategory ac)
 {
-    return new FrameSequenceContext(modeSet, edcaInProgressFrames[ac], nullptr, nullptr); // FIXME
+    auto qosContext = new QoSContext(rtsPolicy, originatorAckPolicy, originatorBlockAckProcedure, originatorBlockAckAgreementHandler, edcaTxops[ac]);
+    return new FrameSequenceContext(modeSet, edcaInProgressFrames[ac], rtsProcedure, nullptr, qosContext);
 }
 
 void Hcf::startFrameSequence(AccessCategory ac)

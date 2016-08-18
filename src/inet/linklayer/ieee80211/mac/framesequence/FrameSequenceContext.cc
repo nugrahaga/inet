@@ -20,9 +20,10 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, NonQoSContext *nonQoSContext, QoSContext *qosContext) :
+FrameSequenceContext::FrameSequenceContext(Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, NonQoSContext *nonQoSContext, QoSContext *qosContext) :
     modeSet(modeSet),
     inProgressFrames(inProgressFrames),
+    rtsProcedure(rtsProcedure),
     nonQoSContext(nonQoSContext),
     qosContext(qosContext)
 {
@@ -36,13 +37,14 @@ simtime_t FrameSequenceContext::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMg
 simtime_t FrameSequenceContext::getCtsTimeout(Ieee80211RTSFrame* rtsFrame) const
 {
     return qosContext ? qosContext->rtsPolicy->getCtsTimeout(rtsFrame) : nonQoSContext->rtsPolicy->getCtsTimeout(rtsFrame);
-
 }
 
 FrameSequenceContext::~FrameSequenceContext()
 {
     for (auto step : steps)
         delete step;
+    delete nonQoSContext;
+    delete qosContext;
 }
 
 } // namespace ieee80211

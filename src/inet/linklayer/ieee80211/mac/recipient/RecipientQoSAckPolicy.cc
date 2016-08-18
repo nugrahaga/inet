@@ -71,7 +71,7 @@ bool RecipientQoSAckPolicy::isAckNeeded(Ieee80211DataOrMgmtFrame* frame) const
 //
 bool RecipientQoSAckPolicy::isBlockAckNeeded(Ieee80211BlockAckReq* blockAckReq, RecipientBlockAckAgreement *agreement) const
 {
-    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
+    if (dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
         return agreement != nullptr;
         // TODO: The Basic BlockAckReq frame shall be discarded if all MSDUs referenced by this
         // frame have been discarded from the transmit buffer due to expiry of their lifetime limit.
