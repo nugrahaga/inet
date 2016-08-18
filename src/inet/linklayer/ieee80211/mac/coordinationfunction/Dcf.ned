@@ -43,28 +43,34 @@ module Dcf
         *.rxModule = "^." + rxModule;
 
         @class(Dcf);
-        @display("i=block/queue;bgb=226,514");
+        @display("i=block/queue;bgb=399.896,513.856");
 
     submodules:
         channelAccess: Dcaf {
-            @display("p=113,293");
-        }
-        recipientMacDataService: RecipientMacDataService {
-            @display("p=113,442");
+            @display("p=100.492,46.62");
         }
         originatorMacDataService: OriginatorMacDataService {
-            @display("p=113,366");
+            @display("p=100.492,149.184");
+        }
+        recipientMacDataService: RecipientMacDataService {
+            @display("p=100.492,245.532");
         }
         recoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.channelAccess";
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=113,131");
+            @display("p=320.124,446.516");
         }
 
-        rtsPolicy: RtsPolicy {
-            @display("p=113,57");
+        originatorAckPolicy: OriginatorAckPolicy {
+            @display("p=320.124,34.188");
         }
-        ctsPolicy: CtsPolicy;
-        originatorAckPolicy: OriginatorAckPolicy;
-        recipientAckPolicy: RecipientAckPolicy;
+        recipientAckPolicy: RecipientAckPolicy {
+            @display("p=320.124,119.14");
+        }
+        rtsPolicy: RtsPolicy {
+            @display("p=320.124,205.128");
+        }
+        ctsPolicy: CtsPolicy {
+            @display("p=320.124,292.152");
+        }
 }

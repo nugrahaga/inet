@@ -51,7 +51,6 @@ module Hcf
         @display("i=block/queue;bgb=1311.142,783.852");
 
     submodules:
-        // Channal access
         edca: Edca {
             numEdcafs = numEdcafs;
             @display("p=83.83125,175.88126");
@@ -59,7 +58,7 @@ module Hcf
         hcca: Hcca {
             @display("p=83.83125,335.325");
         }
-        // Data service
+        
         originatorMacDataService: OriginatorQoSMacDataService {
             @display("p=526,652.5688");
         }
@@ -82,7 +81,6 @@ module Hcf
             @display("p=616.40625,78.9,row,50");
         }
 
-        // Policy
         recipientAckPolicy: RecipientQoSAckPolicy {
             @display("p=1017.48126,187.38751");
         }
