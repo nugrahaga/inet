@@ -32,12 +32,12 @@ class INET_API OriginatorProtectionMechanism
         simtime_t sifs = -1;
 
     protected:
-        virtual simtime_t computeRtsDurationPerId(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
-        virtual simtime_t computeDataFrameDurationPerId(Ieee80211DataFrame *dataFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
-        virtual simtime_t computeMgmtFrameDurationPerId(Ieee80211ManagementFrame *mgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
+        virtual simtime_t computeRtsDurationField(Ieee80211RTSFrame *rtsFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
+        virtual simtime_t computeDataFrameDurationField(Ieee80211DataFrame *dataFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
+        virtual simtime_t computeMgmtFrameDurationField(Ieee80211ManagementFrame *mgmtFrame, Ieee80211DataOrMgmtFrame *pendingFrame);
 
     public:
-        virtual simtime_t computeDurationPerId(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame);
+        virtual simtime_t computeDurationField(Ieee80211Frame *frame, Ieee80211DataOrMgmtFrame *pendingFrame);
 };
 
 } /* namespace ieee80211 */

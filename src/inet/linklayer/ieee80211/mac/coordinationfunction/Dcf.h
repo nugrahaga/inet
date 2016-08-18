@@ -36,6 +36,7 @@
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientAckProcedure.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientAckPolicy.h"
 #include "inet/linklayer/ieee80211/mac/recipient/RecipientMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/protectionmechanism/OriginatorProtectionMechanism.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -80,6 +81,9 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         // TODO: Unimplemented
         ITransmitLifetimeHandler *transmitLifetimeHandler = nullptr;
         DcfReceiveLifetimeHandler *receiveLifetimeHandler = nullptr;
+
+        // Protection mechanism
+        OriginatorProtectionMechanism *originatorProtectionMechanism = nullptr;
 
         // Queue
         PendingQueue *pendingQueue = nullptr;

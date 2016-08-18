@@ -49,6 +49,7 @@ void Dcf::initialize(int stage)
         ctsPolicy = check_and_cast<ICtsPolicy *>(getSubmodule("ctsPolicyModule"));
         stationRetryCounters = new StationRetryCounters();
         inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
+        originatorProtectionMechanism = new OriginatorProtectionMechanism();
     }
 }
 
@@ -123,6 +124,7 @@ void Dcf::processLowerFrame(Ieee80211Frame* frame)
 void Dcf::transmitFrame(Ieee80211Frame* frame, simtime_t ifs)
 {
     setFrameMode(frame, rateSelection->computeMode(frame));
+    frame->setDuration(originatorProtectionMechanism->computeDurationField(frame, inProgressFrames->getPendingFrameFor(frame)));
     tx->transmitFrame(frame, ifs, this);
 }
 

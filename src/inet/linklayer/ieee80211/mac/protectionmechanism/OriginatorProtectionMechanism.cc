@@ -26,7 +26,7 @@ namespace ieee80211 {
 // intervals. If the calculated duration includes a fractional microsecond, that value is rounded up to the next
 // higher integer. For RTS frames sent by QoS STAs, see 8.2.5.
 //
-simtime_t OriginatorProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFrame* rtsFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
+simtime_t OriginatorProtectionMechanism::computeRtsDurationField(Ieee80211RTSFrame* rtsFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
 {
     simtime_t pendingFrameDuration = rateSelection->computeMode(pendingFrame)->getDuration(pendingFrame->getBitLength());
     simtime_t ctsFrameDuration = rateSelection->computeResponseCtsFrameMode(rtsFrame)->getDuration(LENGTH_CTS);
@@ -45,7 +45,7 @@ simtime_t OriginatorProtectionMechanism::computeRtsDurationPerId(Ieee80211RTSFra
 //     an individual address, the duration value is set to the time, in microseconds, required to transmit the
 //     next fragment of this data frame, plus two ACK frames, plus three SIFS intervals.
 //
-simtime_t OriginatorProtectionMechanism::computeDataFrameDurationPerId(Ieee80211DataFrame* dataFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
+simtime_t OriginatorProtectionMechanism::computeDataFrameDurationField(Ieee80211DataFrame* dataFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
 {
     simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(dataFrame)->getDuration(LENGTH_ACK);
     if (dataFrame->getReceiverAddress().isMulticast())
@@ -68,7 +68,7 @@ simtime_t OriginatorProtectionMechanism::computeDataFrameDurationPerId(Ieee80211
 //     individual address, the duration value is set to the time, in microseconds, required to transmit the
 //     next fragment of this management frame, plus two ACK frames, plus three SIFS intervals.
 //
-simtime_t OriginatorProtectionMechanism::computeMgmtFrameDurationPerId(Ieee80211ManagementFrame* mgmtFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
+simtime_t OriginatorProtectionMechanism::computeMgmtFrameDurationField(Ieee80211ManagementFrame* mgmtFrame, Ieee80211DataOrMgmtFrame* pendingFrame)
 {
     simtime_t ackFrameDuration = rateSelection->computeResponseAckFrameMode(mgmtFrame)->getDuration(LENGTH_ACK);
     if (mgmtFrame->getReceiverAddress().isMulticast())
@@ -82,14 +82,14 @@ simtime_t OriginatorProtectionMechanism::computeMgmtFrameDurationPerId(Ieee80211
     }
 }
 
-simtime_t OriginatorProtectionMechanism::computeDurationPerId(Ieee80211Frame* frame, Ieee80211DataOrMgmtFrame* pendingFrame)
+simtime_t OriginatorProtectionMechanism::computeDurationField(Ieee80211Frame* frame, Ieee80211DataOrMgmtFrame* pendingFrame)
 {
     if (auto rtsFrame = dynamic_cast<Ieee80211RTSFrame *>(frame))
-        return computeRtsDurationPerId(rtsFrame, pendingFrame);
+        return computeRtsDurationField(rtsFrame, pendingFrame);
     else if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame))
-        return computeDataFrameDurationPerId(dataFrame, pendingFrame);
+        return computeDataFrameDurationField(dataFrame, pendingFrame);
     else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(frame))
-        return computeMgmtFrameDurationPerId(mgmtFrame, pendingFrame);
+        return computeMgmtFrameDurationField(mgmtFrame, pendingFrame);
     else
         throw cRuntimeError("Unknown frame");
 }
