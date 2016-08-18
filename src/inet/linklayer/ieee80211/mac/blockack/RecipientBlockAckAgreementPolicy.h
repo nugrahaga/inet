@@ -27,9 +27,6 @@ namespace ieee80211 {
 class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule, public IRecipientBlockAckAgreementPolicy
 {
     protected:
-        RecipientBlockAckAgreementHandler *agreementHandler = nullptr;
-        std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
-
         int maximumAllowedBufferSize = -1;
         bool isAMsduSupported = false;
         bool isDelayedBlockAckPolicySupported = false;
@@ -38,19 +35,12 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule, public I
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *msg) override;
-
-        virtual void scheduleInactivityTimer(RecipientBlockAckAgreement *agreement);
-        virtual std::pair<MACAddress, Tid> findAgreement(cMessage* inactivityTimer);
 
     public:
         ~RecipientBlockAckAgreementPolicy();
 
         virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq) override;
         virtual bool isDelbaAccepted(Ieee80211Delba* delba) override;
-        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame) override;
-
-        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement) override;
 
         virtual simtime_t getBlockAckTimeoutValue() const override { return blockAckTimeoutValue; }
         virtual bool aMsduSupported() const override { return isAMsduSupported; }

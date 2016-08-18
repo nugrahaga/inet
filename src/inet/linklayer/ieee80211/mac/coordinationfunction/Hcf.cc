@@ -29,6 +29,8 @@ void Hcf::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
+        startRxTimer = new cMessage("startRxTimeout");
+        inactivityTimer = new cMessage("blockAckInactivityTimer");
         numEdcafs = par("numEdcafs");
         edca = check_and_cast<Edca *>(getSubmodule("edca"));
         hcca = check_and_cast<Hcca *>(getSubmodule("hcca"));
@@ -63,6 +65,18 @@ void Hcf::initialize(int stage)
     }
 }
 
+void Hcf::handleMessage(cMessage* msg)
+{
+    if (msg == startRxTimer && !isReceptionInProgress())
+        frameSequenceHandler->handleStartRxTimeout();
+    else if (msg == inactivityTimer) {
+        originatorBlockAckAgreementHandler->blockAckAgreementExpired(this, this);
+        recipientBlockAckAgreementHandler->blockAckAgreementExpired(this, this);
+    }
+    else
+        throw cRuntimeError("Unknown msg type");
+}
+
 void Hcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
 {
     AccessCategory ac = AccessCategory(-1);
@@ -84,11 +98,25 @@ void Hcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
     }
 }
 
+void Hcf::scheduleStartRxTimer(simtime_t timeout)
+{
+    scheduleAt(simTime() + timeout, startRxTimer);
+}
+
+void Hcf::scheduleInactivityTimer(simtime_t timeout)
+{
+    if (inactivityTimer->isScheduled())
+        cancelEvent(inactivityTimer);
+    scheduleAt(simTime() + timeout, inactivityTimer);
+}
+
 void Hcf::processLowerFrame(Ieee80211Frame* frame)
 {
     auto edcaf = edca->getChannelOwner();
-    if (edcaf && frameSequenceHandler->isSequenceRunning())
+    if (edcaf && frameSequenceHandler->isSequenceRunning()) {
         frameSequenceHandler->processResponse(frame);
+        cancelEvent(startRxTimer);
+    }
     else if (hcca->isOwning())
         throw cRuntimeError("Hcca is unimplemented!");
     else
@@ -171,7 +199,7 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
         recipientAckProcedure->processReceivedFrame(dataOrMgmtFrame, check_and_cast<IRecipientAckPolicy*>(recipientAckPolicy), this);
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         if (dataFrame->getType() == ST_DATA_WITH_QOS)
-            recipientBlockAckAgreementPolicy->qosFrameReceived(dataFrame);
+            recipientBlockAckAgreementHandler->qosFrameReceived(dataFrame, this);
         sendUp(recipientDataService->dataFrameReceived(dataFrame));
     }
     else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(frame)) {
@@ -284,7 +312,7 @@ void Hcf::originatorProcessTransmittedManagementFrame(Ieee80211ManagementFrame* 
     }
     else if (auto addbaResp = dynamic_cast<Ieee80211AddbaResponse*>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(addbaResp);
-        recipientBlockAckAgreementHandler->processTransmittedAddbaResp(addbaResp);
+        recipientBlockAckAgreementHandler->processTransmittedAddbaResp(addbaResp, this);
     }
     else if (auto delba = dynamic_cast<Ieee80211Delba *>(mgmtFrame)) {
         edcaAckHandlers[ac]->processTransmittedMgmtFrame(delba);
@@ -382,7 +410,7 @@ void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211
         EV_INFO << "BasicBlockAck has arrived" << std::endl;
         edcaDataRecoveryProcedures[ac]->blockAckFrameReceived();
         auto ackedSeqAndFragNums = edcaAckHandlers[ac]->processReceivedBlockAck(blockAck);
-        originatorBlockAckAgreementHandler->processReceivedBlockAck(blockAck, originatorBlockAckAgreementPolicy);
+        originatorBlockAckAgreementHandler->processReceivedBlockAck(blockAck, this);
         EV_INFO << "It has acknowledged the following frames:" << std::endl;
         for (auto seqCtrlField : ackedSeqAndFragNums)
             EV_INFO << "Fragment number = " << seqCtrlField.getSequenceNumber() << " Sequence number = " << (int)seqCtrlField.getFragmentNumber() << std::endl;
@@ -505,6 +533,8 @@ bool Hcf::isReceptionInProgress()
 
 Hcf::~Hcf()
 {
+    cancelAndDelete(startRxTimer);
+    cancelAndDelete(inactivityTimer);
     delete recipientAckProcedure;
     delete ctsProcedure;
     delete rtsProcedure;

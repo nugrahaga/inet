@@ -37,16 +37,20 @@ class INET_API OriginatorBlockAckAgreementHandler : public IOriginatorBlockAckAg
         virtual void createAgreement(Ieee80211AddbaRequest *addbaRequest);
         virtual void updateAgreement(OriginatorBlockAckAgreement *agreement, Ieee80211AddbaResponse *addbaResp);
         virtual void terminateAgreement(MACAddress originatorAddr, Tid tid);
+        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode);
+        virtual simtime_t computeEarliestExpirationTime();
+        virtual void scheduleInactivityTimer(IBlockAckAgreementHandlerCallback *callback);
 
     public:
-        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid) override;
-        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode) override; // FIXME:
-        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) override;
         virtual void processTransmittedAddbaReq(Ieee80211AddbaRequest *addbaReq) override;
         virtual void processTransmittedDataFrame(Ieee80211DataFrame *dataFrame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) override;
-        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) override;
+        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IBlockAckAgreementHandlerCallback *callback) override;
+        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IBlockAckAgreementHandlerCallback *callback) override;
         virtual void processReceivedDelba(Ieee80211Delba *delba, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) override;
         virtual void processTransmittedDelba(Ieee80211Delba *delba) override;
+        virtual void blockAckAgreementExpired(IProcedureCallback *procedureCallback, IBlockAckAgreementHandlerCallback *agreementHandlerCallback) override;
+
+        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid) override;
 };
 
 } // namespace ieee80211

@@ -23,28 +23,12 @@
 namespace inet {
 namespace ieee80211 {
 
-Define_Module(FrameSequenceHandler);
-
-FrameSequenceHandler::~FrameSequenceHandler()
+void FrameSequenceHandler::handleStartRxTimeout()
 {
-    cancelAndDelete(timeout);
-}
-
-void FrameSequenceHandler::initialize(int stage)
-{
-    if (stage == INITSTAGE_LOCAL) {
-        timeout = new cMessage("startRxTimeout");
-    }
-}
-
-void FrameSequenceHandler::handleMessage(cMessage* message)
-{
-    ASSERT(message == timeout);
     auto lastStep = context->getLastStep();
     switch (lastStep->getType()) {
         case IFrameSequenceStep::Type::RECEIVE:
-            if (message == timeout && !callback->isReceptionInProgress())
-                abortFrameSequence();
+            abortFrameSequence();
             break;
         case IFrameSequenceStep::Type::TRANSMIT:
             throw cRuntimeError("Received timeout while in transmit step");
@@ -56,7 +40,6 @@ void FrameSequenceHandler::handleMessage(cMessage* message)
 void FrameSequenceHandler::processResponse(Ieee80211Frame* frame)
 {
     ASSERT(callback != nullptr);
-    Enter_Method("processResponse(\"%s\")", frame->getName());
     auto lastStep = context->getLastStep();
     switch (lastStep->getType()) {
         case IFrameSequenceStep::Type::RECEIVE: {
@@ -76,7 +59,6 @@ void FrameSequenceHandler::processResponse(Ieee80211Frame* frame)
 
 void FrameSequenceHandler::transmissionComplete()
 {
-    Enter_Method("transmissionComplete()");
     if (isSequenceRunning()) {
         finishFrameSequenceStep();
         if (isSequenceRunning())
@@ -120,7 +102,7 @@ void FrameSequenceHandler::startFrameSequenceStep()
             case IFrameSequenceStep::Type::RECEIVE: {
                 // start reception timer, break loop if timer expires before reception is over
                 auto receiveStep = static_cast<ReceiveStep *>(nextStep);
-                scheduleAt(simTime() + receiveStep->getTimeout(), timeout);
+                callback->scheduleStartRxTimer(receiveStep->getTimeout());
                 break;
             }
             default:
@@ -137,7 +119,6 @@ void FrameSequenceHandler::finishFrameSequenceStep()
     // EV_INFO << "Frame sequence history:" << frameSequence->getHistory() << endl;
     if (!stepResult) {
         lastStep->setCompletion(IFrameSequenceStep::Completion::REJECTED);
-        cancelEvent(timeout);
         abortFrameSequence();
     }
     else {
@@ -152,7 +133,6 @@ void FrameSequenceHandler::finishFrameSequenceStep()
                 auto receiveStep = static_cast<ReceiveStep *>(lastStep);
                 auto transmitStep = check_and_cast<ITransmitStep*>(context->getStepBeforeLast());
                 callback->originatorProcessReceivedFrame(receiveStep->getReceivedFrame(), transmitStep->getFrameToTransmit());
-                cancelEvent(timeout);
                 break;
             }
             default:

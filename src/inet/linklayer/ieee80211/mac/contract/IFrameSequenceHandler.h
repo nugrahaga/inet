@@ -39,14 +39,17 @@ class INET_API IFrameSequenceHandler
                 virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) = 0;
                 virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) = 0;
                 virtual void frameSequenceFinished() = 0;
-                virtual bool isReceptionInProgress() = 0;
+                virtual void scheduleStartRxTimer(simtime_t timeout) = 0;
         };
 
     public:
+        virtual ~IFrameSequenceHandler() { }
+
         virtual void startFrameSequence(IFrameSequence *frameSequence, FrameSequenceContext *context, ICallback *callback) = 0;
         virtual void processResponse(Ieee80211Frame *frame) = 0;
         virtual void transmissionComplete() = 0;
         virtual bool isSequenceRunning() = 0;
+        virtual void handleStartRxTimeout() = 0;
 };
 
 } /* namespace ieee80211 */

@@ -26,6 +26,7 @@ RecipientBlockAckAgreement::RecipientBlockAckAgreement(MACAddress originatorAddr
     bufferSize(bufferSize),
     blockAckTimeoutValue(lastUsedTime)
 {
+    renewExpirationTime();
     blockAckRecord = new BlockAckRecord(originatorAddress, tid);
 }
 

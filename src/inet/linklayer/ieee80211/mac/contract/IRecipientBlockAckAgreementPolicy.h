@@ -30,8 +30,6 @@ class INET_API IRecipientBlockAckAgreementPolicy
 
         virtual bool isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq) = 0;
         virtual bool isDelbaAccepted(Ieee80211Delba* delba) = 0;
-        virtual void qosFrameReceived(Ieee80211DataFrame *qosFrame) = 0;
-        virtual void agreementEstablished(RecipientBlockAckAgreement* agreement) = 0;
 
         virtual simtime_t getBlockAckTimeoutValue() const = 0;
         virtual bool aMsduSupported() const = 0;

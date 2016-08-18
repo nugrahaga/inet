@@ -29,8 +29,6 @@ class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, publi
 {
     protected:
         IOriginatorQoSAckPolicy *ackPolicy = nullptr;
-        OriginatorBlockAckAgreementHandler *agreementHandler = nullptr; // FIXME:
-        std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
 
         int blockAckReqTreshold = -1;
         bool delayedAckPolicySupported = false;
@@ -42,10 +40,6 @@ class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, publi
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage* msg) override;
-
-        virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);
-        virtual std::pair<MACAddress, Tid> findAgreement(cMessage *inactivityTimer);
 
     public:
         ~OriginatorBlockAckAgreementPolicy();
@@ -54,10 +48,7 @@ class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, publi
         virtual bool isAddbaReqAccepted(Ieee80211AddbaResponse *addbaResp, OriginatorBlockAckAgreement* agreement) override;
         virtual bool isDelbaAccepted(Ieee80211Delba *delba) override;
 
-        virtual simtime_t getAddbaFailureTimeout() const override;
-
-        virtual void blockAckReceived(OriginatorBlockAckAgreement *agreement) override;
-        virtual void agreementEstablished(OriginatorBlockAckAgreement *agreement) override;
+        virtual simtime_t computeAddbaFailureTimeout() const override;
 
         virtual bool isMsduSupported() const override { return aMsduSupported; }
         virtual simtime_t getBlockAckTimeoutValue() const override { return blockAckTimeoutValue; }

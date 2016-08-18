@@ -28,6 +28,7 @@ Define_Module(Dcf);
 void Dcf::initialize(int stage)
 {
     if (stage == INITSTAGE_LINK_LAYER_2) {
+        startRxTimer = new cMessage("startRxTimeout");
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this));
         tx = check_and_cast<ITx *>(getModuleByPath(par("txModule")));
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
@@ -49,6 +50,14 @@ void Dcf::initialize(int stage)
         stationRetryCounters = new StationRetryCounters();
         inProgressFrames = new InProgressFrames(pendingQueue, originatorDataService, ackHandler);
     }
+}
+
+void Dcf::handleMessage(cMessage* msg)
+{
+    if (msg == startRxTimer && !isReceptionInProgress())
+        frameSequenceHandler->handleStartRxTimeout();
+    else
+        throw cRuntimeError("Unknown msg type");
 }
 
 void Dcf::channelGranted(IChannelAccess *channelAccess)
@@ -96,6 +105,11 @@ void Dcf::recipientProcessTransmittedControlResponseFrame(Ieee80211Frame* frame)
         recipientAckProcedure->processTransmittedAck(ackFrame);
     else
         throw cRuntimeError("Unknown control response frame");
+}
+
+void Dcf::scheduleStartRxTimer(simtime_t timeout)
+{
+    scheduleAt(simTime() + timeout, startRxTimer);
 }
 
 void Dcf::processLowerFrame(Ieee80211Frame* frame)
@@ -228,6 +242,7 @@ void Dcf::setFrameMode(Ieee80211Frame *frame, const IIeee80211Mode *mode) const
 
 Dcf::~Dcf()
 {
+    cancelAndDelete(startRxTimer);
     delete pendingQueue;
     delete inProgressFrames;
     delete rtsProcedure;

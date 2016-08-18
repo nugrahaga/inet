@@ -23,6 +23,56 @@
 namespace inet {
 namespace ieee80211 {
 
+simtime_t RecipientBlockAckAgreementHandler::computeEarliestExpirationTime()
+{
+    simtime_t earliestTime = SIMTIME_MAX;
+    for (auto id : blockAckAgreements) {
+        auto agreement = id.second;
+        earliestTime = std::min(earliestTime, agreement->getExpirationTime());
+    }
+    return earliestTime;
+}
+
+void RecipientBlockAckAgreementHandler::scheduleInactivityTimer(IBlockAckAgreementHandlerCallback* callback)
+{
+    simtime_t earliestExpirationTime = computeEarliestExpirationTime();
+    if (earliestExpirationTime != SIMTIME_MAX)
+        callback->scheduleInactivityTimer(earliestExpirationTime);
+}
+
+// The inactivity timer at a recipient is reset when MPDUs corresponding to the TID for which the Block Ack
+// policy is set are received and the Ack Policy subfield in the QoS Control field of that MPDU header is
+// Block Ack or Implicit Block Ack Request.
+//
+void RecipientBlockAckAgreementHandler::qosFrameReceived(Ieee80211DataFrame* qosFrame, IBlockAckAgreementHandlerCallback *callback)
+{
+    if (qosFrame->getAckPolicy() == AckPolicy::BLOCK_ACK) { // TODO: + Implicit Block Ack
+        Tid tid = qosFrame->getTid();
+        MACAddress originatorAddr = qosFrame->getTransmitterAddress();
+        auto agreement = getAgreement(tid, originatorAddr);
+        if (agreement)
+            scheduleInactivityTimer(callback);
+    }
+}
+
+void RecipientBlockAckAgreementHandler::blockAckAgreementExpired(IProcedureCallback *procedureCallback, IBlockAckAgreementHandlerCallback *agreementHandlerCallback)
+{
+    // When a timeout of BlockAckTimeout is detected, the STA shall send a DELBA frame to the
+    // peer STA with the Reason Code field set to TIMEOUT and shall issue a MLME-DELBA.indication
+    // primitive with the ReasonCode parameter having a value of TIMEOUT.
+    // The procedure is illustrated in Figure 10-14.
+    simtime_t now = simTime();
+    for (auto id : blockAckAgreements) {
+        auto agreement = id.second;
+        if (agreement->getExpirationTime() == now) {
+            MACAddress receiverAddr = id.first.first;
+            Tid tid = id.first.second;
+            procedureCallback->processMgmtFrame(buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
+        }
+    }
+    scheduleInactivityTimer(agreementHandlerCallback);
+}
+
 //
 // An originator that intends to use the Block Ack mechanism for the transmission of QoS data frames to an
 // intended recipient should first check whether the intended recipient STA is capable of participating in Block
@@ -103,16 +153,16 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::getAgreement(Tid 
     return it != blockAckAgreements.end() ? it->second : nullptr;
 }
 
-void RecipientBlockAckAgreementHandler::processTransmittedAddbaResp(Ieee80211AddbaResponse* addbaResp)
+void RecipientBlockAckAgreementHandler::processTransmittedAddbaResp(Ieee80211AddbaResponse* addbaResp, IBlockAckAgreementHandlerCallback *callback)
 {
     updateAgreement(addbaResp);
+    scheduleInactivityTimer(callback);
 }
 
 void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback)
 {
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
         auto agreement = addAgreement(addbaRequest);
-        blockAckAgreementPolicy->agreementEstablished(agreement);
         auto addbaResponse = buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
         callback->processMgmtFrame(addbaResponse);
     }
@@ -131,4 +181,4 @@ void RecipientBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* del
 
 
 } // namespace ieee80211
-}// namespace inet
+} // namespace inet

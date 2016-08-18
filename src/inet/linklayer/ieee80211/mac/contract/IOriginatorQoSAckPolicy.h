@@ -32,6 +32,7 @@ class INET_API IOriginatorQoSAckPolicy
 
         virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const = 0;
         virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure) const = 0;
+        virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const = 0;
 
         virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const = 0;
         virtual simtime_t getBlockAckTimeout(Ieee80211BlockAckReq *blockAckReq) const = 0;

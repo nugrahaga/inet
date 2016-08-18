@@ -19,6 +19,7 @@
 #define __INET_IORIGINATORBLOCKACKAGREEMENTHANDLER_H
 
 #include "inet/linklayer/ieee80211/mac/contract/IOriginatorBlockAckAgreementPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IBlockAckAgreementHandlerCallback.h"
 #include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
@@ -32,14 +33,15 @@ class INET_API IOriginatorBlockAckAgreementHandler
     public:
         virtual ~IOriginatorBlockAckAgreementHandler() { }
 
-        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid) = 0;
-        virtual Ieee80211Delba *buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode) = 0;
-        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) = 0;
+        virtual void processReceivedBlockAck(Ieee80211BlockAck *blockAck, IBlockAckAgreementHandlerCallback *callback) = 0;
         virtual void processTransmittedAddbaReq(Ieee80211AddbaRequest *addbaReq) = 0;
         virtual void processTransmittedDataFrame(Ieee80211DataFrame *dataFrame, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) = 0;
-        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) = 0;
+        virtual void processReceivedAddbaResp(Ieee80211AddbaResponse *addbaResp, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy, IBlockAckAgreementHandlerCallback *callback) = 0;
         virtual void processReceivedDelba(Ieee80211Delba *delba, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy) = 0;
         virtual void processTransmittedDelba(Ieee80211Delba *delba) = 0;
+        virtual void blockAckAgreementExpired(IProcedureCallback *procedureCallback, IBlockAckAgreementHandlerCallback *agreementHandlerCallback) = 0;
+
+        virtual OriginatorBlockAckAgreement *getAgreement(MACAddress receiverAddr, Tid tid) = 0;
 };
 
 } // namespace ieee80211

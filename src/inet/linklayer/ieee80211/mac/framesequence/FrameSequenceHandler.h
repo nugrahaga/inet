@@ -26,31 +26,24 @@ namespace inet {
 namespace ieee80211 {
 
 // TODO: FrameSequence: Process, Runtime, Engine, Executor?
-class INET_API FrameSequenceHandler : public IFrameSequenceHandler, public cSimpleModule
+class INET_API FrameSequenceHandler : public IFrameSequenceHandler
 {
     protected:
         IFrameSequenceHandler::ICallback *callback = nullptr;
         IFrameSequence *frameSequence = nullptr;
         FrameSequenceContext *context = nullptr;
 
-        cMessage *timeout = nullptr;
-
     protected:
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void handleMessage(cMessage *message) override;
-
         virtual void startFrameSequenceStep();
         virtual void finishFrameSequenceStep();
         virtual void finishFrameSequence(bool ok);
         virtual void abortFrameSequence();
 
     public:
-        ~FrameSequenceHandler();
-
         virtual void startFrameSequence(IFrameSequence *frameSequence, FrameSequenceContext *context, IFrameSequenceHandler::ICallback *callback) override;
         virtual void processResponse(Ieee80211Frame *frame) override;
         virtual void transmissionComplete() override;
+        virtual void handleStartRxTimeout() override;
         virtual bool isSequenceRunning() { return frameSequence != nullptr; }
 };
 

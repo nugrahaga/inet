@@ -16,10 +16,10 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/NotifierConsts.h"
 #include "inet/linklayer/ieee80211/mac/coordinationfunction/Hcf.h"
 #include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.h"
 #include "OriginatorBlockAckAgreementHandler.h"
+#include "OriginatorBlockAckAgreement.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -29,6 +29,34 @@ void OriginatorBlockAckAgreementHandler::createAgreement(Ieee80211AddbaRequest *
     OriginatorBlockAckAgreement *blockAckAgreement = new OriginatorBlockAckAgreement(addbaRequest->getReceiverAddress(), addbaRequest->getTid(), addbaRequest->getStartingSequenceNumber(), addbaRequest->getBufferSize(), addbaRequest->getAMsduSupported(), addbaRequest->getBlockAckPolicy() == 0);
     auto agreementId = std::make_pair(addbaRequest->getReceiverAddress(), addbaRequest->getTid());
     blockAckAgreements[agreementId] = blockAckAgreement;
+}
+
+simtime_t OriginatorBlockAckAgreementHandler::computeEarliestExpirationTime()
+{
+    simtime_t earliestTime = SIMTIME_MAX;
+    for (auto id : blockAckAgreements) {
+        auto agreement = id.second;
+        earliestTime = std::min(earliestTime, agreement->getExpirationTime());
+    }
+    return earliestTime;
+}
+
+void OriginatorBlockAckAgreementHandler::blockAckAgreementExpired(IProcedureCallback *procedureCallback, IBlockAckAgreementHandlerCallback *agreementHandlerCallback)
+{
+    // When a timeout of BlockAckTimeout is detected, the STA shall send a DELBA frame to the
+    // peer STA with the Reason Code field set to TIMEOUT and shall issue a MLME-DELBA.indication
+    // primitive with the ReasonCode parameter having a value of TIMEOUT.
+    // The procedure is illustrated in Figure 10-14.
+    simtime_t now = simTime();
+    for (auto id : blockAckAgreements) {
+        auto agreement = id.second;
+        if (agreement->getExpirationTime() == now) {
+            MACAddress receiverAddr = id.first.first;
+            Tid tid = id.first.second;
+            procedureCallback->processMgmtFrame(buildDelba(receiverAddr, tid, 39)); // 39 - TIMEOUT see: Table 8-36—Reason codes
+        }
+    }
+    scheduleInactivityTimer(agreementHandlerCallback);
 }
 
 Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MACAddress receiverAddr, Tid tid, int startingSequenceNumber, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy)
@@ -43,6 +71,30 @@ Ieee80211AddbaRequest* OriginatorBlockAckAgreementHandler::buildAddbaRequest(MAC
     addbaRequest->setBlockAckPolicy(blockAckAgreementPolicy->isDelayedAckPolicySupported() ? 0 : 1);
     addbaRequest->setStartingSequenceNumber(startingSequenceNumber);
     return addbaRequest;
+}
+
+//
+// The inactivity timer at the originator is reset when a BlockAck frame
+// corresponding to the TID for which the Block Ack policy is set is received.
+//
+void OriginatorBlockAckAgreementHandler::processReceivedBlockAck(Ieee80211BlockAck *blockAck, IBlockAckAgreementHandlerCallback *callback)
+{
+    if (auto basicBlockAck = dynamic_cast<Ieee80211BasicBlockAck*>(blockAck)) {
+        auto agreement = getAgreement(basicBlockAck->getTransmitterAddress(), basicBlockAck->getTidInfo());
+        if (agreement) {
+            agreement->renewExpirationTime();
+            scheduleInactivityTimer(callback);
+        }
+    }
+    else
+        throw cRuntimeError("Unsupported BlockAck");
+}
+
+void OriginatorBlockAckAgreementHandler::scheduleInactivityTimer(IBlockAckAgreementHandlerCallback* callback)
+{
+    simtime_t earliestExpirationTime = computeEarliestExpirationTime();
+    if (earliestExpirationTime != SIMTIME_MAX)
+        callback->scheduleInactivityTimer(earliestExpirationTime);
 }
 
 OriginatorBlockAckAgreement* OriginatorBlockAckAgreementHandler::getAgreement(MACAddress receiverAddr, Tid tid)
@@ -83,12 +135,12 @@ void OriginatorBlockAckAgreementHandler::processTransmittedDataFrame(Ieee80211Da
     }
 }
 
-void OriginatorBlockAckAgreementHandler::processReceivedAddbaResp(Ieee80211AddbaResponse* addbaResp, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IProcedureCallback* callback)
+void OriginatorBlockAckAgreementHandler::processReceivedAddbaResp(Ieee80211AddbaResponse* addbaResp, IOriginatorBlockAckAgreementPolicy* blockAckAgreementPolicy, IBlockAckAgreementHandlerCallback *callback)
 {
     auto agreement = getAgreement(addbaResp->getTransmitterAddress(), addbaResp->getTid());
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaResp, agreement)) {
         updateAgreement(agreement, addbaResp);
-        blockAckAgreementPolicy->agreementEstablished(agreement);
+        scheduleInactivityTimer(callback);
     }
     else {
         // TODO: send a new one?
@@ -107,17 +159,6 @@ void OriginatorBlockAckAgreementHandler::processTransmittedAddbaReq(Ieee80211Add
     createAgreement(addbaReq);
 }
 
-void OriginatorBlockAckAgreementHandler::processReceivedBlockAck(Ieee80211BlockAck* blockAck, IOriginatorBlockAckAgreementPolicy *blockAckAgreementPolicy)
-{
-    if (auto basicBlockAck = dynamic_cast<Ieee80211BasicBlockAck*>(blockAck)) {
-        auto agreement = getAgreement(basicBlockAck->getTransmitterAddress(), basicBlockAck->getTidInfo());
-        if (agreement)
-            blockAckAgreementPolicy->blockAckReceived(agreement);
-    }
-    else
-        throw cRuntimeError("Unsupported BlockAck");
-}
-
 void OriginatorBlockAckAgreementHandler::processTransmittedDelba(Ieee80211Delba* delba)
 {
     terminateAgreement(delba->getReceiverAddress(), delba->getTid());
@@ -130,4 +171,4 @@ void OriginatorBlockAckAgreementHandler::processReceivedDelba(Ieee80211Delba* de
 }
 
 } // namespace ieee80211
-}// namespace inet
+} // namespace inet

@@ -18,7 +18,6 @@
 package inet.linklayer.ieee80211.mac.coordinationfunction;
 
 import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
-import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
@@ -55,9 +54,6 @@ module Dcf
         }
         originatorMacDataService: OriginatorMacDataService {
             @display("p=113,366");
-        }
-        frameSequenceHandler: FrameSequenceHandler {
-            @display("p=113,211");
         }
         recoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.channelAccess";

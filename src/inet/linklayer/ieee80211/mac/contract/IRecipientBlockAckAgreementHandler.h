@@ -18,6 +18,7 @@
 #ifndef __INET_IRECIPIENTBLOCKACKAGREEMENTHANDLER_H
 #define __INET_IRECIPIENTBLOCKACKAGREEMENTHANDLER_H
 
+#include "inet/linklayer/ieee80211/mac/contract/IBlockAckAgreementHandlerCallback.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientBlockAckAgreementPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
@@ -32,12 +33,14 @@ class INET_API IRecipientBlockAckAgreementHandler
     public:
         virtual ~IRecipientBlockAckAgreementHandler() { };
 
-        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr) = 0;
-        virtual Ieee80211Delba* buildDelba(MACAddress receiverAddr, Tid tid, int reasonCode) = 0;
-        virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp) = 0;
+        virtual void processTransmittedAddbaResp(Ieee80211AddbaResponse *addbaResp, IBlockAckAgreementHandlerCallback *callback) = 0;
         virtual void processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback) = 0;
         virtual void processReceivedDelba(Ieee80211Delba *delba, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy) = 0;
         virtual void processTransmittedDelba(Ieee80211Delba *delba) = 0;
+        virtual void qosFrameReceived(Ieee80211DataFrame* qosFrame, IBlockAckAgreementHandlerCallback *callback) = 0;
+        virtual void blockAckAgreementExpired(IProcedureCallback *procedureCallback, IBlockAckAgreementHandlerCallback *agreementHandlerCallback) = 0;
+
+        virtual RecipientBlockAckAgreement* getAgreement(Tid tid, MACAddress originatorAddr) = 0;
 };
 
 } /* namespace ieee80211 */

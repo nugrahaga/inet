@@ -15,10 +15,23 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-package inet.linklayer.ieee80211.mac.framesequence;
+#ifndef __INET_IBLOCKACKAGREEMENTHANDLERCALLBACK_H
+#define __INET_IBLOCKACKAGREEMENTHANDLERCALLBACK_H
 
-simple FrameSequenceHandler 
+#include "inet/common/INETDefs.h"
+
+namespace inet {
+namespace ieee80211 {
+
+class INET_API IBlockAckAgreementHandlerCallback
 {
-    parameters:
-        
-}
+    public:
+        virtual ~IBlockAckAgreementHandlerCallback() { }
+
+        virtual void scheduleInactivityTimer(simtime_t timeout) = 0;
+};
+
+} /* namespace ieee80211 */
+} /* namespace inet */
+
+#endif // ifndef __INET_IBLOCKACKAGREEMENTHANDLERCALLBACK_H

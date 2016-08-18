@@ -21,7 +21,6 @@ import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
-import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
@@ -69,10 +68,6 @@ module Hcf
             @display("p=170.95001,652.5688");
         }
 
-        // Procedure
-        frameSequenceHandler: FrameSequenceHandler {
-            @display("p=616.40625,424.08752");
-        }
         edcaMgmtAndNonQoSRecoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.edca.edcaf[1]"; // best effort
             rtsProcedureModule = "^.rtsProcedure";

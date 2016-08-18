@@ -51,6 +51,8 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         Ieee80211Mac *mac = nullptr;
         Ieee80211ModeSet *modeSet = nullptr;
 
+        cMessage *startRxTimer = nullptr;
+
         // Transmission and reception
         IRx *rx = nullptr;
         ITx *tx = nullptr;
@@ -92,9 +94,11 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
+        virtual void handleMessage(cMessage *msg) override;
 
         virtual void sendUp(const std::vector<Ieee80211Frame*>& completeFrames);
         virtual bool hasFrameToTransmit();
+        virtual bool isReceptionInProgress();
         virtual FrameSequenceContext *buildContext();
 
         virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
@@ -113,8 +117,8 @@ class INET_API Dcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessTransmittedFrame(Ieee80211Frame* transmittedFrame) override;
         virtual void originatorProcessReceivedFrame(Ieee80211Frame *frame, Ieee80211Frame *lastTransmittedFrame) override;
         virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
-        virtual bool isReceptionInProgress() override;
         virtual void frameSequenceFinished() override;
+        virtual void scheduleStartRxTimer(simtime_t timeout) override;
 
         // ITx::ICallback
         virtual void transmissionComplete(Ieee80211Frame *frame) override;

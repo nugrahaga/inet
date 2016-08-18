@@ -29,6 +29,7 @@
 #include "inet/linklayer/ieee80211/mac/contract/ICoordinationFunction.h"
 #include "inet/linklayer/ieee80211/mac/contract/ITx.h"
 #include "inet/linklayer/ieee80211/mac/contract/IProcedureCallback.h"
+#include "inet/linklayer/ieee80211/mac/contract/IBlockAckAgreementHandlerCallback.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceHandler.h"
@@ -56,12 +57,15 @@ class Ieee80211Mac;
  * Implements IEEE 802.11 Hybrid Coordination Function.
  * FIXME: rateControl
  */
-class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public ModeSetListener
+class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler::ICallback, public IChannelAccess::ICallback, public ITx::ICallback, public IProcedureCallback, public IBlockAckAgreementHandlerCallback, public ModeSetListener
 {
     protected:
         Ieee80211Mac *mac = nullptr;
         Ieee80211ModeSet *modeSet = nullptr;
         int numEdcafs = -1;
+
+        cMessage *startRxTimer = nullptr;
+        cMessage *inactivityTimer = nullptr;
 
         // Transmission and Reception
         IRx *rx = nullptr;
@@ -121,9 +125,9 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         SingleProtectionMechanism *singleProtectionMechanism = nullptr;
 
     protected:
-        virtual ~Hcf();
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
+        virtual void handleMessage(cMessage *msg) override;
 
         void startFrameSequence(AccessCategory ac);
         void handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs);
@@ -132,6 +136,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         FrameSequenceContext* buildContext(AccessCategory ac);
         virtual bool hasFrameToTransmit();
         virtual bool hasFrameToTransmit(AccessCategory ac);
+        virtual bool isReceptionInProgress();
 
         // Recipient
         virtual void recipientProcessReceivedFrame(Ieee80211Frame *frame);
@@ -157,7 +162,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame) override;
         virtual void frameSequenceFinished() override;
         virtual void transmitFrame(Ieee80211Frame *frame, simtime_t ifs) override;
-        virtual bool isReceptionInProgress() override;
+        virtual void scheduleStartRxTimer(simtime_t timeout) override;
 
         // IChannelAccess::ICallback
         virtual void channelGranted(IChannelAccess *channelAccess) override;
@@ -169,7 +174,12 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
         virtual void transmitControlResponseFrame(Ieee80211Frame* responseFrame, Ieee80211Frame* receivedFrame) override;
         virtual void processMgmtFrame(Ieee80211ManagementFrame *mgmtFrame) override;
 
+        // IProcedureCallback
+        virtual void scheduleInactivityTimer(simtime_t timeout) override;
+
     public:
+        virtual ~Hcf();
+
         // ICoordinationFunction
         virtual void processUpperFrame(Ieee80211DataOrMgmtFrame *frame) override;
         virtual void processLowerFrame(Ieee80211Frame *frame) override;

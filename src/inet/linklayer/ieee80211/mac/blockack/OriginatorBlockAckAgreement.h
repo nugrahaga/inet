@@ -31,7 +31,6 @@ class OriginatorBlockAckAgreement
     protected:
         MACAddress receiverAddr = MACAddress::UNSPECIFIED_ADDRESS;
         Tid tid = -1;
-
         int numSentBaPolicyFrames = 0;
         SequenceNumber startingSequenceNumber = -1;
         int bufferSize = -1;
@@ -39,6 +38,7 @@ class OriginatorBlockAckAgreement
         bool isDelayedBlockAckPolicySupported = false;
         bool isAddbaResponseReceived = false;
         simtime_t blockAckTimeoutValue = -1;
+        simtime_t expirationTime = -1;
 
     public:
         OriginatorBlockAckAgreement(MACAddress receiverAddr, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, bool isAMsduSupported, bool isDelayedBlockAckPolicySupported) :
@@ -48,7 +48,9 @@ class OriginatorBlockAckAgreement
             bufferSize(bufferSize),
             isAMsduSupported(isAMsduSupported),
             isDelayedBlockAckPolicySupported(isDelayedBlockAckPolicySupported)
-        { }
+        {
+            renewExpirationTime();
+        }
 
         virtual int getBufferSize() const { return bufferSize; }
         virtual SequenceNumber getStartingSequenceNumber() { return startingSequenceNumber; }
@@ -67,6 +69,8 @@ class OriginatorBlockAckAgreement
         virtual void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }
 
         virtual void baPolicyFrameSent() { numSentBaPolicyFrames++; }
+        virtual void renewExpirationTime() { expirationTime = blockAckTimeoutValue == 0 ? SIMTIME_MAX : simTime() + blockAckTimeoutValue; }
+        virtual simtime_t getExpirationTime() { return expirationTime; }
 };
 
 } /* namespace ieee80211 */

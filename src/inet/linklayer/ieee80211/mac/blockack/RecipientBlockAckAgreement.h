@@ -32,8 +32,8 @@ class INET_API RecipientBlockAckAgreement
         SequenceNumber startingSequenceNumber = -1;
         int bufferSize = -1;
         simtime_t blockAckTimeoutValue = 0;
-
         bool isAddbaResponseSent = false;
+        simtime_t expirationTime = -1;
 
     public:
         RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
@@ -46,6 +46,8 @@ class INET_API RecipientBlockAckAgreement
         virtual int getStartingSequenceNumber() const { return startingSequenceNumber; }
 
         virtual void addbaResposneSent() { isAddbaResponseSent = true; }
+        virtual void renewExpirationTime() { expirationTime = blockAckTimeoutValue == 0 ? SIMTIME_MAX : simTime() + blockAckTimeoutValue; }
+        virtual simtime_t getExpirationTime() { return expirationTime; }
 };
 
 } /* namespace ieee80211 */
