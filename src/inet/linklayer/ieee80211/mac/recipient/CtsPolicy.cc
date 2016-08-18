@@ -26,9 +26,10 @@ Define_Module(CtsPolicy);
 
 void CtsPolicy::initialize(int stage)
 {
+    ModeSetListener::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
-        rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelection")));
+        rateSelection = check_and_cast<IRateSelection *>(getModuleByPath(par("rateSelectionModule")));
     }
 }
 

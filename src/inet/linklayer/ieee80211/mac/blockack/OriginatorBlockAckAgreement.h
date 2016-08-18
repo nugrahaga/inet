@@ -50,23 +50,23 @@ class OriginatorBlockAckAgreement
             isDelayedBlockAckPolicySupported(isDelayedBlockAckPolicySupported)
         { }
 
-        int getBufferSize() const { return bufferSize; }
-        SequenceNumber getStartingSequenceNumber() { return startingSequenceNumber; }
-        bool getIsAddbaResponseReceived() const { return isAddbaResponseReceived; }
-        bool getIsAMsduSupported() const { return isAMsduSupported; }
-        bool getIsDelayedBlockAckPolicySupported() const { return isDelayedBlockAckPolicySupported; }
-        MACAddress getReceiverAddr() const { return receiverAddr; }
-        Tid getTid() const { return tid; }
-        const simtime_t getBlockAckTimeoutValue() const  { return blockAckTimeoutValue; }
-        int getNumSentBaPolicyFrames() const { return numSentBaPolicyFrames; }
+        virtual int getBufferSize() const { return bufferSize; }
+        virtual SequenceNumber getStartingSequenceNumber() { return startingSequenceNumber; }
+        virtual bool getIsAddbaResponseReceived() const { return isAddbaResponseReceived; }
+        virtual bool getIsAMsduSupported() const { return isAMsduSupported; }
+        virtual bool getIsDelayedBlockAckPolicySupported() const { return isDelayedBlockAckPolicySupported; }
+        virtual MACAddress getReceiverAddr() const { return receiverAddr; }
+        virtual Tid getTid() const { return tid; }
+        virtual const simtime_t getBlockAckTimeoutValue() const  { return blockAckTimeoutValue; }
+        virtual int getNumSentBaPolicyFrames() const { return numSentBaPolicyFrames; }
 
-        void setBufferSize(int bufferSize) { this->bufferSize = bufferSize; }
-        void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; }
-        void setIsAMsduSupported(bool isAMsduSupported) { this->isAMsduSupported = isAMsduSupported; }
-        void setIsDelayedBlockAckPolicySupported(bool isDelayedBlockAckPolicySupported) { this->isDelayedBlockAckPolicySupported = isDelayedBlockAckPolicySupported; }
-        void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }
+        virtual void setBufferSize(int bufferSize) { this->bufferSize = bufferSize; }
+        virtual void setIsAddbaResponseReceived(bool isAddbaResponseReceived) { this->isAddbaResponseReceived = isAddbaResponseReceived; }
+        virtual void setIsAMsduSupported(bool isAMsduSupported) { this->isAMsduSupported = isAMsduSupported; }
+        virtual void setIsDelayedBlockAckPolicySupported(bool isDelayedBlockAckPolicySupported) { this->isDelayedBlockAckPolicySupported = isDelayedBlockAckPolicySupported; }
+        virtual void setBlockAckTimeoutValue(const simtime_t blockAckTimeoutValue) { this->blockAckTimeoutValue = blockAckTimeoutValue; }
 
-        void baPolicyFrameSent() { numSentBaPolicyFrames++; }
+        virtual void baPolicyFrameSent() { numSentBaPolicyFrames++; }
 };
 
 } /* namespace ieee80211 */

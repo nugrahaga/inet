@@ -17,9 +17,7 @@
 
 package inet.linklayer.ieee80211.mac.coordinationfunction;
 
-import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementHandler;
 import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementPolicy;
-import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementHandler;
 import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
@@ -28,8 +26,10 @@ import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
 import inet.linklayer.ieee80211.mac.originator.QoSRecoveryProcedure;
-import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
+import inet.linklayer.ieee80211.mac.originator.QoSRtsPolicy;
 import inet.linklayer.ieee80211.mac.originator.TxopProcedure;
+import inet.linklayer.ieee80211.mac.recipient.QoSCtsPolicy;
+import inet.linklayer.ieee80211.mac.recipient.RecipientQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientQoSMacDataService;
 
 
@@ -49,58 +49,63 @@ module Hcf
         *.rxModule = "^." + rxModule;
 
         @class(Hcf);
-        @display("i=block/queue;bgb=752.39996,783.864");
+        @display("i=block/queue;bgb=1311.142,783.852");
 
     submodules:
+        // Channal access
         edca: Edca {
             numEdcafs = numEdcafs;
-            @display("p=52,262");
+            @display("p=83.83125,175.88126");
         }
         hcca: Hcca {
-            @display("p=52,348");
+            @display("p=83.83125,335.325");
         }
-        originatorQoSMacDataService: OriginatorQoSMacDataService {
-            @display("p=552.672,526.68");
+        // Data service
+        originatorMacDataService: OriginatorQoSMacDataService {
+            @display("p=526,652.5688");
         }
-        recipientQoSMacDataService: RecipientQoSMacDataService {
+        recipientMacDataService: RecipientQoSMacDataService {
             recipientBlockAckAgreementHandlerModule = "^.recipientBlockAckAgreementHandler";
-            @display("p=184.68,526.68");
+            @display("p=170.95001,652.5688");
         }
+
+        // Procedure
         frameSequenceHandler: FrameSequenceHandler {
-            @display("p=122,65");
-        }
-        originatorBlockAckAgreementHandler: OriginatorBlockAckAgreementHandler {
-            @display("p=552.672,618.336");
-        }
-        originatorBlockAckAgreementPolicy: OriginatorBlockAckAgreementPolicy {
-            originatorBlockAckAgreementHandlerModule = "^.originatorBlockAckAgreementHandler";
-            originatorQoSAckPolicyModule = "^.originatorQoSAckPolicy";
-            @display("p=552.672,716.832");
-        }
-        recipientBlockAckAgreementHandler: RecipientBlockAckAgreementHandler {
-            @display("p=184.68,618.336");
-        }
-        recipientBlockAckAgreementPolicy: RecipientBlockAckAgreementPolicy {
-            recipientBlockAckAgreementHandlerModule = "^.recipientBlockAckAgreementHandler";
-            @display("p=184.68,716.832");
-        }
-        rtsProcedure: RtsProcedure {
-            @display("p=366.624,117.647995");
+            @display("p=616.40625,424.08752");
         }
         edcaMgmtAndNonQoSRecoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.edca.edcaf[1]"; // best effort
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=366.624,400.824");
+            @display("p=616.40625,304.09375");
         }
         edcaDataRecoveryProcedures[numEdcafs]: QoSRecoveryProcedure {
             cwCalculatorModule = "^.edca.edcaf[" + string(index) + "]";
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=366.624,305.064,row,50");
+            @display("p=616.40625,187.38751,row,50");
         }
         edcaTxopProcedures[numEdcafs]: TxopProcedure {
-            @display("p=366.624,207.93599,row,50");
+            @display("p=616.40625,78.9,row,50");
         }
-        originatorQoSAckPolicy: OriginatorQoSAckPolicy {
-            @display("p=581.39996,64.296");
+
+        // Policy
+        recipientAckPolicy: RecipientQoSAckPolicy {
+            @display("p=1017.48126,187.38751");
         }
+        originatorAckPolicy: OriginatorQoSAckPolicy {
+            @display("p=1017.48126,78.9");
+        }
+        rtsPolicy: QoSRtsPolicy {
+            @display("p=1017.48126,304.09375");
+        }
+        ctsPolicy: QoSCtsPolicy {
+            @display("p=1017.48126,424.08752");
+        }
+        originatorBlockAckAgreementPolicy: OriginatorBlockAckAgreementPolicy {
+            originatorAckPolicyModule = "^.originatorAckPolicy";
+            @display("p=1017.48126,535.8625");
+        }
+        recipientBlockAckAgreementPolicy: RecipientBlockAckAgreementPolicy {
+            @display("p=1017.48126,652.5688");
+        }
+
 }

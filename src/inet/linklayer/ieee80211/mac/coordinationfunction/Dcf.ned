@@ -20,8 +20,11 @@ package inet.linklayer.ieee80211.mac.coordinationfunction;
 import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
 import inet.linklayer.ieee80211.mac.framesequence.FrameSequenceHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
+import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
-import inet.linklayer.ieee80211.mac.originator.RtsProcedure;
+import inet.linklayer.ieee80211.mac.originator.RtsPolicy;
+import inet.linklayer.ieee80211.mac.recipient.CtsPolicy;
+import inet.linklayer.ieee80211.mac.recipient.RecipientAckPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientMacDataService;
 
 
@@ -56,12 +59,16 @@ module Dcf
         frameSequenceHandler: FrameSequenceHandler {
             @display("p=113,211");
         }
-        rtsProcedure: RtsProcedure {
-            @display("p=113,57");
-        }
         recoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.channelAccess";
             rtsProcedureModule = "^.rtsProcedure";
             @display("p=113,131");
         }
+
+        rtsPolicy: RtsPolicy {
+            @display("p=113,57");
+        }
+        ctsPolicy: CtsPolicy;
+        originatorAckPolicy: OriginatorAckPolicy;
+        recipientAckPolicy: RecipientAckPolicy;
 }

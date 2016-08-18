@@ -23,16 +23,17 @@ namespace ieee80211 {
 
 Define_Module(OriginatorBlockAckAgreementPolicy);
 
-void OriginatorBlockAckAgreementPolicy::initialize()
+void OriginatorBlockAckAgreementPolicy::initialize(int stage)
 {
-    ModeSetListener::initialize(INITSTAGE_LOCAL);
-    ackPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getModuleByPath(par("originatorQoSAckPolicyModule")));
-    agreementHandler = check_and_cast<OriginatorBlockAckAgreementHandler*>(getModuleByPath(par("originatorBlockAckAgreementHandlerModule")));
-    delayedAckPolicySupported = par("delayedAckPolicySupported");
-    aMsduSupported = par("aMsduSupported");
-    maximumAllowedBufferSize = par("maximumAllowedBufferSize");
-    blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
-    addbaFailureTimeout = par("addbaFailureTimeout");
+    ModeSetListener::initialize(stage);
+    if (stage == INITSTAGE_LOCAL) {
+        ackPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getModuleByPath(par("originatorQoSAckPolicyModule")));
+        delayedAckPolicySupported = par("delayedAckPolicySupported");
+        aMsduSupported = par("aMsduSupported");
+        maximumAllowedBufferSize = par("maximumAllowedBufferSize");
+        blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
+        addbaFailureTimeout = par("addbaFailureTimeout");
+    }
 }
 
 void OriginatorBlockAckAgreementPolicy::handleMessage(cMessage* msg)

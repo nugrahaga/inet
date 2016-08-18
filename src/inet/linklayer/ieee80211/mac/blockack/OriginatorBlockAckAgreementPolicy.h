@@ -19,9 +19,8 @@
 #define __INET_ORIGINATORBLOCKACKAGREEMENTPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreementHandler.h"
-#include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/originator/OriginatorQoSAckPolicy.h"
+#include "inet/linklayer/ieee80211/mac/contract/IOriginatorQoSAckPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -29,8 +28,8 @@ namespace ieee80211 {
 class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, public IOriginatorBlockAckAgreementPolicy
 {
     protected:
-        OriginatorQoSAckPolicy *ackPolicy = nullptr;
-        OriginatorBlockAckAgreementHandler *agreementHandler = nullptr;
+        IOriginatorQoSAckPolicy *ackPolicy = nullptr;
+        OriginatorBlockAckAgreementHandler *agreementHandler = nullptr; // FIXME:
         std::map<std::pair<MACAddress, Tid>, cMessage *> inacitivityTimers;
 
         int blockAckReqTreshold = -1;
@@ -42,7 +41,7 @@ class INET_API OriginatorBlockAckAgreementPolicy : public ModeSetListener, publi
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize() override;
+        virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage* msg) override;
 
         virtual void scheduleInactivityTimer(OriginatorBlockAckAgreement *agreement);

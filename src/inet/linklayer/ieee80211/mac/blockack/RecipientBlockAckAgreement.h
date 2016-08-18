@@ -38,14 +38,14 @@ class INET_API RecipientBlockAckAgreement
     public:
         RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
 
-        void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);
+        virtual void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);
 
-        BlockAckRecord *getBlockAckRecord() { return blockAckRecord; }
-        simtime_t getBlockAckTimeoutValue() { return blockAckTimeoutValue; }
-        int getBufferSize() { return bufferSize; }
-        int getStartingSequenceNumber() { return startingSequenceNumber; }
+        virtual BlockAckRecord *getBlockAckRecord() const { return blockAckRecord; }
+        virtual simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
+        virtual int getBufferSize() const { return bufferSize; }
+        virtual int getStartingSequenceNumber() const { return startingSequenceNumber; }
 
-        void addbaResposneSent() { isAddbaResponseSent = true; }
+        virtual void addbaResposneSent() { isAddbaResponseSent = true; }
 };
 
 } /* namespace ieee80211 */

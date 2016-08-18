@@ -49,7 +49,6 @@ bool QoSRtsPolicy::isRtsNeeded(Ieee80211Frame* protectedFrame, TxopProcedure *tx
     return protectedFrame->getByteLength() >= rtsThreshold && !protectedFrame->getReceiverAddress().isMulticast();
 }
 
-
 //
 // After transmitting an RTS frame, the STA shall wait for a CTSTimeout interval, with a value of aSIFSTime +
 // aSlotTime + aPHY-RX-START-Delay, starting at the PHY-TXEND.confirm primitive. If a PHY-
@@ -64,4 +63,3 @@ simtime_t QoSRtsPolicy::getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const
 
 } /* namespace ieee80211 */
 } /* namespace inet */
-

@@ -16,8 +16,6 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/NotifierConsts.h"
-#include "inet/linklayer/ieee80211/mac/common/Ieee80211Defs.h"
 #include "RecipientQoSAckPolicy.h"
 
 namespace inet {

@@ -20,8 +20,7 @@ package inet.linklayer.ieee80211.mac.blockack;
 simple OriginatorBlockAckAgreementPolicy 
 {
     parameters:
-        string originatorQoSAckPolicyModule;
-        string originatorBlockAckAgreementHandlerModule;
+        string originatorAckPolicyModule;
         
         bool delayedAckPolicySupported = default(false);
         bool aMsduSupported = default(true);

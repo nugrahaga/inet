@@ -37,7 +37,7 @@ void RecipientAckProcedure::processTransmittedAck(Ieee80211ACKFrame* ack)
     numSentAck++;
 }
 
-Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame)
+Ieee80211ACKFrame* RecipientAckProcedure::buildAck(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const
 {
     Ieee80211ACKFrame *ack = new Ieee80211ACKFrame("ACK");
     ack->setReceiverAddress(dataOrMgmtFrame->getTransmitterAddress());

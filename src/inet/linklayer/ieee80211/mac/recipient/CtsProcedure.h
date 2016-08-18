@@ -33,7 +33,7 @@ class INET_API CtsProcedure : public ICtsProcedure
         int numSentCts = 0;
 
     protected:
-        Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame* rtsFrame);
+        virtual Ieee80211CTSFrame *buildCts(Ieee80211RTSFrame* rtsFrame) const;
 
     public:
         virtual void processReceivedRts(Ieee80211RTSFrame *rtsFrame, ICtsPolicy *ctsPolicy, IProcedureCallback *callback) override;

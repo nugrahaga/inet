@@ -21,4 +21,5 @@ simple CtsPolicy
 {
     parameters:
         string rxModule;
+        string rateSelectionModule;
 }

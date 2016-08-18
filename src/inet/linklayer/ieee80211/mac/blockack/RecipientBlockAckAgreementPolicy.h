@@ -37,7 +37,7 @@ class INET_API RecipientBlockAckAgreementPolicy : public cSimpleModule, public I
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize() override;
+        virtual void initialize(int stage) override;
         virtual void handleMessage(cMessage *msg) override;
 
         virtual void scheduleInactivityTimer(RecipientBlockAckAgreement *agreement);

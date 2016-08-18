@@ -16,7 +16,6 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/NotifierConsts.h"
 #include "QoSCtsPolicy.h"
 
 namespace inet {

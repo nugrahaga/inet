@@ -37,7 +37,7 @@ class INET_API QoSRtsPolicy : public ModeSetListener, public IQoSRtsPolicy
     public:
         virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame, TxopProcedure *txopProcedure) const override;
         virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const override;
-        virtual int getRtsThreshold() const { return rtsThreshold; }
+        virtual int getRtsThreshold() const override { return rtsThreshold; }
 };
 
 } /* namespace ieee80211 */

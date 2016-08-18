@@ -16,8 +16,6 @@
 //
 
 #include "CtsProcedure.h"
-#include "inet/common/NotifierConsts.h"
-#include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -37,7 +35,7 @@ void CtsProcedure::processReceivedRts(Ieee80211RTSFrame* rtsFrame, ICtsPolicy *c
     else ;
 }
 
-Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame)
+Ieee80211CTSFrame *CtsProcedure::buildCts(Ieee80211RTSFrame* rtsFrame) const
 {
     Ieee80211CTSFrame *cts = new Ieee80211CTSFrame("CTS");
     // The RA field of the CTS frame shall be the value

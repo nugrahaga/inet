@@ -17,7 +17,7 @@
 
 package inet.linklayer.ieee80211.mac.originator;
 
-simple RtsPolicy 
+simple QoSRtsPolicy 
 {
     parameters:
         double ctsTimeout @unit("s") = default(-1s); 

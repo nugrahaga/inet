@@ -23,14 +23,15 @@ namespace ieee80211 {
 
 Define_Module(RecipientBlockAckAgreementPolicy);
 
-void RecipientBlockAckAgreementPolicy::initialize()
+void RecipientBlockAckAgreementPolicy::initialize(int stage)
 {
-    isDelayedBlockAckPolicySupported = par("delayedAckPolicySupported");
-    isAMsduSupported = par("aMsduSupported");
-    maximumAllowedBufferSize = par("maximumAllowedBufferSize");
-    blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
-
-    agreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getModuleByPath(par("recipientBlockAckAgreementHandlerModule")));
+    if (stage == INITSTAGE_LOCAL) {
+        isDelayedBlockAckPolicySupported = par("delayedAckPolicySupported");
+        isAMsduSupported = par("aMsduSupported");
+        maximumAllowedBufferSize = par("maximumAllowedBufferSize");
+        blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
+        agreementHandler = check_and_cast<RecipientBlockAckAgreementHandler*>(getModuleByPath(par("recipientBlockAckAgreementHandlerModule")));
+    }
 }
 
 //

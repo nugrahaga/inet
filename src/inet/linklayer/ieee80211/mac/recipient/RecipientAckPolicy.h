@@ -20,7 +20,6 @@
 
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRecipientAckPolicy.h"
-#include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
 
 namespace inet {
