@@ -20,7 +20,5 @@ package inet.linklayer.ieee80211.mac.recipient;
 module RecipientQoSMacDataService
 {
     parameters:
-        string recipientBlockAckAgreementHandlerModule;
-        
         @class("RecipientQoSMacDataService");
 }

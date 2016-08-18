@@ -67,11 +67,12 @@ bool OriginatorQoSAckPolicy::isCompressedBlockAckReq(const std::vector<Ieee80211
 //    return true;
 }
 
+// FIXME
 bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFrames, TxopProcedure* txopProcedure) const
 {
-    // FIXME
-    simtime_t remainingTxop = txopProcedure->getRemaining();
     auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
+    simtime_t remainingTxop = txopProcedure->getRemaining();
+    int numOfPossibleBaReqRecipients = outstandingFramesPerReceiver.size();
     for (auto outstandingFrames : outstandingFramesPerReceiver) {
         if ((int)outstandingFrames.second.size() >= blockAckReqTreshold)
             return true;
@@ -80,7 +81,7 @@ bool OriginatorQoSAckPolicy::isBlockAckReqNeeded(InProgressFrames* inProgressFra
 }
 
 // FIXME
-std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlockAckReqParameters(InProgressFrames *inProgressFrames) const
+std::tuple<MACAddress, SequenceNumber, Tid> OriginatorQoSAckPolicy::computeBlockAckReqParameters(InProgressFrames *inProgressFrames, TxopProcedure* txopProcedure) const
 {
     auto outstandingFramesPerReceiver = getOutstandingFramesPerReceiver(inProgressFrames);
     for (auto outstandingFrames : outstandingFramesPerReceiver) {

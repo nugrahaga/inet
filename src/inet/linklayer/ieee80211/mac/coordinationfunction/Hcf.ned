@@ -21,12 +21,14 @@ import inet.linklayer.ieee80211.mac.blockack.OriginatorBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.blockack.RecipientBlockAckAgreementPolicy;
 import inet.linklayer.ieee80211.mac.channelaccess.Edca;
 import inet.linklayer.ieee80211.mac.channelaccess.Hcca;
+import inet.linklayer.ieee80211.mac.contract.IRateControl;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorQoSMacDataService;
 import inet.linklayer.ieee80211.mac.originator.QoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.QoSRtsPolicy;
 import inet.linklayer.ieee80211.mac.originator.TxopProcedure;
+import inet.linklayer.ieee80211.mac.rateselection.QoSRateSelection;
 import inet.linklayer.ieee80211.mac.recipient.QoSCtsPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientQoSAckPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientQoSMacDataService;
@@ -40,17 +42,19 @@ module Hcf
     parameters:
         int numEdcafs = default(4);
         int maxQueueSize = default(100);
-        string rateSelectionModule;
+        string rateControlModuleType = default("");
+
         string rxModule;
         string txModule;
 
-        *.rateSelectionModule = "^." + rateSelectionModule;
+        *.rateSelectionModule = "^.rateSelection";
         *.rxModule = "^." + rxModule;
 
         @class(Hcf);
         @display("i=block/queue;bgb=1311.142,783.852");
 
     submodules:
+
         edca: Edca {
             numEdcafs = numEdcafs;
             @display("p=83.83125,175.88126");
@@ -58,12 +62,20 @@ module Hcf
         hcca: Hcca {
             @display("p=83.83125,335.325");
         }
-        
+
+        rateSelection: QoSRateSelection {
+            parameters:
+                @display("p=170.95001,498.05627");
+        }
+        rateControl: <rateControlModuleType> like IRateControl if rateControlModuleType != "" {
+            parameters:
+                @display("p=526,498.05627");
+        }
+
         originatorMacDataService: OriginatorQoSMacDataService {
             @display("p=526,652.5688");
         }
         recipientMacDataService: RecipientQoSMacDataService {
-            recipientBlockAckAgreementHandlerModule = "^.recipientBlockAckAgreementHandler";
             @display("p=170.95001,652.5688");
         }
 

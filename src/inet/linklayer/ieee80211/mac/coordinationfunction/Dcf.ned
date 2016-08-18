@@ -18,10 +18,12 @@
 package inet.linklayer.ieee80211.mac.coordinationfunction;
 
 import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
+import inet.linklayer.ieee80211.mac.contract.IRateControl;
 import inet.linklayer.ieee80211.mac.originator.NonQoSRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
 import inet.linklayer.ieee80211.mac.originator.RtsPolicy;
+import inet.linklayer.ieee80211.mac.rateselection.BasicRateSelection;
 import inet.linklayer.ieee80211.mac.recipient.CtsPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientAckPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientMacDataService;
@@ -37,9 +39,9 @@ module Dcf
 
         string rxModule;
         string txModule;
-        string rateSelectionModule;
+        string rateControlModuleType;
 
-        *.rateSelectionModule = "^." + rateSelectionModule;
+        *.rateSelectionModule = "^.rateSelection";
         *.rxModule = "^." + rxModule;
 
         @class(Dcf);
@@ -49,6 +51,15 @@ module Dcf
         channelAccess: Dcaf {
             @display("p=100.492,46.62");
         }
+
+        rateSelection: BasicRateSelection {
+            parameters:
+                @display("p=60.088,435.12");
+        }
+        rateControl: <rateControlModuleType> like IRateControl if rateControlModuleType != "" {
+            @display("p=185.444,435.12");
+        }
+
         originatorMacDataService: OriginatorMacDataService {
             @display("p=100.492,149.184");
         }
@@ -58,7 +69,7 @@ module Dcf
         recoveryProcedure: NonQoSRecoveryProcedure {
             cwCalculatorModule = "^.channelAccess";
             rtsProcedureModule = "^.rtsProcedure";
-            @display("p=320.124,446.516");
+            @display("p=320.124,435.12");
         }
 
         originatorAckPolicy: OriginatorAckPolicy {

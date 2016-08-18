@@ -41,7 +41,7 @@ void Hcf::initialize(int stage)
         rateSelection = check_and_cast<IQoSRateSelection *>(getModuleByPath(par("rateSelectionModule")));
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
         originatorDataService = check_and_cast<IOriginatorMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
-        recipientDataService = check_and_cast<IRecipientMacDataService*>(getSubmodule("recipientQoSMacDataService"));
+        recipientDataService = check_and_cast<IRecipientQoSMacDataService*>(getSubmodule("recipientQoSMacDataService"));
         originatorAckPolicy = check_and_cast<IOriginatorQoSAckPolicy*>(getSubmodule("originatorAckPolicy"));
         recipientAckPolicy = check_and_cast<IRecipientQoSAckPolicy*>(getSubmodule("recipientAckPolicy"));
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
@@ -200,7 +200,7 @@ void Hcf::recipientProcessReceivedFrame(Ieee80211Frame* frame)
     if (auto dataFrame = dynamic_cast<Ieee80211DataFrame*>(frame)) {
         if (dataFrame->getType() == ST_DATA_WITH_QOS)
             recipientBlockAckAgreementHandler->qosFrameReceived(dataFrame, this);
-        sendUp(recipientDataService->dataFrameReceived(dataFrame));
+        sendUp(recipientDataService->dataFrameReceived(dataFrame, recipientBlockAckAgreementHandler));
     }
     else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(frame)) {
         sendUp(recipientDataService->managementFrameReceived(mgmtFrame));

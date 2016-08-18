@@ -33,7 +33,6 @@ void RecipientQoSMacDataService::initialize()
     basicReassembly = new BasicReassembly();
     aMsduDeaggregation = new MsduDeaggregation();
     blockAckReordering = new BlockAckReordering();
-    blockAckAgreementHandler = check_and_cast<RecipientBlockAckAgreementHandler *>(getModuleByPath(par("recipientBlockAckAgreementHandlerModule")));
 }
 
 Ieee80211DataFrame* RecipientQoSMacDataService::defragment(std::vector<Ieee80211DataFrame *> completeFragments)
@@ -52,7 +51,7 @@ Ieee80211ManagementFrame* RecipientQoSMacDataService::defragment(Ieee80211Manage
         return nullptr;
 }
 
-std::vector<Ieee80211Frame*> RecipientQoSMacDataService::dataFrameReceived(Ieee80211DataFrame* dataFrame)
+std::vector<Ieee80211Frame*> RecipientQoSMacDataService::dataFrameReceived(Ieee80211DataFrame* dataFrame, IRecipientBlockAckAgreementHandler *blockAckAgreementHandler)
 {
     // TODO: A-MPDU Deaggregation, MPDU Header+CRC Validation, Address1 Filtering, Duplicate Removal, MPDU Decryption
     if (duplicateRemoval && duplicateRemoval->isDuplicate(dataFrame))

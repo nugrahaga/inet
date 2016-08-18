@@ -79,7 +79,7 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // MAC Data Service
         IOriginatorMacDataService *originatorDataService = nullptr;
-        IRecipientMacDataService *recipientDataService = nullptr;
+        IRecipientQoSMacDataService *recipientDataService = nullptr;
 
         // MAC Procedures
         IRecipientAckProcedure *recipientAckProcedure = nullptr;

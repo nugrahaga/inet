@@ -23,7 +23,7 @@
 #include "inet/linklayer/ieee80211/mac/contract/IDefragmentation.h"
 #include "inet/linklayer/ieee80211/mac/contract/IDuplicateRemoval.h"
 #include "inet/linklayer/ieee80211/mac/contract/IMsduDeaggregation.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRecipientMacDataService.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRecipientQoSMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/fragmentation/BasicReassembly.h"
 
 namespace inet {
@@ -32,7 +32,7 @@ namespace ieee80211 {
 //
 // Figure 5-1—MAC data plane architecture
 //
-class INET_API RecipientQoSMacDataService : public IRecipientMacDataService, public cSimpleModule
+class INET_API RecipientQoSMacDataService : public IRecipientQoSMacDataService, public cSimpleModule
 {
     protected:
         RecipientBlockAckAgreementHandler *blockAckAgreementHandler = nullptr;
@@ -56,7 +56,7 @@ class INET_API RecipientQoSMacDataService : public IRecipientMacDataService, pub
         Ieee80211ManagementFrame* defragment(Ieee80211ManagementFrame *mgmtFragment);
 
     public:
-        virtual std::vector<Ieee80211Frame *> dataFrameReceived(Ieee80211DataFrame *dataFrame) override;
+        virtual std::vector<Ieee80211Frame *> dataFrameReceived(Ieee80211DataFrame *dataFrame, IRecipientBlockAckAgreementHandler *blockAckAgreementHandler) override;
         virtual std::vector<Ieee80211Frame *> controlFrameReceived(Ieee80211Frame *controlFrame) override;
         virtual std::vector<Ieee80211Frame *> managementFrameReceived(Ieee80211ManagementFrame *mgmtFrame) override;
 

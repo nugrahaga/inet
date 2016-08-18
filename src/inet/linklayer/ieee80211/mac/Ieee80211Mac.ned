@@ -92,11 +92,10 @@ module Ieee80211Mac extends MACProtocolBase like IIeee80211Mac
         string address = default("auto"); // MAC address as hex string (12 hex digits), or
                                           // "auto". "auto" values will be replaced by
                                           // a generated MAC address in init stage 0.
-        string rateControlModuleType = default("");
         string modeSet @enum("a","b","g","n","p") = default("g");
-        
+
         bool qosStation = default(true);
-        
+
         *.rxModule = "^.rx";
         *.txModule = "^.tx";
         *.rateSelectionModule = "^.rateSelection";
@@ -113,31 +112,23 @@ module Ieee80211Mac extends MACProtocolBase like IIeee80211Mac
 
         @signal[NF_MODESET_CHANGED](type=inet::physicallayer::Ieee80211ModeSet);
     submodules:
-        rateSelection: <default("BasicRateSelection")> like IRateSelection {
-            parameters:
-                @display("p=100,149");
-        }
-        rateControl: <rateControlModuleType> like IRateControl if rateControlModuleType != "" {
-            parameters:
-                @display("p=100,222");
-        }
         statistics: <default("BasicStatistics")> like IStatistics {
             parameters:
-                @display("p=100,308");
+                @display("p=50,47");
         }
         dcf: Dcf {
-            @display("p=285,149");
+            @display("p=205,47");
         }
         hcf: Hcf {
-            @display("p=400,149;i=block/queue");
+            @display("p=317,47;i=block/queue");
         }
         rx: <default("Rx")> like IRx {
             parameters:
-                @display("p=285,222");
+                @display("p=205,161");
         }
         tx: <default("Tx")> like ITx {
             parameters:
-                @display("p=400,222");
+                @display("p=317,161");
         }
 }
 

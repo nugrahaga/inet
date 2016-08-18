@@ -20,6 +20,7 @@
 
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
 #include "inet/linklayer/ieee80211/mac/queue/InProgressFrames.h"
+#include "inet/linklayer/ieee80211/mac/blockack/OriginatorBlockAckAgreement.h"
 #include "inet/linklayer/ieee80211/mac/originator/TxopProcedure.h"
 
 namespace inet {
@@ -33,6 +34,7 @@ class INET_API IOriginatorQoSAckPolicy
         virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const = 0;
         virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure) const = 0;
         virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const = 0;
+        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames, TxopProcedure* txopProcedure) const = 0;
 
         virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const = 0;
         virtual simtime_t getBlockAckTimeout(Ieee80211BlockAckReq *blockAckReq) const = 0;

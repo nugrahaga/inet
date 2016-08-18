@@ -281,7 +281,11 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
 {
     switch (step) {
         case 0: {
-            // FIXME: build auto blockAckReq = context->getInProgressFrames()->getFrameToTransmit();
+            auto blockAckReqParams = context->getQoSContext()->ackPolicy->computeBlockAckReqParameters(context->getInProgressFrames(), context->getQoSContext()->txopProcedure);
+            auto receiverAddr = std::get<0>(blockAckReqParams);
+            auto startingSequenceNumber = std::get<1>(blockAckReqParams);
+            auto tid = std::get<2>(blockAckReqParams);
+            auto blockAckReq = context->getQoSContext()->blockAckProcedure->buildBasicBlockAckReqFrame(receiverAddr, tid, startingSequenceNumber);
             return new TransmitStep(blockAckReq, context->getIfs());
         }
         case 1: {
