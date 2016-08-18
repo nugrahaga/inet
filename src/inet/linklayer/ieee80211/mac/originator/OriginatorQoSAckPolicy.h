@@ -42,11 +42,11 @@ class INET_API OriginatorQoSAckPolicy : public ModeSetListener, public IOriginat
         virtual std::map<MACAddress, std::vector<Ieee80211DataFrame*>> getOutstandingFramesPerReceiver(InProgressFrames *inProgressFrames) const;
         virtual int computeStartingSequenceNumber(const std::vector<Ieee80211DataFrame*>& outstandingFrames) const;
         virtual bool isCompressedBlockAckReq(const std::vector<Ieee80211DataFrame*>& outstandingFrames, int startingSequenceNumber) const;
+        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames) const;
 
     public:
         virtual AckPolicy computeAckPolicy(Ieee80211DataFrame* frame, OriginatorBlockAckAgreement *agreement) const override;
-        virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const;
-        virtual std::tuple<MACAddress, SequenceNumber, Tid> computeBlockAckReqParameters(InProgressFrames *inProgressFrames) const;
+        virtual bool isBlockAckPolicyEligibleFrame(Ieee80211DataFrame* frame) const override;
         virtual bool isBlockAckReqNeeded(InProgressFrames *inProgressFrames, TxopProcedure *txopProcedure) const override;
 
         virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtFrame) const override;

@@ -37,7 +37,7 @@ namespace ieee80211 {
  *      9.7.6.4 Rate selection for control frames that are not control response frames
  *      9.7.6.5 Rate selection for control response frames
  */
-class INET_API RateSelection : public IRateSelection, public cSimpleModule, public cListener
+class INET_API RateSelection : public IRateSelection, public cSimpleModule, public cListener // FIXME
 {
     protected:
         IRateControl *dataOrMgmtRateControl = nullptr;

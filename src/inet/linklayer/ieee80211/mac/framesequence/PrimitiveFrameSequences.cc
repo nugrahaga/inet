@@ -281,7 +281,7 @@ IFrameSequenceStep *BlockAckReqBlockAckFs::prepareStep(FrameSequenceContext *con
 {
     switch (step) {
         case 0: {
-            auto blockAckReq = context->getInProgressFrames()->getFrameToTransmit();
+            // FIXME: build auto blockAckReq = context->getInProgressFrames()->getFrameToTransmit();
             return new TransmitStep(blockAckReq, context->getIfs());
         }
         case 1: {
