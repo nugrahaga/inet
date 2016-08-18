@@ -79,8 +79,8 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // MAC Procedures
         IRecipientAckProcedure *recipientAckProcedure = nullptr;
-        IRecipientQoSAckPolicy *recipientAckPolicy = nullptr;
         IOriginatorQoSAckPolicy *originatorAckPolicy = nullptr;
+        IRecipientQoSAckPolicy *recipientAckPolicy = nullptr;
         IRtsProcedure *rtsProcedure = nullptr;
         IQoSRtsPolicy *rtsPolicy = nullptr;
         ICtsProcedure *ctsProcedure = nullptr;
@@ -99,7 +99,6 @@ class INET_API Hcf : public ICoordinationFunction, public IFrameSequenceHandler:
 
         // Ack handler
         std::vector<AckHandler *> edcaAckHandlers;
-        IOriginatorQoSAckPolicy *originatorQoSAckPolicy = nullptr;
         AckHandler *hccaAckHandler = nullptr;
 
         // Tx Opportunity

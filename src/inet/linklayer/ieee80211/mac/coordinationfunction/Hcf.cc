@@ -40,13 +40,16 @@ void Hcf::initialize(int stage)
         frameSequenceHandler = check_and_cast<FrameSequenceHandler *>(getSubmodule("frameSequenceHandler"));
         originatorDataService = check_and_cast<IOriginatorMacDataService *>(getSubmodule(("originatorQoSMacDataService")));
         recipientDataService = check_and_cast<IRecipientMacDataService*>(getSubmodule("recipientQoSMacDataService"));
-        originatorQoSAckPolicy = check_and_cast<OriginatorQoSAckPolicy*>(getSubmodule("originatorQoSAckPolicy"));
+        originatorAckPolicy = check_and_cast<IOriginatorQoSAckPolicy*>(getSubmodule("originatorAckPolicy"));
+        recipientAckPolicy = check_and_cast<IRecipientQoSAckPolicy*>(getSubmodule("recipientAckPolicy"));
         edcaMgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQoSRecoveryProcedure *>(getSubmodule("edcaMgmtAndNonQoSRecoveryProcedure"));
         recipientBlockAckAgreementHandler = new RecipientBlockAckAgreementHandler();
         originatorBlockAckAgreementHandler = new OriginatorBlockAckAgreementHandler();
         rtsProcedure = new RtsProcedure();
+        rtsPolicy = check_and_cast<IQoSRtsPolicy*>(getSubmodule("rtsPolicy"));
         recipientAckProcedure = new RecipientAckProcedure();
         ctsProcedure = new CtsProcedure();
+        ctsPolicy = check_and_cast<ICtsPolicy*>(getSubmodule("ctsPolicy"));
         originatorBlockAckProcedure = new OriginatorBlockAckProcedure();
         recipientBlockAckProcedure = new RecipientBlockAckProcedure();
         for (int ac = 0; ac < numEdcafs; ac++) {

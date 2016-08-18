@@ -41,7 +41,8 @@ void Dcf::initialize(int stage)
         rtsProcedure = new RtsProcedure();
         rtsPolicy = check_and_cast<IRtsPolicy *>(getSubmodule("rtsPolicyModule"));
         recipientAckProcedure = new RecipientAckProcedure();
-        recipientAckPolicy = check_and_cast<RecipientAckPolicy *>(getSubmodule("recipientAckPolicyModule"));
+        recipientAckPolicy = check_and_cast<IRecipientAckPolicy *>(getSubmodule("recipientAckPolicy"));
+        originatorAckPolicy = check_and_cast<IOriginatorAckPolicy *>(getSubmodule("originatorAckPolicy"));
         ackHandler = new AckHandler();
         ctsProcedure = new CtsProcedure();
         ctsPolicy = check_and_cast<ICtsPolicy *>(getSubmodule("ctsPolicyModule"));
